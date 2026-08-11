@@ -184,6 +184,18 @@ branch, implement or cherry-pick it onto `main` and merge `main` back into every
 application branch that needs it. Never use an application branch as the base for an
 unrelated role.
 
+### Application URLs
+
+`.github/workflows/deploy-pages.yml` assembles one Pages artifact from the portfolio
+branches. Generic `main` is published at `https://themtset.github.io/`, while
+`designer-application` is published at the shorter application URL
+`https://themtset.github.io/da/`. Both sites keep their assets self-contained through
+relative paths. A future application needs an explicit branch-to-directory entry in the
+workflow so every shared URL stays intentional and stable.
+
+The repository's Pages source must use **GitHub Actions**, not the legacy single-branch
+source, for this combined artifact to deploy.
+
 ## Open questions
 
 - [ ] How does the settled descent hand off to selected work without making the geometry
