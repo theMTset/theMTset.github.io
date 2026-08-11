@@ -1,7 +1,7 @@
 # the MT set — Site Plan
 
-**Status:** early. Concept is solid, copy is draft, structure is one section deep.
-**Last updated:** 2026-08-04
+**Status:** generic portfolio foundation built through the descent; role-specific work lives on branches.
+**Last updated:** 2026-08-11
 
 ---
 
@@ -41,20 +41,11 @@ same brand and should not look like each other.
 | Ask of visitor | Observe or engage, both fine | Keep going. Descend. |
 | Subject | The product | The person who built it |
 
-**Open question — decide before building the descent animation.** Reusing the Simply
-Curious star tetrahedron here is the current plan (see below). It's the strongest visual
-asset available and it carries real meaning. But shipping the same hero on two sites
-weakens both — a visitor who sees both will read the portfolio as an offcut of the
-product rather than its author. Options:
-
-- **(A) Reuse as-is.** Fastest. Accept the dilution.
-- **(B) Reuse the geometry, change the expression.** Same star tetrahedron, but here it
-  is *found in the dark* rather than *offered in the light* — no gold, no breathing,
-  no click-to-begin. Scroll-driven only. Recommended.
-- **(C) Different geometry entirely.** The empty set symbol ∅ has its own geometry to
-  mine. Most distinct, most work, and loses the "same mind built both" signal.
-
-Working assumption below is **(B)**.
+The portfolio uses the same star-tetrahedron geometry but gives it a different expression.
+Here it is found in the dark: cool blue rather than gold, already assembled, and always
+turning. There is no click-to-begin or scripted Simply Curious story. Dragging turns the
+shape directly; release returns it to its ambient track. This preserves the "same person
+built both" connection without making the portfolio hero an offcut of the product hero.
 
 ---
 
@@ -66,13 +57,13 @@ Working assumption below is **(B)**.
 |---|---|---|---|
 | `.opening` | 185vh | Built | "is it empty?" — invisible until lightning |
 | `.answer` | 205vh | Built | "no. it is **MT**" |
-| `.descent` | 390vh | Built (rings only) | The fall. Three fragments pass by. |
-| `.threshold` | 100vh | Placeholder | "there is more down here." Dead end today. |
+| `.descent` | 500vh | Built | The fall. Copy collides into a persistent stack while the interactive geometry grows. |
+| `.threshold` | 100vh | Placeholder on `main` | Handoff to role-specific work; its final transition remains open. |
 
 ### Needed
 
-The threshold is where the site currently stops being a site. Everything below is
-unbuilt.
+The generic `main` branch intentionally stops at the threshold. Role-specific branches
+continue into selected work, About, and Contact.
 
 | Section | Purpose |
 |---|---|
@@ -111,97 +102,83 @@ plan already says this and it's right.
 
 ## The descent animation
 
-**Goal:** the star tetrahedron sits at the center of the shaft, small and nearly
-invisible at the top of the fall, and grows as you descend until it fills the screen at
-the bottom.
+The star tetrahedron sits above the copy stack, small at the top of the fall, and grows
+with `descentProgress` until it reaches its final size near the bottom. The hole's visual
+center is raised to keep the accumulated words clear.
 
-Read literally, the shaft is a hole and the geometry is what's at the bottom of it. The
-"empty" set has something in it, and the further in you look the more of it there is.
-That's the whole site in one motion.
+The copy is a causal sequence:
 
-### Current state
+> I need to know how things are built.
+>
+> so I can make things
+>
+> intuitive
+>
+> understandable
+>
+> interactive
 
-[script.js:150-159](script.js#L150-L159) already computes `descentProgress` (0→1 across
-the `.descent` section) and uses it to scale and rotate four rings. The `.core` element
-([index.html:59](index.html#L59)) is a static 8vmax blob at center — that's the slot the
-animation goes into.
+Each line falls from above, bounces on arrival, jolts the existing stack, and remains.
+The sequence is scroll-driven and reversible. Reduced-motion mode shows the completed
+stack without falling or collision.
 
-### Source
+### Geometry source and behavior
 
-`~/Projects/Simply_Curious/src/components/StarTetrahedron.astro` — ~2300 lines. It is
-**not** droppable as-is. It contains, roughly:
+`assets/work/star-tetrahedron-ambient.html` is generated from the latest pushed renderer
+in `simply-curious/website`, component commit
+`24f95c0314782f69706d2ec114fcafd67c1b9cfe`. It preserves the quaternion transform,
+perspective projection, and hidden-line occlusion work while replacing the product's
+scripted phase machine with a portfolio-specific ambient mode:
 
-- **Geometry + math** (~lines 344-520): quaternions, rotation, projection. Portable.
-- **Hidden-line occlusion** (~lines 539-670): front/back face tests, occluder building,
-  segment runs. Portable, and this is the expensive, hard-won part — the reason the
-  Star of David reveals itself cleanly.
-- **The scripted click sequence** (~lines 672-1050, 1141-1800): hexagram → tetrahedra →
-  merge → tilt → spin. **Not wanted here.** This site has no click-to-begin.
-- **Logo background, theme colors, expand portal, drag, scroll lock** (~lines 1050-1140,
-  1817-2340): Simply Curious product features. Not wanted.
+- the completed 3D star is visible immediately and rotates slowly;
+- mouse or one-finger drag turns it about the screen axes;
+- release takes the shortest eased path back to the ambient track;
+- scroll never changes its speed or direction and clicks do not pause it;
+- the host page supplies a full-screen overlay control;
+- before the final part of the descent, the iframe ignores pointer input so it cannot
+  trap a mobile scroll gesture;
+- reduced-motion mode keeps the star static but still permits direct inspection.
 
-### Port plan
-
-Extract the render core into a plain `descent.js` — no Astro, no TypeScript, matching
-this project's vanilla setup. Then drive it from scroll instead of from a timeline:
-
-1. Replace the `.core` div with `<canvas class="core-canvas">`, absolutely centered in
-   `.shaft`, `z-index` below `.fragment` (which is 2).
-2. Feed `descentProgress` in as the single input. Everything else derives from it:
-   - **Scale** — from roughly 4vmax at `p=0` to filling the viewport at `p=1`.
-     Non-linear; slow at first, accelerating late, so the arrival lands.
-   - **Rotation** — a slow constant Y-drift plus a `p`-driven tilt, so it's alive when
-     static and responds when you move.
-   - **Opacity / stroke alpha** — near-zero at the top. It should be *ambiguous* whether
-     anything is there for the first 20% of the fall.
-   - **The reveal** — the hidden-line Star of David resolves in the last ~25% of the
-     descent. That's the payoff moment and it should coincide with the threshold copy.
-3. Lightning already drives `--light` globally. Wire it into the stroke color so the
-   geometry catches the storm the same way the text does. This is the detail that will
-   make it feel like one system rather than two effects on one page.
-4. `prefers-reduced-motion`: render the settled pose, fully revealed, no scroll coupling.
-
-### Sequencing
-
-Do the copy first. The animation is the expensive item and its pacing depends on how
-much text it has to carry — build it against real words, not lorem.
+The portfolio remains plain HTML, CSS, and JavaScript. The renderer is isolated in an
+iframe so its canvas styles and pointer handling do not leak into the surrounding page.
 
 ---
 
-## The scroll cue is the actual bounce risk
+## The scroll cue
 
-`--question-rest: 0` is settled — the question stays black and the storm timing carries
-readability instead. But there's a second, quieter problem it exposes.
-
-`.scroll-cue` opacity is `clamp(0, calc((var(--progress) - .03) * 8), .42)` — zero until
-you've already started scrolling. So a visitor who lands and doesn't move sees a black
-screen, some lightning, and **no indication that scrolling does anything.** The cue is a
-reward for an action already taken rather than an invitation to take it.
-
-Making the question readable at rest solves nothing here; the visitor who bounces isn't
-squinting at the copy, they're deciding whether this page is broken.
-
-**Recommendation:** invert it. Show `look deeper` faintly at rest and fade it *out* as
-`--progress` rises — it has done its job the moment you move. Roughly:
-
-```css
-opacity: clamp(0, calc(.34 - var(--progress) * 4), .34);
-```
-
-Better still, let the cue catch the lightning like everything else so it belongs to the
-storm rather than sitting on top of it. Not changed yet — this alters the feel of the
-first screen and is your call.
+The cue now catches the same lightning as the question at scroll zero and fades out as
+soon as `--progress` rises. It is not permanently visible in the dark, so the opening
+keeps its atmosphere, but every readable strike also reveals the instruction to “look
+deeper.” Reduced-motion mode supplies a static low-opacity fallback because no strike
+will occur.
 
 ---
+
+## Branching and role-specific portfolios
+
+`main` is the generic, role-neutral portfolio foundation. Shared improvements belong on
+`main` first: storm behavior, the opening and descent, accessibility, generic About or
+contact content, shared components, and bug fixes.
+
+Role-specific applications branch from `main`, for example:
+
+- `designer-application` — interaction design, motion, brand, and Turbopuffer-specific copy;
+- a future data-center branch — systems, operations, electrical work, troubleshooting,
+  and infrastructure-specific selected work.
+
+Do not merge job-targeted headlines, project ordering, employer references, or metadata
+back into `main`. To make a new application, branch from current `main`, then tailor only
+the role-specific layer. When a shared improvement is discovered on an application
+branch, implement or cherry-pick it onto `main` and merge `main` back into every active
+application branch that needs it. Never use an application branch as the base for an
+unrelated role.
 
 ## Open questions
 
-- [ ] Which option for the Simply Curious relationship — A, B, or C?
-- [ ] Does the descent hold four category rings, or stay abstract with a conventional
-      portfolio section below the threshold?
+- [ ] How does the settled descent hand off to selected work without making the geometry
+      disappear or turning the next section into an abrupt cut?
+- [ ] Does the generic portfolio eventually include a conventional work index, or remain
+      only the shared entrance used by role-specific branches?
 - [ ] Is this the primary portfolio URL, or an entrance that hands off to a plainer site?
-      Changes how much conventional navigation has to live inside the experience.
-- [ ] Static site (current: hand-written HTML/CSS/JS) or Astro like Simply Curious?
-      Case study pages will make plain HTML tedious around the third one.
-- [ ] Real name and contact surfaced, or does "MT" carry it? A portfolio a recruiter
-      can't attribute to a person is a portfolio that doesn't work.
+- [ ] Static site or Astro once generic case-study pages justify shared templates?
+- [ ] Real name and contact surfaced on generic `main`, or only on application branches?

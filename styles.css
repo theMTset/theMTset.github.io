@@ -2,6 +2,7 @@
   color-scheme: dark;
   --light: 0;
   --progress: 0;
+  --descent-progress: 0;
   --cold: 192, 220, 255;
   --paper: #e9eef2;
 
@@ -92,6 +93,12 @@ button { font: inherit; }
 
 .bolt-core { stroke: #f5fbff; stroke-width: 1.2; }
 .bolt-branch { stroke: rgba(225, 242, 255, .86); stroke-width: .8; }
+
+/* The second strike is physically heavier as well as brighter. */
+.big-strike .bolt-glow { stroke-width: 12; }
+.big-strike .bolt-core { stroke-width: 1.8; }
+.big-strike .bolt-branch { stroke-width: 1.15; }
+.big-strike .storm { opacity: calc(var(--light) * 1.55); }
 
 .sound-toggle {
   position: fixed;
@@ -273,7 +280,7 @@ button { font: inherit; }
 .descent {
   position: relative;
   z-index: 3;
-  min-height: 390vh;
+  min-height: 500vh;
   background: #000;
 }
 
@@ -285,19 +292,21 @@ button { font: inherit; }
   height: 100svh;
   overflow: hidden;
   perspective: 700px;
-  background: radial-gradient(circle at 50% 50%, #071019 0, #020406 11%, #000 32%);
+  background: radial-gradient(circle at 50% 37%, #071019 0, #020406 12%, #000 34%);
 }
 
-.ring,
-.core {
+.shaft-rings {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  border-radius: 44% 56% 52% 48% / 56% 42% 58% 44%;
-  transform: translate(-50%, -50%) rotate(var(--turn));
+  inset: 0;
+  pointer-events: none;
 }
 
 .ring {
+  position: absolute;
+  top: 37%;
+  left: 50%;
+  border-radius: 44% 56% 52% 48% / 56% 42% 58% 44%;
+  transform: translate(-50%, -50%) rotate(var(--turn));
   border: 1px solid rgba(126, 156, 178, .08);
   box-shadow: inset 0 0 80px rgba(89, 127, 155, .055), 0 0 35px #000;
 }
@@ -318,41 +327,121 @@ button { font: inherit; }
 .ring-3 { --turn: 28deg; width: 48vmax; height: 42vmax; }
 .ring-4 { --turn: -38deg; width: 25vmax; height: 21vmax; }
 
-.core {
-  width: 8vmax;
-  aspect-ratio: 1;
-  background: #02070b;
-  box-shadow: 0 0 45px rgba(79, 145, 184, .12);
-}
-
-.fragment {
+.descent-geometry {
   position: absolute;
-  z-index: 2;
-  width: min(28rem, 72vw);
-  color: rgba(228, 237, 242, .75);
-  text-shadow: 0 2px 20px #000;
+  z-index: 4;
+  top: 37%;
+  left: 50%;
+  width: 5rem;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 0 28px rgba(117, 181, 224, .13));
 }
 
-.fragment-left { left: 9vw; }
-.fragment-right { right: 9vw; text-align: right; }
-.fragment:nth-of-type(1) { top: 80vh; }
-.fragment:nth-of-type(2) { top: 195vh; }
-.last-fragment { top: 310vh; }
-
-.fragment-number {
+.descent-geometry iframe {
   display: block;
-  margin-bottom: 1.25rem;
-  color: rgba(161, 192, 211, .34);
-  font: 400 .6rem/1 "Inter", sans-serif;
-  letter-spacing: .28em;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 50%;
 }
 
-.fragment p {
+.geometry-expand {
+  position: absolute;
+  top: 50%;
+  right: -2.5rem;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 0;
+  border-radius: .5rem;
+  color: rgba(var(--cold), .62);
+  background: rgba(2, 6, 9, .62);
+  opacity: 0;
+  pointer-events: none;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: color .2s ease, opacity .35s ease, background-color .2s ease;
+}
+
+.descent-geometry.geometry-ready .geometry-expand {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.geometry-expand:hover,
+.geometry-expand:focus-visible {
+  color: rgba(var(--cold), 1);
+  background: rgba(15, 28, 38, .82);
+}
+
+.geometry-expand:focus-visible { outline: 1px solid currentColor; outline-offset: 3px; }
+.geometry-expand svg { width: 1.1rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.geometry-icon-close { display: none; }
+
+.descent-geometry.is-expanded {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  width: 100vw !important;
+  height: 100vh;
+  height: 100svh;
+  aspect-ratio: auto;
+  transform: none;
+  background: #020406;
+  filter: none;
+}
+
+.descent-geometry.is-expanded iframe { border-radius: 0; }
+.descent-geometry.is-expanded .geometry-expand { top: 1.25rem; right: 1.25rem; transform: none; }
+.descent-geometry.is-expanded .geometry-icon-open { display: none; }
+.descent-geometry.is-expanded .geometry-icon-close { display: inline; }
+body.geometry-open { overflow: hidden; }
+body.geometry-open .sound-toggle { opacity: 0; pointer-events: none; }
+
+.descent-copy {
+  position: absolute;
+  z-index: 5;
+  left: 7vw;
+  bottom: clamp(1.5rem, 3.5vh, 3rem);
+  display: grid;
+  width: min(38rem, 84vw);
+  color: rgba(228, 237, 242, .88);
+  text-shadow: 0 2px 24px #000, 0 0 8px #000;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.drop-line {
   margin: 0;
-  font-size: clamp(1.25rem, 2.5vw, 2.35rem);
+  opacity: 0;
+  transform: translateY(-100vh);
+  will-change: transform, opacity;
+}
+
+.drop-premise {
+  margin-bottom: .7rem;
+  color: rgba(203, 219, 229, .62);
+  font: 300 clamp(.9rem, 1.5vw, 1.15rem)/1.35 "Inter", sans-serif;
+  letter-spacing: .015em;
+}
+
+.drop-anchor {
+  margin-bottom: .25rem;
+  color: rgba(228, 237, 242, .78);
+  font-size: clamp(1.15rem, 2vw, 1.65rem);
   font-weight: 300;
-  line-height: 1.35;
+  line-height: 1.2;
   letter-spacing: -.025em;
+}
+
+.drop-quality {
+  font-size: clamp(1.75rem, 4.4vw, 4.1rem);
+  font-weight: 300;
+  line-height: .94;
+  letter-spacing: -.055em;
 }
 
 .threshold {
@@ -402,8 +491,13 @@ button { font: inherit; }
   .sound-toggle { top: 1rem; right: 1rem; }
   .small-line { transform: translateY(-6rem); }
   .answer-whisper { transform: translateY(7rem); }
-  .fragment-left { left: 8vw; }
-  .fragment-right { right: 8vw; }
+  .shaft { background: radial-gradient(circle at 50% 31%, #071019 0, #020406 12%, #000 34%); }
+  .ring,
+  .descent-geometry { top: 31%; }
+  .descent-copy { left: 6vw; bottom: max(1.25rem, env(safe-area-inset-bottom)); width: 88vw; }
+  .drop-premise { margin-bottom: .45rem; }
+  .drop-quality { line-height: .98; }
+  .geometry-expand { right: -2.15rem; }
   .ring-1 { width: 175vmax; height: 130vmax; }
   .ring-2 { width: 110vmax; height: 88vmax; }
 }
@@ -418,4 +512,7 @@ button { font: inherit; }
      or they never become visible at all. */
   .mark::before { opacity: .55; }
   .scroll-cue { opacity: calc(.34 * clamp(0, calc(1 - var(--progress) * 4), 1)); }
+  .drop-line { opacity: 1; transform: none; }
+  .descent-copy { transform: none !important; }
+  .geometry-expand { transition: none; }
 }
