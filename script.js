@@ -11,10 +11,9 @@
 
   // Opening choreography. Strike 1 is distant and easy to miss — it only suggests there
   // is something to look at. Strike 2 comes down on top of the words: closer, louder,
-  // and it leaves the text glowing for a few seconds so it can actually be read. The storm
-  // ends there; lightning never follows the visitor into the rest of the portfolio.
+  // and it leaves the text glowing for a few seconds so it can actually be read. After
+  // that, sparse strikes continue only while the visitor remains in the opening or answer.
   const BIG_STRIKE_INDEX = 1;
-  const TOTAL_STRIKES = 2;
   const AFTERGLOW_MS = 6400;
   const AFTERGLOW_HOLD_MS = 1600;
   const AFTERGLOW_PEAK = .66;
@@ -28,6 +27,11 @@
 
   const random = (min, max) => min + Math.random() * (max - min);
   const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  function stormIsAllowed() {
+    const boundary = document.querySelector('.descent');
+    return !boundary || boundary.getBoundingClientRect().top > 0;
+  }
 
   function makeBolt(big = false) {
     // The second strike crosses the question and reaches well below it. More segments and
@@ -100,7 +104,7 @@
   }
 
   async function strike() {
-    if (isFlashing || document.hidden) return;
+    if (isFlashing || document.hidden || !stormIsAllowed()) return;
     isFlashing = true;
 
     const big = strikeCount === BIG_STRIKE_INDEX;
@@ -123,7 +127,7 @@
     paths.glow.setAttribute('d', '');
     paths.core.setAttribute('d', '');
     paths.branch.setAttribute('d', '');
-    if (soundOn) playThunder(intensity, big);
+    if (soundOn && stormIsAllowed()) playThunder(intensity, big);
 
     await fadeLight(intensity * (big ? .34 : .16), big ? 620 : 380);
     setLight(0);
@@ -137,16 +141,37 @@
   function nextStrikeDelay(first) {
     if (first) return 650;
     // Beat between the distant opener and the one that lands on the words.
-    return random(2100, 2900);
+    if (strikeCount === BIG_STRIKE_INDEX) return random(2100, 2900);
+    return random(3200, 9800);
   }
 
   function scheduleStorm(first = false) {
     window.clearTimeout(stormTimer);
-    if (reducedMotion || strikeCount >= TOTAL_STRIKES) return;
+    if (reducedMotion || !stormIsAllowed()) return;
     stormTimer = window.setTimeout(async () => {
       await strike();
       scheduleStorm();
     }, nextStrikeDelay(first));
+  }
+
+  let stormWasAllowed = stormIsAllowed();
+
+  function syncStormRegion() {
+    const allowed = stormIsAllowed();
+    root.classList.toggle('storm-paused', !allowed);
+
+    if (!allowed) {
+      window.clearTimeout(stormTimer);
+      paths.glow.setAttribute('d', '');
+      paths.core.setAttribute('d', '');
+      paths.branch.setAttribute('d', '');
+      setLight(0);
+      root.style.setProperty('--afterglow', '0');
+    } else if (!stormWasAllowed && !isFlashing) {
+      scheduleStorm();
+    }
+
+    stormWasAllowed = allowed;
   }
 
   function getAudioContext() {
@@ -310,6 +335,7 @@
   }
 
   window.addEventListener('scroll', () => {
+    syncStormRegion();
     if (!scrollTicking) {
       window.requestAnimationFrame(updateScroll);
       scrollTicking = true;
@@ -318,7 +344,10 @@
 
   window.addEventListener('resize', updateScroll, { passive: true });
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) scheduleStorm();
+    if (!document.hidden) {
+      syncStormRegion();
+      scheduleStorm();
+    }
   });
   soundButton.addEventListener('click', toggleSound);
   geometryExpand?.addEventListener('click', () => {
@@ -331,9 +360,10 @@
     }
   });
 
+  syncStormRegion();
   if (reducedMotion) {
     setLight(.15);
-  } else {
+  } else if (stormIsAllowed()) {
     scheduleStorm(true);
   }
   updateScroll();
