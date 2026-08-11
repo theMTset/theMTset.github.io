@@ -152,8 +152,7 @@ The portfolio itself remains vanilla, but the Turbopuffer case study links the r
 tested React + TypeScript deliverable at
 `assets/work/scramble-text/ScrambleText.tsx`. Its adjacent README documents the changed
 props, integration call site, accessibility behavior, and reduced-motion handling. The
-public link targets this branch in `theMTset/theMTset`; it will resolve after the branch
-is pushed.
+public link targets this branch in `theMTset/theMTset.github.io`.
 
 ---
 
