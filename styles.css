@@ -511,6 +511,8 @@ body.geometry-open .sound-toggle { opacity: 0; pointer-events: none; }
 
 .work-embed-dark { background: #0f172a; }
 .work-embed-light { background: var(--paper); }
+.work-embed-simply-animation,
+.work-embed-logo-black { background: #000; }
 
 .work-embed iframe {
   width: 100%;

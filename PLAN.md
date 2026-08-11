@@ -156,6 +156,16 @@ React + TypeScript component, live Vite demo, integration instructions, accessib
 behavior, reduced-motion handling, and 0BSD license. Keeping the reusable artifact in its
 own repository avoids two competing source copies.
 
+### Simply Curious selected-work preview
+
+`assets/work/star-tetrahedron.html` is a standalone build of the complete latest pushed
+Simply Curious hero component at commit `24f95c0314782f69706d2ec114fcafd67c1b9cfe`.
+Unlike the simplified blue descent adaptation, this preview preserves the full
+click-to-start sequence and product interactions, with its original gold treatment on a
+black ground. `assets/work/sc-logo-mark-thin.svg` supplies the animation's background-logo
+bloom. The separate Simply Curious logo tile also uses true black so both work samples
+share the product presentation.
+
 ---
 
 ## The scroll cue

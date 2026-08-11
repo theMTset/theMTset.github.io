@@ -1,592 +1,1572 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Star Tetrahedron</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Simply Curious star tetrahedron</title>
+  <!-- Standalone build of the complete pushed Simply Curious hero component at 24f95c0314782f69706d2ec114fcafd67c1b9cfe. -->
   <style>
-    body { margin: 0; background: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
-    canvas { display: block; max-width: 100%; max-height: 100%; }
+    :root { color-scheme: dark; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #000; }
+    body {
+      --bg: #000;
+      --thr-bg: #000;
+      --mark-color: #c9a84c;
+      --thr-gold: #cfa856;
+    }
+    #hero {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+    .hr-hex { width: 100%; opacity: 1; pointer-events: auto; }
+    .hero-logo-glow {
+      background: radial-gradient(circle, var(--mark-color) 0%, transparent 70%);
+    }
+    .hero-logo-bg {
+      background-color: var(--mark-color);
+      -webkit-mask: url('./sc-logo-mark-thin.svg') center / 100% 100% no-repeat;
+      mask: url('./sc-logo-mark-thin.svg') center / 100% 100% no-repeat;
+    }
+  .star-tetra-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    /* Leave more breathing room around the geometry on desktop. The earlier -3rem overlap made
+       the surrounding hero copy crowd the animation. */
+    margin-top: -1.25rem;
+    margin-bottom: -1.25rem;
+  }
+  /* The stage carries the sizing the canvas used to carry, so the canvas can simply fill it and
+     the button can anchor to its corner. Size changes are driven by a FLIP transform in script
+     rather than a width transition — transforms animate on the compositor, and the growth has to
+     stay smooth on a phone while the renderer is still drawing every frame. */
+  .star-tetra-stage {
+    position: relative;
+    display: block;
+    width: 100%;
+    max-width: 300px;
+    transform-origin: center center;
+    will-change: transform;
+  }
+  canvas {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: auto;
+    cursor: pointer;
+    background-color: transparent;
+    z-index: 1;
+  }
+  /* While scroll is driving the animation, name the gesture. This is the only affordance
+     for it right now — worth pairing with a visible hint, since a captured scroll that
+     nobody knows is captured reads as a broken page. */
+  .star-tetra-container.scroll-coupled canvas {
+    cursor: ns-resize;
+    /* Without this the browser decides a vertical drag is a page scroll before touchmove ever
+       runs, and preventDefault arrives too late to stop it — the shape ignores the first drag
+       and the page lurches instead. Scoped to .scroll-coupled so the canvas scrolls like
+       ordinary page content until the animation has actually been started. */
+    touch-action: none;
+  }
+  /* Smaller footprint on mobile so the hero fits one screen */
+  @media (max-width: 640px) {
+    .star-tetra-container {
+      margin-top: -2.25rem;
+      margin-bottom: -2.25rem;
+    }
+    .star-tetra-stage { max-width: 210px; }
+  }
+
+  /* ---- Expanded viewer ----
+     A fixed overlay rather than the Fullscreen API: iOS Safari only grants real fullscreen to
+     <video>, so requestFullscreen on a div silently does nothing there. An overlay behaves the
+     same on every device, which matters more here than the browser chrome going away. */
+  .star-tetra-container.expanded {
+    position: fixed;
+    inset: 0;
+    margin: 0;
+    z-index: 9999;
+  }
+  /* Once initialized, the live canvas stays under <body> permanently. In its collapsed state it
+     is absolutely positioned over the placeholder in the hero; expand/collapse can therefore
+     change only styles and never detach or reattach the canvas on the landing frame. */
+  .star-tetra-container.tetra-portaled:not(.expanded) {
+    position: absolute;
+    inset: auto;
+    margin: 0;
+    z-index: 0;
+  }
+  .star-tetra-container.expanded .star-tetra-stage { max-width: min(92vmin, 900px); }
+
+  /* The HERO's colour specifically. #hero is painted with --thr-bg, which is a different token
+     from the --bg used by the rest of the page — matching --bg was why the panel read as a
+     wrong, blacker rectangle instead of the hero simply growing. */
+  .tetra-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background: var(--thr-bg, var(--bg, #0c0d11));
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 420ms ease;
+  }
+  .star-tetra-container.expanded .tetra-backdrop { pointer-events: auto; }
+
+  /* Stands in for the body-portaled container permanently, holding its page geometry and serving
+     as the opening/closing animation's measurement target. Hidden but still laid out. */
+  .tetra-placeholder { visibility: hidden; pointer-events: none; }
+  .tetra-placeholder .star-tetra-stage { aspect-ratio: 1 / 1; }
+
+  /* Centred on the shape's vertical midline and hung off its right edge — level with the widest
+     part of the animation rather than up in a corner, and clear of the hero text above and below.
+     The stage is transform-scaled during the grow, which would drag the controls along with it;
+     the inverse scale cancels that so the icons stay a constant physical size throughout. */
+  .tetra-controls {
+    position: absolute;
+    /* Keep the control visibly separate from the geometry while leaving it inside the wider
+       container box. Expanded mode pulls it back in so it cannot run against the viewport. */
+    right: -3rem;
+    top: 50%;
+    z-index: 10; /* above the hero text, which otherwise paints over this */
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    transform: translateY(-50%);
+    transform-origin: right center;
+    transition: opacity 140ms ease;
+  }
+  /* Ridden out rather than corrected. The controls live inside the stage, so they inherit its
+     scale during the flight; counter-scaling them meant interpolating s against 1/s, which are
+     not inverses at any midpoint, so the icons wobbled and snapped at the end. Fading them for
+     the duration removes the problem instead of chasing it. */
+  .tetra-animating .tetra-controls {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .tetra-btn {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    border: 0;
+    border-radius: 0.5rem;
+    background: transparent;
+    color: var(--thr-gold, #c9a227);
+    /* Gold identifies the affordance without making it compete with the geometry. */
+    opacity: 0.46;
+    cursor: pointer;
+    transition: opacity 150ms ease, background-color 150ms ease;
+  }
+  .tetra-btn:hover,
+  .tetra-btn:focus-visible { opacity: 0.9; }
+  .tetra-btn:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+  .expanded .tetra-controls { right: 0.25rem; }
+  .expanded .tetra-btn { opacity: 0.6; }
+  .tetra-btn svg {
+    width: 1.15rem;
+    height: 1.15rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  /* One icon, two states — inward arrows once expanded. The button does not move between them,
+     so expanding and contracting are the same target rather than a control that jumps. */
+  .tetra-icon-close,
+  .expanded .tetra-icon-open { display: none; }
+  .expanded .tetra-icon-close { display: inline; }
+
+  /* Roll only appears in the viewer, and reads as held-down while armed. */
+  .tetra-btn-roll,
+  .tetra-btn-separate { display: none; }
+  .expanded .tetra-btn-roll,
+  .expanded .tetra-btn-separate:not([hidden]) { display: grid; }
+  .tetra-btn-roll[aria-pressed="true"] {
+    opacity: 0.95;
+    background: color-mix(in srgb, currentColor 18%, transparent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tetra-btn { transition: none; }
+    .tetra-backdrop { transition: none; }
+    .star-tetra-stage { transition: none !important; }
+  }
+
+    .star-tetra-container { margin: 0; }
+    @media (max-width: 640px) { .star-tetra-container { margin: 0; } }
   </style>
 </head>
 <body>
-<canvas id="c" width="500" height="500"></canvas>
-<script>
-  const canvas = document.getElementById('c');
-  const ctx = canvas.getContext('2d');
-  const W = 500, H = 500; // Canvas dimensions
-
-  // Configuration: Both tetrahedrons are inscribed in a sphere of radius R
-  const R = 180;
-
-  // Tetrahedron 1 (Top-pointing): Apex at +Y, base triangle below it
-  const y1 = R;
-  const y2 = -R / 3;
-  const xzR = Math.sqrt(8 / 9) * R; // Horizontal radius of the base triangle
-
-  const tet1Base = [
-    [0,   y1, 0], // Apex
-    [xzR, y2, 0], // Base point 1
-    [xzR * Math.cos(2 * Math.PI / 3), y2, xzR * Math.sin(2 * Math.PI / 3)], // Base point 2
-    [xzR * Math.cos(4 * Math.PI / 3), y2, xzR * Math.sin(4 * Math.PI / 3)], // Base point 3
-  ];
-
-  // Tetrahedron 2 (Bottom-pointing): Exact point inversion of tet1 for perfect duality
-  const tet2Base = tet1Base.map(v => [-v[0], -v[1], -v[2]]);
-
-  // --- Vector & Math Utilities ---
-
-  // Rotate a 3D point [x, y, z] around the Y-axis
-  function rotateY(v, a) {
-    const [x, y, z] = v;
-    return [
-      x * Math.cos(a) + z * Math.sin(a),
-      y,
-      -x * Math.sin(a) + z * Math.cos(a)
-    ];
-  }
-
-  // Calculate the cross product of two vectors (perpendicular vector)
-  function cross(a, b) {
-    return [
-      a[1] * b[2] - a[2] * b[1],
-      a[2] * b[0] - a[0] * b[2],
-      a[0] * b[1] - a[1] * b[0]
-    ];
-  }
-
-  // Subtract vector b from vector a
-  function sub(a, b) {
-    return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
-  }
-
-  // Calculate the dot product of two vectors (scalar projection)
-  function dot(a, b) {
-    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-  }
-
-  // Calculate where a 3D line (edge) intersects a 3D triangle (face)
-  function intersectEdgeFace(p1, p2, f1, f2, f3) {
-    const edge = sub(p2, p1);
-    const normal = cross(sub(f2, f1), sub(f3, f1));
-    const denom = dot(normal, edge);
-    if (Math.abs(denom) < 1e-6) return null; // Line is parallel to face
-    const t = dot(normal, sub(f1, p1)) / denom;
-    if (t < 0 || t > 1) return null; // Intersection point is outside the edge segment
-    return [p1[0] + t * edge[0], p1[1] + t * edge[1], p1[2] + t * edge[2]];
-  }
-
-  // Determine if a point p lies inside triangle (a, b, c) using barycentric coordinates
-  function isPointInTriangle(p, a, b, c) {
-    const v0 = sub(c, a), v1 = sub(b, a), v2 = sub(p, a);
-    const dot00 = dot(v0, v0), dot01 = dot(v0, v1), dot02 = dot(v0, v2);
-    const dot11 = dot(v1, v1), dot12 = dot(v1, v2);
-    const invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
-    const u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-    const v = (dot00 * dot12 - dot01 * dot02) * invDenom;
-    return (u >= -1e-4) && (v >= -1e-4) && (u + v <= 1 + 1e-4);
-  }
-
-  // --- Projection ---
-
-  // Convert 3D coordinates to 2D screen coordinates using perspective projection
-  function project(v) {
-    const fov = 700; // 700 Field of view / Focal length
-    const z = v[2] + 800; // 800 Camera distance from origin
-    return [W / 2 + v[0] * fov / z, H / 2 - v[1] * fov / z];
-  }
-
-  // Draw a basic wireframe tetrahedron with simple back-face culling
-  function drawTet(verts, hiddenOpacity = 1, isRightTet = false, globalOpacity = 1) {
-    const edges = [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]]; // Connects vertices
-    const faces = [[1,2,3],[0,2,1],[0,3,2],[0,1,3]]; // Defines triangles
-    
-    const p = verts.map(project); // 2D projected points
-    
-    // Identify which edges are part of front-facing triangles
-    const edgeVisible = new Array(edges.length).fill(false);
-    
-    for (const f of faces) {
-      const v1 = verts[f[0]], v2 = verts[f[1]], v3 = verts[f[2]];
-      const normal = cross(sub(v2, v1), sub(v3, v1));
-      
-      const centroid = [(v1[0]+v2[0]+v3[0])/3, (v1[1]+v2[1]+v3[1])/3, (v1[2]+v2[2]+v3[2])/3];
-      // Ensure normal points outward from the tetrahedron
-      if (dot(normal, centroid) < 0) {
-        normal[0] = -normal[0]; normal[1] = -normal[1]; normal[2] = -normal[2];
-      }
-
-      const viewVec = [-centroid[0], -centroid[1], -800 - centroid[2]];
-      
-      // If dot product is positive, the face is pointing towards the camera
-      if (dot(normal, viewVec) > 0) {
-        const fEdges = [[f[0],f[1]], [f[1],f[2]], [f[2],f[0]]];
-        for (const fe of fEdges) {
-          const idx = edges.findIndex(e => (e[0]===fe[0] && e[1]===fe[1]) || (e[0]===fe[1] && e[1]===fe[0]));
-          if (idx !== -1) edgeVisible[idx] = true;
+  <main id="hero" class="finale">
+    <div id="logo-glow" class="hero-logo-glow" style="position:absolute;opacity:.05;pointer-events:none;z-index:0"></div>
+    <div id="logo-bg" class="hero-logo-bg" style="position:absolute;opacity:.2;pointer-events:none;z-index:0"></div>
+    <div id="logo-pulse" class="hero-logo-bg" style="position:absolute;opacity:0;pointer-events:none;z-index:0"></div>
+    <div class="hr-hex"><div class="star-tetra-container">
+  <!-- Fixed and always present, faded in only while expanded. Kept separate from the container's
+       background so closing can fade it independently while the stage transforms back to the
+       placeholder. -->
+  <div class="tetra-backdrop" aria-hidden="true"></div>
+  <!-- Wraps the canvas so the button can be anchored to the shape's own box in both states,
+       rather than to a full-width row whose corners sit under the hero text. -->
+  <div class="star-tetra-stage">
+    <canvas id="c" width="500" height="500"></canvas>
+    <!-- Hidden until the animation is started, and until then untabbable and unreadable to
+         screen readers, so it never announces a control that does nothing yet. -->
+    <div class="tetra-controls" hidden>
+      <button id="tetra-expand" class="tetra-btn" type="button" aria-label="Expand to full screen">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path class="tetra-icon-open" d="M9 3H3v6M15 3h6v6M9 21H3v-6M15 21h6v-6" />
+          <path class="tetra-icon-close" d="M3 9h6V3M21 9h-6V3M3 15h6v6M21 15h-6v6" />
+        </svg>
+      </button>
+      <!-- Roll is the one rotation a single pointer cannot reach. On a phone two fingers do it;
+           a mouse has no equivalent, so this arms drag-to-roll instead. Expanded only — it has
+           nothing to act on until the viewer is open, and would only crowd the hero. -->
+      <button id="tetra-roll" class="tetra-btn tetra-btn-roll" type="button"
+              aria-label="Rotate on the view axis" aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M20 12a8 8 0 1 1-2.34-5.66" />
+          <path d="M20 4v4h-4" />
+        </svg>
+      </button>
+      <!-- Inspection-only exploded view. It appears in the expanded viewer when a post-merge
+           spin is paused, and offsets the same two tetrahedra rather than swapping geometry. -->
+      <button id="tetra-separate" class="tetra-btn tetra-btn-separate" type="button" hidden
+              aria-label="Pull tetrahedra apart" aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M9 7 4 12l5 5M4 12h7" />
+          <path d="m15 7 5 5-5 5M20 12h-7" />
+        </svg>
+      </button>
+    </div>
+  </div>
+</div></div>
+  </main>
+  <script>
+(() => {
+  const canvas = document.getElementById("c");
+  if (canvas) {
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      let syncCanvasResolution2 = function() {
+        const cssW = canvas.offsetWidth || W;
+        const dpr = Math.min(window.devicePixelRatio || 1, 3);
+        const next = Math.max(1, Math.min(3, cssW * dpr / W));
+        if (next <= renderScale + 0.02) return;
+        renderScale = next;
+        canvas.width = Math.round(W * next);
+        canvas.height = Math.round(H * next);
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+      }, colorWithOpacity2 = function(color, opacity) {
+        const c = color.trim();
+        if (c.startsWith("#")) {
+          const hex = c.slice(1);
+          const full = hex.length === 3 ? hex.split("").map((h) => h + h).join("") : hex;
+          const r = parseInt(full.slice(0, 2), 16);
+          const g = parseInt(full.slice(2, 4), 16);
+          const b = parseInt(full.slice(4, 6), 16);
+          return `rgba(${r},${g},${b},${opacity})`;
         }
-      }
-    }
-
-    ctx.lineWidth = lineWidth;
-    for (let i = 0; i < edges.length; i++) {
-      const [a, b] = edges[i];
-      // Visible edges are solid; hidden edges use the provided opacity
-      const opacity = (edgeVisible[i] ? 1 : hiddenOpacity) * globalOpacity;
-      ctx.strokeStyle = `rgba(0,0,0,${opacity})`;
-      
-      if (isRightTet) {
-        // Draw broken line for the right tetrahedron
-        const vA = verts[a], vB = verts[b];
-        const dist3D = Math.hypot(vB[0]-vA[0], vB[1]-vA[1], vB[2]-vA[2]);
-        const gapRatio = (lineWidth / 2) / dist3D;
-        
-        // Two segments: [0, 0.5 - gapRatio] and [0.5 + gapRatio, 1]
-        const t1_end = 0.5 - gapRatio;
-        const t2_start = 0.5 + gapRatio;
-
-        const m1 = [vA[0] + (vB[0]-vA[0])*t1_end, vA[1] + (vB[1]-vA[1])*t1_end, vA[2] + (vB[2]-vA[2])*t1_end];
-        const m2 = [vA[0] + (vB[0]-vA[0])*t2_start, vA[1] + (vB[1]-vA[1])*t2_start, vA[2] + (vB[2]-vA[2])*t2_start];
-        
-        const qA = p[a], qB = p[b], qM1 = project(m1), qM2 = project(m2);
-
-        ctx.beginPath(); ctx.moveTo(qA[0], qA[1]); ctx.lineTo(qM1[0], qM1[1]); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(qM2[0], qM2[1]); ctx.lineTo(qB[0], qB[1]); ctx.stroke();
-      } else {
-        ctx.beginPath();
-        ctx.moveTo(p[a][0], p[a][1]);
-        ctx.lineTo(p[b][0], p[b][1]);
-        ctx.stroke();
-      }
-    }
-  }
-
-  // Find all points where the edges of tetrahedron 1 pierce the faces of tetrahedron 2, and vice-versa
-  function getIntersectionPoints(t1, t2) {
-    const edges = [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]];
-    const faces = [[1,2,3],[0,2,1],[0,3,2],[0,1,3]];
-    const pts = [];
-    
-    // Check T1 edges against T2 faces
-    for (const [e1, e2] of edges) {
-      for (const [f1, f2, f3] of faces) {
-        const p = intersectEdgeFace(t1[e1], t1[e2], t2[f1], t2[f2], t2[f3]);
-        if (p && isPointInTriangle(p, t2[f1], t2[f2], t2[f3])) pts.push(p);
-      }
-    }
-    // Check T2 edges against T1 faces
-    for (const [e1, e2] of edges) {
-      for (const [f1, f2, f3] of faces) {
-        const p = intersectEdgeFace(t2[e1], t2[e2], t1[f1], t1[f2], t1[f3]);
-        if (p && isPointInTriangle(p, t1[f1], t1[f2], t1[f3])) pts.push(p);
-      }
-    }
-    
-    // Remove duplicate points that are very close to each other
-    const unique = [];
-    for (const p of pts) {
-      if (!unique.some(up => Math.hypot(p[0]-up[0], p[1]-up[1], p[2]-up[2]) < 1)) {
-        unique.push(p);
-      }
-    }
-    return unique;
-  }
-
-  // Wrapper function to get intersection points
-  function drawIntersections(t1, t2) {
-    const uniquePts = getIntersectionPoints(t1, t2);
-    return uniquePts;
-  }
-
-  // Complex drawing function for the "Star Tetrahedron" state, handling 8 small tetrahedrons
-  function drawSmallTets(t1, t2, intersections, globalOpacity = 1) {
-    const edges = [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]];
-    const tetFaces = [[1,2,3],[0,2,1],[0,3,2],[0,1,3]];
-    const allTets = [];
-    const test3 = 800; // Camera distance for occlusion checks
-
-    // 1. Identify 8 small tetrahedrons formed at the vertices of the two large ones
-    [t1, t2].forEach((parentTet, parentIdx) => {
-      for (let i = 0; i < 4; i++) {
-        const v = parentTet[i]; // The large tet vertex
-        const connected = [];
-        for (const [a, b] of edges) {
-          if (a === i || b === i) {
-            const otherV = parentTet[a === i ? b : a];
-            // Find intersection points that lie on this specific edge
-            for (const p of intersections) {
-              const d1 = Math.hypot(v[0]-p[0], v[1]-p[1], v[2]-p[2]);
-              const d2 = Math.hypot(p[0]-otherV[0], p[1]-otherV[1], p[2]-otherV[2]);
-              const dTot = Math.hypot(v[0]-otherV[0], v[1]-otherV[1], v[2]-otherV[2]);
-              if (Math.abs(d1 + d2 - dTot) < 1) connected.push(p);
-            }
-          }
+        if (c.startsWith("rgba(")) return c.replace(/,\s*[\d.]+\)$/, `,${opacity})`);
+        if (c.startsWith("rgb(")) return c.replace("rgb(", "rgba(").replace(")", `,${opacity})`);
+        return `rgba(0,0,0,${opacity})`;
+      }, lightenColor2 = function(color, amount, opacity) {
+        const m = colorWithOpacity2(color, 1).match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+        if (!m) return colorWithOpacity2(color, opacity);
+        const mix = (ch) => Math.round(ch + (255 - ch) * amount);
+        return `rgba(${mix(+m[1])},${mix(+m[2])},${mix(+m[3])},${opacity})`;
+      }, rotateY2 = function(v, a) {
+        const [x, y, z] = v;
+        return [
+          x * Math.cos(a) + z * Math.sin(a),
+          y,
+          -x * Math.sin(a) + z * Math.cos(a)
+        ];
+      }, rotateX2 = function(v, a) {
+        const [x, y, z] = v;
+        return [
+          x,
+          y * Math.cos(a) - z * Math.sin(a),
+          y * Math.sin(a) + z * Math.cos(a)
+        ];
+      }, qMul2 = function(a, b) {
+        return [
+          a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3],
+          a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2],
+          a[0] * b[2] - a[1] * b[3] + a[2] * b[0] + a[3] * b[1],
+          a[0] * b[3] + a[1] * b[2] - a[2] * b[1] + a[3] * b[0]
+        ];
+      }, qAxis2 = function(x, y, z, a) {
+        const h = a / 2, s = Math.sin(h);
+        return [Math.cos(h), x * s, y * s, z * s];
+      }, qNorm2 = function(q) {
+        const l = Math.hypot(q[0], q[1], q[2], q[3]) || 1;
+        return [q[0] / l, q[1] / l, q[2] / l, q[3] / l];
+      }, qToMatrix2 = function(q) {
+        const [w, x, y, z] = q;
+        return [
+          [1 - 2 * (y * y + z * z), 2 * (x * y - w * z), 2 * (x * z + w * y)],
+          [2 * (x * y + w * z), 1 - 2 * (x * x + z * z), 2 * (y * z - w * x)],
+          [2 * (x * z - w * y), 2 * (y * z + w * x), 1 - 2 * (x * x + y * y)]
+        ];
+      }, matApply2 = function(m, v) {
+        return [
+          m[0][0] * v[0] + m[0][1] * v[1] + m[0][2] * v[2],
+          m[1][0] * v[0] + m[1][1] * v[1] + m[1][2] * v[2],
+          m[2][0] * v[0] + m[2][1] * v[1] + m[2][2] * v[2]
+        ];
+      }, slerpDir2 = function(a, b, t) {
+        const d = Math.max(-1, Math.min(1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2]));
+        if (d > 0.9995) return [b[0], b[1], b[2]];
+        let axis = cross2(a, b);
+        let al = Math.hypot(axis[0], axis[1], axis[2]);
+        if (al < 1e-6) {
+          axis = cross2(a, Math.abs(a[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0]);
+          al = Math.hypot(axis[0], axis[1], axis[2]);
         }
-        // A small tet is formed by the vertex and its 3 adjacent intersection points
-        if (connected.length === 3) {
-          const isTop = (parentIdx === 0 && i === 0);
-          const isBottom = (parentIdx === 1 && i === 0);
-          allTets.push({verts: [v, ...connected], isTop, isBottom, parentIdx});
+        const ax = axis[0] / al, ay = axis[1] / al, az = axis[2] / al;
+        const ang = Math.acos(d) * t;
+        const c = Math.cos(ang), s = Math.sin(ang);
+        return [
+          a[0] * c + (ay * a[2] - az * a[1]) * s,
+          a[1] * c + (az * a[0] - ax * a[2]) * s,
+          a[2] * c + (ax * a[1] - ay * a[0]) * s
+        ];
+      }, moveRod2 = function(A0, B0, A1, B1, t) {
+        const v0 = [B0[0] - A0[0], B0[1] - A0[1], B0[2] - A0[2]];
+        const v1 = [B1[0] - A1[0], B1[1] - A1[1], B1[2] - A1[2]];
+        const l0 = Math.hypot(v0[0], v0[1], v0[2]) || 1;
+        const l1 = Math.hypot(v1[0], v1[1], v1[2]) || 1;
+        const dir = slerpDir2([v0[0] / l0, v0[1] / l0, v0[2] / l0], [v1[0] / l1, v1[1] / l1, v1[2] / l1], t);
+        const half = (l0 + (l1 - l0) * t) / 2;
+        const mid = [
+          (A0[0] + B0[0]) / 2 + ((A1[0] + B1[0]) / 2 - (A0[0] + B0[0]) / 2) * t,
+          (A0[1] + B0[1]) / 2 + ((A1[1] + B1[1]) / 2 - (A0[1] + B0[1]) / 2) * t,
+          (A0[2] + B0[2]) / 2 + ((A1[2] + B1[2]) / 2 - (A0[2] + B0[2]) / 2) * t
+        ];
+        return {
+          a: [mid[0] - dir[0] * half, mid[1] - dir[1] * half, mid[2] - dir[2] * half],
+          b: [mid[0] + dir[0] * half, mid[1] + dir[1] * half, mid[2] + dir[2] * half]
+        };
+      }, cross2 = function(a, b) {
+        return [
+          a[1] * b[2] - a[2] * b[1],
+          a[2] * b[0] - a[0] * b[2],
+          a[0] * b[1] - a[1] * b[0]
+        ];
+      }, sub2 = function(a, b) {
+        return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+      }, dot2 = function(a, b) {
+        return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+      }, intersectEdgeFace2 = function(p1, p2, f1, f2, f3) {
+        const edge = sub2(p2, p1);
+        const normal = cross2(sub2(f2, f1), sub2(f3, f1));
+        const denom = dot2(normal, edge);
+        if (Math.abs(denom) < 1e-6) return null;
+        const t = dot2(normal, sub2(f1, p1)) / denom;
+        if (t < 0 || t > 1) return null;
+        return [p1[0] + t * edge[0], p1[1] + t * edge[1], p1[2] + t * edge[2]];
+      }, isPointInTriangle2 = function(p, a, b, c) {
+        const v0 = sub2(c, a), v1 = sub2(b, a), v2 = sub2(p, a);
+        const dot00 = dot2(v0, v0), dot01 = dot2(v0, v1), dot02 = dot2(v0, v2);
+        const dot11 = dot2(v1, v1), dot12 = dot2(v1, v2);
+        const invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+        const u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+        const v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+        return u >= -1e-4 && v >= -1e-4 && u + v <= 1 + 1e-4;
+      }, project2 = function(v) {
+        const fov = 700;
+        const z = v[2] + 800;
+        let px = W / 2 + v[0] * fov / z;
+        let py = H / 2 - v[1] * fov / z;
+        if (orthoBlend !== 0) {
+          const orthoScale = fov / 800;
+          const ox = W / 2 + v[0] * orthoScale;
+          const oy = H / 2 - v[1] * orthoScale;
+          px = px + (ox - px) * orthoBlend;
+          py = py + (oy - py) * orthoBlend;
         }
-      }
-    });
-
-    // 2. Find all front-facing triangles from ALL small tets to use as "occluders" (masks)
-    const occluders = [];
-    allTets.forEach(tetObj => {
-      const tet = tetObj.verts;
-      tetFaces.forEach(f => {
-        const v1 = tet[f[0]], v2 = tet[f[1]], v3 = tet[f[2]];
-        const normal = cross(sub(v2, v1), sub(v3, v1));
-        const centroid = [(v1[0]+v2[0]+v3[0])/3, (v1[1]+v2[1]+v3[1])/3, (v1[2]+v2[2]+v3[2])/3];
-        if (dot(normal, centroid) < 0) { normal[0]=-normal[0]; normal[1]=-normal[1]; normal[2]=-normal[2]; }
-        const viewVec = [-centroid[0], -centroid[1], -test3 - centroid[2]];
-        if (dot(normal, viewVec) > 0) occluders.push({v1, v2, v3, normal, centroid});
-      });
-    });
-
-    // 3. Process edges and check visibility
-    const processedEdges = new Map();
-
-    allTets.forEach(tetObj => {
-      const tet = tetObj.verts;
-      const edgeStatus = new Array(edges.length).fill(0); // 0: hidden, 1: visible
-
-      // Check visibility within its own small tet (local back-face culling)
-      tetFaces.forEach(f => {
-        const v1 = tet[f[0]], v2 = tet[f[1]], v3 = tet[f[2]];
-        const normal = cross(sub(v2, v1), sub(v3, v1));
-        const centroid = [(v1[0]+v2[0]+v3[0])/3, (v1[1]+v2[1]+v3[1])/3, (v1[2]+v2[2]+v3[2])/3];
-        if (dot(normal, centroid) < 0) { normal[0]=-normal[0]; normal[1]=-normal[1]; normal[2]=-normal[2]; }
+        if (rumbleIntensity > 0) {
+          const seed = v[0] * 0.13 + v[1] * 0.071 + v[2] * 0.037;
+          px += Math.sin(rumblePhase + seed) * rumbleIntensity;
+          py += Math.cos(rumblePhase * 1.3 + seed * 1.7) * rumbleIntensity * 0.6;
+        }
+        return [px, py];
+      }, faceIsFront2 = function(v1, v2, v3, opposite) {
+        const normal = cross2(sub2(v2, v1), sub2(v3, v1));
+        const centroid = [(v1[0] + v2[0] + v3[0]) / 3, (v1[1] + v2[1] + v3[1]) / 3, (v1[2] + v2[2] + v3[2]) / 3];
+        if (dot2(normal, sub2(centroid, opposite)) < 0) {
+          normal[0] = -normal[0];
+          normal[1] = -normal[1];
+          normal[2] = -normal[2];
+        }
         const viewVec = [-centroid[0], -centroid[1], -800 - centroid[2]];
-        if (dot(normal, viewVec) > 0) {
-          [[f[0],f[1]], [f[1],f[2]], [f[2],f[0]]].forEach(fe => {
-            const idx = edges.findIndex(e => (e[0]===fe[0] && e[1]===fe[1]) || (e[0]===fe[1] && e[1]===fe[0]));
-            if (idx !== -1) edgeStatus[idx] = 1;
-          });
+        return dot2(normal, viewVec) > 0;
+      }, makeOccluder2 = function(v1, v2, v3) {
+        const n = cross2(sub2(v2, v1), sub2(v3, v1));
+        return {
+          v1,
+          v2,
+          v3,
+          n,
+          planeD: n[0] * v1[0] + n[1] * v1[1] + n[2] * (v1[2] + 800),
+          p1: project2(v1),
+          p2: project2(v2),
+          p3: project2(v3)
+        };
+      }, buildOccluders2 = function(tet) {
+        const faces = [[1, 2, 3], [0, 2, 1], [0, 3, 2], [0, 1, 3]];
+        const out = [];
+        for (const f of faces) {
+          const v1 = tet[f[0]], v2 = tet[f[1]], v3 = tet[f[2]];
+          const opp = tet[[0, 1, 2, 3].find((k) => !f.includes(k))];
+          if (faceIsFront2(v1, v2, v3, opp)) out.push(makeOccluder2(v1, v2, v3));
         }
-      });
-
-      for (let i = 0; i < edges.length; i++) {
-        const [a, b] = edges[i];
-        const vA = tet[a], vB = tet[b];
-        const isBackFace = edgeStatus[i] === 0;
-        const edgeKey = [vA, vB].map(v => v.map(c => c.toFixed(2)).join(',')).sort().join('|');
-
-        // Identify base edges of the top/bottom small tets
-        const isBaseEdge = (a !== 0 && b !== 0);
-        const forceOpaque = (tetObj.isTop || tetObj.isBottom) && isBaseEdge;
-
-        if (!processedEdges.has(edgeKey)) {
-          processedEdges.set(edgeKey, {
-            isVisible: !isBackFace, 
-            isWingEdge: (a===0 || b===0), 
-            a, b, vA, vB, tet,
-            forceOpaque
-          });
-        } else {
-          if (!isBackFace) processedEdges.get(edgeKey).isVisible = true;
-          if (forceOpaque) processedEdges.get(edgeKey).forceOpaque = true;
+        return out;
+      }, isSampleOccluded2 = function(pt, occList, projPtIn) {
+        const projPt = projPtIn || project2(pt);
+        const zPt = pt[2] + 800;
+        for (const occ of occList) {
+          const tr1 = occ.p1, tr2 = occ.p2, tr3 = occ.p3;
+          if (isPointInTriangle2([projPt[0], projPt[1], 0], [tr1[0], tr1[1], 0], [tr2[0], tr2[1], 0], [tr3[0], tr3[1], 0])) {
+            const den = occ.n[0] * pt[0] + occ.n[1] * pt[1] + occ.n[2] * zPt;
+            if (den === 0) continue;
+            const zOcc = occ.planeD / den * zPt;
+            if (zOcc > 0 && zPt > zOcc + 1) return true;
+          }
         }
-      }
-    });
-
-    // 4. Categorize edges (Center vs Polar vs Wing)
-    const centerEdges = [];
-    const otherEdges = [];
-
-    processedEdges.forEach((data,key)=>{
-      const {vA,vB,isWingEdge} = data;
-      const sameY = Math.abs(vA[1]-vB[1]) < 1;
-      const atPlane = Math.abs(Math.abs(vA[1])-60) < 1;
-      const isPolarEdge = (!isWingEdge) && sameY && atPlane;
-      const isCenterEdge = (!isWingEdge) && !isPolarEdge;
-
-      if(isCenterEdge) centerEdges.push({data,key});
-      else otherEdges.push({data,key});
-    });
-
-    // 5. Select which center edges to show (interior pattern logic)
-    const leftSwitch = -42, rightSwitch = -42;
-    const visibleCenterKeys = new Set();
-
-    centerEdges.forEach(({data,key})=>{
-      const mid = [(data.vA[0]+data.vB[0])/2, (data.vA[1]+data.vB[1])/2, (data.vA[2]+data.vB[2])/2];
-      if(mid[0] < 0) { if(mid[2] < leftSwitch) visibleCenterKeys.add(key); }
-      else { if(mid[2] < rightSwitch) visibleCenterKeys.add(key); }
-    });
-
-    // 6. Final Drawing Loop
-    processedEdges.forEach((data,key)=>{
-      const {isVisible:baseVisible, isWingEdge, vA,vB, tet, forceOpaque}=data;
-      const sameY = Math.abs(vA[1]-vB[1])<1;
-      const atPlane = Math.abs(Math.abs(vA[1])-60)<1;
-      const isPolarEdge = (!isWingEdge)&&sameY&&atPlane;
-      const isCenterEdge = (!isWingEdge)&&!isPolarEdge;
-
-      // Draw Center edges
-      if(isCenterEdge){
-        if(!visibleCenterKeys.has(key) && !forceOpaque) return;
-        const pA=project(vA), pB=project(vB);
-        ctx.lineWidth=lineWidth; ctx.strokeStyle=`rgba(0,0,0,${globalOpacity})`;
-        ctx.beginPath(); ctx.moveTo(pA[0],pA[1]); ctx.lineTo(pB[0],pB[1]); ctx.stroke();
-        return;
-      }
-
-      // Draw Polar edges (horizontal edges of the central octahedron)
-      if(isPolarEdge){
-        const pA=project(vA), pB=project(vB);
-        ctx.lineWidth=lineWidth;
-        const opacity = ((baseVisible || forceOpaque) ? 0 : 0.25) * globalOpacity;
-        ctx.strokeStyle = `rgba(0,0,0,${opacity})`;
-        ctx.beginPath(); ctx.moveTo(pA[0],pA[1]); ctx.lineTo(pB[0],pB[1]); ctx.stroke();
-        return;
-      }
-
-      // Draw Wing edges (the spikes of the star) with segment-based occlusion
-      const numSegments=100;
-      for(let s=0;s<numSegments;s++){
-        const t_start=s/numSegments, t_end=(s+1)/numSegments;
-        const p1=[vA[0]+(vB[0]-vA[0])*t_start, vA[1]+(vB[1]-vA[1])*t_start, vA[2]+(vB[2]-vA[2])*t_start];
-        const p2=[vA[0]+(vB[0]-vA[0])*t_end, vA[1]+(vB[1]-vA[1])*t_end, vA[2]+(vB[2]-vA[2])*t_end];
-        let segmentVisible = baseVisible || forceOpaque;
-
-        if(segmentVisible && !forceOpaque){
-          const mid=[(p1[0]+p2[0])/2, (p1[1]+p2[1])/2, (p1[2]+p2[2])/2];
-          const projMid=project(mid);
-          for(const occ of occluders){
-            if(tet.some(v=>v===occ.v1)) continue; // Don't occlude with yourself
-            const tr1=project(occ.v1), tr2=project(occ.v2), tr3=project(occ.v3);
-            if(isPointInTriangle([projMid[0],projMid[1],0], [tr1[0],tr1[1],0], [tr2[0],tr2[1],0], [tr3[0],tr3[1],0])){
-              const distMid = Math.sqrt(mid[0]**2 + mid[1]**2 + (mid[2]+800)**2);
-              const distOcc = Math.sqrt(occ.centroid[0]**2 + occ.centroid[1]**2 + (occ.centroid[2]+800)**2);
-              if(distMid > distOcc+1){ segmentVisible=false; break; }
+        return false;
+      }, occlusionRuns2 = function(n, test) {
+        const out = new Array(n + 1);
+        let prevIdx = 0;
+        let prevVal = test(0);
+        out[0] = prevVal;
+        while (prevIdx < n) {
+          const idx = Math.min(prevIdx + OCC_STEP, n);
+          const val = test(idx);
+          if (val === prevVal) {
+            for (let k = prevIdx + 1; k <= idx; k++) out[k] = prevVal;
+          } else {
+            let lo = prevIdx, hi = idx;
+            while (hi - lo > 1) {
+              const mid = lo + hi >> 1;
+              if (test(mid) === prevVal) lo = mid;
+              else hi = mid;
+            }
+            for (let k = prevIdx + 1; k <= lo; k++) out[k] = prevVal;
+            for (let k = hi; k <= idx; k++) out[k] = val;
+          }
+          prevIdx = idx;
+          prevVal = val;
+        }
+        return out;
+      }, drawMergingTet2 = function(verts, isRightTet, globalOpacity, occluders, hiddenOpacity, nonSilhouetteOpacity = 1, silhouetteHiddenOpacity = hiddenOpacity) {
+        const edges = [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]];
+        const faces = [[1, 2, 3], [0, 2, 1], [0, 3, 2], [0, 1, 3]];
+        const ownFront = [];
+        const frontFaceIndices = /* @__PURE__ */ new Set();
+        for (let fi = 0; fi < faces.length; fi++) {
+          const f = faces[fi];
+          const v1 = verts[f[0]], v2 = verts[f[1]], v3 = verts[f[2]];
+          const opp = verts[[0, 1, 2, 3].find((k) => !f.includes(k))];
+          if (faceIsFront2(v1, v2, v3, opp)) {
+            frontFaceIndices.add(fi);
+            ownFront.push({ ...makeOccluder2(v1, v2, v3), vidx: f });
+          }
+        }
+        const numSamples = 150;
+        ctx.lineWidth = lineWidth;
+        for (let i = 0; i < edges.length; i++) {
+          const [a, b] = edges[i];
+          const vA = verts[a], vB = verts[b];
+          const borderingFaces = faces.map((f, fi) => ({ f, fi })).filter(({ f }) => f.includes(a) && f.includes(b));
+          const frontBorderCount = borderingFaces.filter(({ fi }) => frontFaceIndices.has(fi)).length;
+          const isSilhouetteEdge = frontBorderCount === 1;
+          const edgeOpacity = globalOpacity * (isSilhouetteEdge ? 1 : nonSilhouetteOpacity);
+          const edgeOccluders = occluders.concat(
+            ownFront.filter((o) => !(o.vidx.includes(a) && o.vidx.includes(b)))
+          );
+          let gapLo = 2, gapHi = -1;
+          if (isRightTet) {
+            const dist3D = Math.hypot(vB[0] - vA[0], vB[1] - vA[1], vB[2] - vA[2]);
+            const gapRatio = brokenLineGapWidth / dist3D;
+            gapLo = 0.5 - gapRatio;
+            gapHi = 0.5 + gapRatio;
+          }
+          const pts = [];
+          const proj = [];
+          const draw = [];
+          for (let s = 0; s <= numSamples; s++) {
+            const t = s / numSamples;
+            const pt = [vA[0] + (vB[0] - vA[0]) * t, vA[1] + (vB[1] - vA[1]) * t, vA[2] + (vB[2] - vA[2]) * t];
+            pts.push(pt);
+            proj.push(project2(pt));
+            draw.push(!(isRightTet && t > gapLo && t < gapHi));
+          }
+          const occl = edgeOccluders.length === 0 ? new Array(numSamples + 1).fill(false) : occlusionRuns2(numSamples, (s) => isSampleOccluded2(pts[s], edgeOccluders, proj[s]));
+          const strokeRuns = (keep) => {
+            let inRun = false;
+            for (let s = 0; s <= numSamples; s++) {
+              const q = proj[s];
+              if (keep(s)) {
+                if (!inRun) {
+                  ctx.beginPath();
+                  ctx.moveTo(q[0], q[1]);
+                  inRun = true;
+                } else ctx.lineTo(q[0], q[1]);
+              } else if (inRun) {
+                ctx.stroke();
+                inRun = false;
+              }
+            }
+            if (inRun) ctx.stroke();
+          };
+          if (edgeOpacity > 1e-3) {
+            ctx.strokeStyle = colorWithOpacity2(textColor, edgeOpacity);
+            strokeRuns((s) => draw[s] && !occl[s]);
+          }
+          const edgeHiddenOpacity = isSilhouetteEdge ? silhouetteHiddenOpacity : hiddenOpacity;
+          if (edgeHiddenOpacity > 1e-3 && edgeOpacity > 1e-3) {
+            ctx.strokeStyle = colorWithOpacity2(textColor, edgeOpacity * edgeHiddenOpacity);
+            strokeRuns((s) => draw[s] && occl[s]);
+          }
+        }
+        if (LABEL_EDGES) {
+          ctx.save();
+          ctx.shadowBlur = 0;
+          ctx.font = "bold 15px monospace";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillStyle = "#ffffff";
+          for (let i = 0; i < edges.length; i++) {
+            const [a, b] = edges[i];
+            const pa = project2(verts[a]), pb = project2(verts[b]);
+            ctx.fillText(isRightTet ? `${i}'` : `${i}`, (pa[0] + pb[0]) / 2, (pa[1] + pb[1]) / 2);
+          }
+          ctx.restore();
+        }
+      }, getIntersectionSegments2 = function(t1, t2) {
+        const edges = [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]];
+        const faces = [[1, 2, 3], [0, 2, 1], [0, 3, 2], [0, 1, 3]];
+        const cells = /* @__PURE__ */ new Map();
+        const add = (fi, fj, p) => {
+          const key = fi + "_" + fj;
+          let arr = cells.get(key);
+          if (!arr) {
+            arr = [];
+            cells.set(key, arr);
+          }
+          if (!arr.some((u) => Math.hypot(p[0] - u[0], p[1] - u[1], p[2] - u[2]) < 1)) arr.push(p);
+        };
+        for (let ei = 0; ei < edges.length; ei++) {
+          const [a, b] = edges[ei];
+          for (let fj = 0; fj < faces.length; fj++) {
+            const [f1, f2, f3] = faces[fj];
+            const p = intersectEdgeFace2(t1[a], t1[b], t2[f1], t2[f2], t2[f3]);
+            if (p && isPointInTriangle2(p, t2[f1], t2[f2], t2[f3])) {
+              for (const fi of SEAM_EDGE_FACES[ei]) add(fi, fj, p);
             }
           }
         }
-        const q1=project(p1), q2=project(p2);
-        ctx.lineWidth = segmentVisible?lineWidth:lineWidth/2;
-        const opacity = (segmentVisible ? 1 : 0) * globalOpacity;
-        ctx.strokeStyle = `rgba(0,0,0,${opacity})`;
-        ctx.beginPath(); ctx.moveTo(q1[0],q1[1]); ctx.lineTo(q2[0],q2[1]); ctx.stroke();
-      }
-    });
-  }
-
-  // Animation state
-  let angle = Math.PI / 6;      // Starting rotation angle
-  let xOffset = 140;   // Starting distance between tetrahedrons during 'moving' phase
-  let phase = 'intro'; // Starting animation phase:
-                        // Phases: 'intro', 'preSpin', 'moving', 'waiting', 'spinning'
-  let isPaused = false;
-  let animDirection = 1; // 1 for forward, -1 for backward
-
-  let delayCounter = 0;
-  const delayMax = 15;  // Delay in frames (e.g., 60 frames = ~1 second)
-  
-  let introCounter = 0;
-  const introMax = 240; // Intro duration in frames
-  let hasStarted = false;
-
-  let preSpinCounter = 0;
-  const preSpinMax = 320; // Spin duration in frames
-  const startAngle = Math.PI / 6;
-
-  let spinCounter = 0;
-  const spinOpaqueStart = 120; // Start transitioning hidden lines to opaque after 120 frames of spinning
-  const spinOpaqueMax = 240;   // Reach full opacity after another 240 frames
-
-  // --- Animation Speed Configuration ---
-  const mergeSpeed = 1;    // Speed at which tetrahedrons merge (default: 3)
-  const mergeSpinSpeed = 0.012; // Speed of rotation while merging
-  const spinSpeed = 0.012; // Speed of rotation in 'spinning' phase (default: 0.012)
-  const lineWidth = 6;     // Line width for the tetrahedrons
-
-  // Main animation loop
-  function frame() {
-    ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, W, H);
-
-    // Update animation state
-    if (!isPaused) {
-      if (phase === 'intro') {
-        if (hasStarted) {
-          introCounter += animDirection;
-        }
-        if (introCounter >= introMax) {
-          introCounter = introMax;
-          phase = 'preSpin';
-        } else if (introCounter <= 0) {
-          introCounter = 0;
-          if (animDirection === -1) {
-            hasStarted = false;
-            animDirection = 1;
-            // Reset other variables to ensure a clean restart
-            angle = startAngle;
-            xOffset = 140;
-            preSpinCounter = 0;
-            delayCounter = 0;
-            spinCounter = 0;
+        for (let ei = 0; ei < edges.length; ei++) {
+          const [a, b] = edges[ei];
+          for (let fi = 0; fi < faces.length; fi++) {
+            const [f1, f2, f3] = faces[fi];
+            const p = intersectEdgeFace2(t2[a], t2[b], t1[f1], t1[f2], t1[f3]);
+            if (p && isPointInTriangle2(p, t1[f1], t1[f2], t1[f3])) {
+              for (const fj of SEAM_EDGE_FACES[ei]) add(fi, fj, p);
+            }
           }
         }
-      } else if (phase === 'preSpin') {
-        preSpinCounter += animDirection;
-        angle = startAngle + (preSpinCounter / preSpinMax) * Math.PI * 2;
-        if (preSpinCounter >= preSpinMax) {
-          preSpinCounter = preSpinMax;
-          angle = startAngle + Math.PI * 2;
-          phase = 'moving';
-        } else if (preSpinCounter <= 0) {
-          preSpinCounter = 0;
-          angle = startAngle;
-          phase = 'intro';
-        }
-      } else if (phase === 'moving') {
-        xOffset -= mergeSpeed * animDirection; // Bring tets together or pull apart
-        angle += mergeSpinSpeed * animDirection; // Spin while merging or un-merging
-        if (xOffset <= 0) {
-          xOffset = 0;
-          phase = 'waiting'; // Transition to waiting phase
-        } else if (xOffset >= 140) {
-          xOffset = 140;
-          phase = 'preSpin';
-        }
-      } else if (phase === 'waiting') {
-        delayCounter += animDirection;
-        angle += spinSpeed * animDirection; // Continue spinning during wait/transition
-        if (delayCounter >= delayMax) {
-          delayCounter = delayMax;
-          phase = 'spinning'; // Transition to rotation phase
-          if (animDirection === -1) {
-            spinCounter = 0; // Ensure we start at 0 when entering from waiting in reverse
-          }
-        } else if (delayCounter <= 0) {
-          delayCounter = 0;
-          phase = 'moving';
-        }
-      } else {
-        angle += spinSpeed * animDirection; // Rotate the star tetrahedron
-        spinCounter += animDirection;
-        if (animDirection === -1 && spinCounter <= 0) {
-          spinCounter = 0;
-          phase = 'waiting';
-        }
-      }
-    }
-
-    // Apply transformation (translation + rotation) to base vertices
-    let t1, t2;
-    t1 = tet1Base.map(v => rotateY([v[0] + xOffset, v[1], v[2]], angle));
-    t2 = tet2Base.map(v => rotateY([v[0] - xOffset, v[1], v[2]], angle));
-
-    // Render based on current phase
-    if (phase === 'intro') {
-      const t = introCounter / introMax;
-      const edges = [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]];
-      
-      const drawInterpolated = (base, isLeft, isRightTet) => {
-        const xSign = isLeft ? 1 : -1;
-        
-        // The rotation should be 0 at the start of intro and reach 'startAngle' (PI/6) at the end
-        const currentAngle = startAngle * t;
-        
-        const finalVerts = base.map(v => rotateY([v[0] + xSign * xOffset, v[1], v[2]], currentAngle));
-        
-        ctx.lineWidth = lineWidth;
-        edges.forEach((edge, i) => {
-          const [vIdxA, vIdxB] = edge;
-          const targetA = finalVerts[vIdxA];
-          const targetB = finalVerts[vIdxB];
-          
-          const y = (i - 2.5) * 30;
-          const xHalf = 80;
-          const startA = [xSign * xOffset - xHalf, y, 0];
-          const startB = [xSign * xOffset + xHalf, y, 0];
-          
-          const currA = [
-            startA[0] + (targetA[0] - startA[0]) * t,
-            startA[1] + (targetA[1] - startA[1]) * t,
-            startA[2] + (targetA[2] - startA[2]) * t
-          ];
-          const currB = [
-            startB[0] + (targetB[0] - startB[0]) * t,
-            startB[1] + (targetB[1] - startB[1]) * t,
-            startB[2] + (targetB[2] - startB[2]) * t
-          ];
-          
-          const pA = project(currA);
-          const pB = project(currB);
-          
-          ctx.strokeStyle = `rgba(0,0,0,1)`;
-          if (isRightTet) {
-            const dist3D = Math.hypot(currB[0]-currA[0], currB[1]-currA[1], currB[2]-currA[2]);
-            const gapRatio = (lineWidth / 2) / dist3D;
-            const t1_end = 0.5 - gapRatio;
-            const t2_start = 0.5 + gapRatio;
-            const m1 = [currA[0] + (currB[0]-currA[0])*t1_end, currA[1] + (currB[1]-currA[1])*t1_end, currA[2] + (currB[2]-currA[2])*t1_end];
-            const m2 = [currA[0] + (currB[0]-currA[0])*t2_start, currA[1] + (currB[1]-currA[1])*t2_start, currA[2] + (currB[2]-currA[2])*t2_start];
-            const qM1 = project(m1), qM2 = project(m2);
-            ctx.beginPath(); ctx.moveTo(pA[0], pA[1]); ctx.lineTo(qM1[0], qM1[1]); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(qM2[0], qM2[1]); ctx.lineTo(pB[0], pB[1]); ctx.stroke();
-          } else {
-            ctx.beginPath(); ctx.moveTo(pA[0], pA[1]); ctx.lineTo(pB[0], pB[1]); ctx.stroke();
-          }
+        const segments = [];
+        cells.forEach((pts) => {
+          if (pts.length >= 2) segments.push([pts[0], pts[1]]);
         });
+        return segments;
+      }, drawMergeSeams2 = function(segs, occluders, opacity) {
+        if (opacity <= 0.01 || segs.length === 0) return;
+        ctx.lineWidth = lineWidth;
+        ctx.strokeStyle = colorWithOpacity2(textColor, opacity);
+        const N = 64;
+        for (const [pa, pb] of segs) {
+          let inRun = false;
+          for (let s = 0; s <= N; s++) {
+            const tt = s / N;
+            const pt = [pa[0] + (pb[0] - pa[0]) * tt, pa[1] + (pb[1] - pa[1]) * tt, pa[2] + (pb[2] - pa[2]) * tt];
+            const q = project2(pt);
+            if (!isSampleOccluded2(pt, occluders, q)) {
+              if (!inRun) {
+                ctx.beginPath();
+                ctx.moveTo(q[0], q[1]);
+                inRun = true;
+              } else ctx.lineTo(q[0], q[1]);
+            } else if (inRun) {
+              ctx.stroke();
+              inRun = false;
+            }
+          }
+          if (inRun) ctx.stroke();
+        }
+      }, positionLogoBg2 = function() {
+        if (!logoBg || !container) return;
+        const mainEl = container.closest("main") ?? document.getElementById("hero");
+        if (!mainEl) return;
+        const mainRect = mainEl.getBoundingClientRect();
+        const liftStr = getComputedStyle(mainEl).getPropertyValue("--hero-lift").trim();
+        const liftFrac = liftStr.endsWith("%") ? (parseFloat(liftStr) || 0) / 100 : 0;
+        const centerX = mainRect.width / 2;
+        const centerY = mainRect.height * (0.5 - liftFrac);
+        const logoBasis = Math.min(mainRect.width, 768);
+        logoBg.style.left = `${centerX}px`;
+        logoBg.style.top = `${centerY}px`;
+        logoBg.style.width = `${logoBasis * 1.6}px`;
+        logoBg.style.height = `${logoBasis * 1.6}px`;
+        if (logoPulse) {
+          logoPulse.style.left = `${centerX}px`;
+          logoPulse.style.top = `${centerY}px`;
+          logoPulse.style.width = `${logoBasis * 1.6}px`;
+          logoPulse.style.height = `${logoBasis * 1.6}px`;
+        }
+        if (logoGlow) {
+          logoGlow.style.left = `${centerX}px`;
+          logoGlow.style.top = `${centerY}px`;
+          logoGlow.style.width = `${logoBasis * 2.2}px`;
+          logoGlow.style.height = `${logoBasis * 2.2}px`;
+          logoGlow.style.transform = "translate(-50%, -50%)";
+        }
+      }, updateThemeColors2 = function() {
+        const style = getComputedStyle(document.body);
+        textColor = style.getPropertyValue("--mark-color").trim() || "rgba(0,0,0,1)";
+        bgColor = style.getPropertyValue("--bg").trim() || "#fff";
+      }, frame2 = function() {
+        if (!ctx || !canvas) return;
+        updateThemeColors2();
+        breathTime++;
+        const breath1 = Math.sin(breathTime / breathCycle * Math.PI * 2);
+        const breath2 = Math.sin(breathTime / breathCycle2 * Math.PI * 2);
+        const tide = breath1 * 0.7 + breath2 * 0.5;
+        const tideNorm = (tide + 1.2) / 2.4;
+        if (breathTime >= nextNudgeAt) {
+          logoNudge += (Math.random() - 0.5) * 25e-4;
+          nextNudgeAt = breathTime + 480 + Math.random() * 420;
+        }
+        logoNudge *= 0.98;
+        if (connectionPulseCounter > 0) {
+          targetLogoSpeed = reverseSpeed * 2 * (connectionPulseCounter / connectionPulseFrames);
+        } else if (phase === "spinning" && animDirection === 1) {
+          targetLogoSpeed = reverseSpeed;
+        } else if (isHovered) {
+          targetLogoSpeed = hoverSpeed;
+        } else {
+          targetLogoSpeed = ambientSpeed * (1 + 1.1 * tide) + logoNudge;
+        }
+        const currentScrollY = window.scrollY;
+        scrollVelocity = (currentScrollY - lastScrollY) * 1e-4;
+        lastScrollY = currentScrollY;
+        targetLogoSpeed += Math.max(-5e-3, Math.min(5e-3, scrollVelocity));
+        logoSpeed += (targetLogoSpeed - logoSpeed) * 0.05;
+        logoRotation += logoSpeed;
+        let logoFlareBoost = 0;
+        if (logoPulse && logoPulseCounter > 0 && !NOFX) {
+          const gp = logoPulseReverse ? logoPulseCounter / logoPulseFrames : 1 - logoPulseCounter / logoPulseFrames;
+          const scale = 0.08 + gp * 0.92;
+          const alpha = 0.18 + Math.pow(1 - gp, 1.4) * 0.37;
+          const bloomRotation = logoRotation - (1 - gp) * Math.PI * 1;
+          logoPulse.style.opacity = String(alpha);
+          logoPulse.style.transform = `translate(-50%, -50%) scale(${scale}) rotate(${bloomRotation * (180 / Math.PI)}deg)`;
+          logoPulseCounter = Math.max(0, logoPulseCounter - animSpeed);
+          if (logoPulseCounter <= 0) {
+            logoPulse.style.opacity = "0";
+            if (!logoPulseReverse) logoFlareCounter = logoFlareFrames;
+          }
+        } else if (logoPulse && logoPulse.style.opacity !== "0") {
+          logoPulse.style.opacity = "0";
+        }
+        if (logoFlareCounter > 0) {
+          if (!NOFX) {
+            logoFlareBoost = Math.sin(logoFlareCounter / logoFlareFrames * Math.PI) * 0.4;
+          }
+          logoFlareCounter = Math.max(0, logoFlareCounter - animSpeed);
+        }
+        if (logoBg) {
+          logoBg.style.transform = `translate(-50%, -50%) rotate(${logoRotation * (180 / Math.PI)}deg)`;
+          logoBg.style.opacity = String(0.22 + tideNorm * 0.06 + logoFlareBoost);
+        }
+        if (logoGlow) {
+          logoGlow.style.opacity = String(0.04 + tideNorm * 0.06);
+        }
+        ctx.setTransform(renderScale, 0, 0, renderScale, 0, 0);
+        ctx.clearRect(0, 0, W, H);
+        var glowTarget;
+        var inviteIntensity = 0;
+        if (!hasStarted) {
+          invitePhase += 8e-3;
+          inviteIntensity = Math.sin(invitePhase) * 0.5 + 0.5;
+        }
+        const connectionPulseRatio = connectionPulseCounter / connectionPulseFrames;
+        if (connectionPulseCounter > 0) {
+          glowTarget = 30 * connectionPulseRatio;
+          connectionPulseCounter = Math.max(0, connectionPulseCounter - animSpeed);
+        } else if (!hasStarted && isHovered) {
+          glowTarget = 16;
+        } else if (!hasStarted) {
+          glowTarget = inviteIntensity * 13;
+        } else {
+          glowTarget = 0;
+        }
+        glowBlur += (glowTarget - glowBlur) * 0.05;
+        ctx.shadowBlur = glowBlur;
+        ctx.shadowColor = colorWithOpacity2(textColor, 0.5);
+        if (connectionPulseRatio > 0 && !NOFX) {
+          ctx.save();
+          ctx.shadowBlur = 0;
+          const flareAlpha = Math.sin(connectionPulseRatio * Math.PI) * 0.35;
+          const grad = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, W / 2);
+          grad.addColorStop(0, colorWithOpacity2(textColor, flareAlpha));
+          grad.addColorStop(1, colorWithOpacity2(textColor, 0));
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, W, H);
+          const flashAlpha = Math.max(0, (connectionPulseRatio - 0.8) / 0.2) * 0.4;
+          if (flashAlpha > 0) {
+            const fr = W * 0.22;
+            const fg = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, fr);
+            fg.addColorStop(0, lightenColor2(textColor, 0.55, flashAlpha));
+            fg.addColorStop(1, lightenColor2(textColor, 0.55, 0));
+            ctx.fillStyle = fg;
+            ctx.fillRect(0, 0, W, H);
+          }
+          ctx.restore();
+        }
+        rumblePhase += 0.4;
+        var rumbleTarget;
+        if (!hasStarted && isHovered) {
+          rumbleTarget = 1.2;
+        } else if (!hasStarted && inviteIntensity > 0.6) {
+          rumbleTarget = (inviteIntensity - 0.6) / 0.4 * 1.2;
+        } else {
+          rumbleTarget = 0;
+        }
+        rumbleIntensity += (rumbleTarget - rumbleIntensity) * 0.05;
+        if (scrollCoupled) {
+          if (scrollImpulse !== 0) {
+            animVelocity += scrollImpulse;
+            scrollImpulse = 0;
+            if (Math.abs(animVelocity) > 0.05) restSign = animVelocity < 0 ? -1 : 1;
+          } else {
+            animVelocity += (restSign - animVelocity) * SETTLE;
+            if (Math.abs(animVelocity - restSign) < 0.01) animVelocity = restSign;
+          }
+          animDirection = animVelocity < 0 ? -1 : 1;
+          animSpeed = Math.abs(animVelocity);
+        }
+        inspectionSeparation += (inspectionSeparationTarget - inspectionSeparation) * INSPECTION_SEPARATION_EASE;
+        if (Math.abs(inspectionSeparationTarget - inspectionSeparation) < 0.02) {
+          inspectionSeparation = inspectionSeparationTarget;
+        }
+        if (returningFromOrbit) {
+          let q = dragQuat[0] < 0 ? [-dragQuat[0], -dragQuat[1], -dragQuat[2], -dragQuat[3]] : dragQuat;
+          q = qNorm2([
+            q[0] + (1 - q[0]) * DRAG_RETURN,
+            q[1] * (1 - DRAG_RETURN),
+            q[2] * (1 - DRAG_RETURN),
+            q[3] * (1 - DRAG_RETURN)
+          ]);
+          const orbitSettled = 1 - q[0] < DRAG_SETTLED;
+          if (orbitSettled) dragQuat = QUAT_IDENTITY;
+          else dragQuat = q;
+          const separationSettled = inspectionSeparation < 0.05;
+          if (orbitSettled && separationSettled) {
+            inspectionSeparation = 0;
+            returningFromOrbit = false;
+          } else {
+            animSpeed = 0;
+          }
+        }
+        if (!isPaused) {
+          if (phase === "intro") {
+            if (hasStarted) {
+              introCounter += animDirection * animSpeed;
+            }
+            if (introCounter > introMax) {
+              introCounter = introMax;
+              phase = "preSpin";
+              angle = 0;
+            } else if (introCounter <= 0) {
+              introCounter = 0;
+              if (animDirection === -1) {
+                hasStarted = false;
+                animDirection = 1;
+                angle = 0;
+                xOffset = maxXOffset;
+                preSpinCounter = 0;
+                delayCounter = 0;
+                holdCounter = 0;
+                spinCounter = 0;
+              }
+            }
+          } else if (phase === "preSpin") {
+            preSpinCounter += animDirection * animSpeed;
+            angle = preSpinCounter / preSpinMax * (startAngle + Math.PI * 2);
+            if (preSpinCounter >= preSpinMax) {
+              preSpinCounter = preSpinMax;
+              angle = startAngle + Math.PI * 2;
+              phase = "moving";
+            } else if (preSpinCounter <= 0) {
+              preSpinCounter = 0;
+              angle = 0;
+              phase = "intro";
+            }
+          } else if (phase === "moving") {
+            xOffset -= mergeSpeed * animDirection * animSpeed;
+            angle += mergeSpinSpeed * animDirection * animSpeed;
+            if (xOffset <= 0) {
+              xOffset = 0;
+              phase = "holdMerge";
+              connectionPulseCounter = connectionPulseFrames;
+              logoPulseCounter = logoPulseFrames;
+              logoPulseReverse = false;
+            } else if (xOffset >= maxXOffset) {
+              xOffset = maxXOffset;
+              phase = "preSpin";
+            }
+          } else if (phase === "holdMerge") {
+            holdCounter += animDirection * animSpeed;
+            if (holdCounter >= holdMergeMax) {
+              holdCounter = holdMergeMax;
+              phase = "waiting";
+            } else if (holdCounter <= 0) {
+              holdCounter = 0;
+              phase = "moving";
+              if (animDirection === -1) {
+                connectionPulseCounter = connectionPulseFrames;
+              }
+            }
+          } else if (phase === "waiting") {
+            delayCounter += animDirection * animSpeed;
+            if (delayCounter >= delayMax) {
+              delayCounter = delayMax;
+              phase = "spinning";
+              if (animDirection === -1) {
+                spinCounter = 0;
+              }
+            } else if (delayCounter <= 0) {
+              delayCounter = 0;
+              phase = "holdMerge";
+            }
+          } else if (phase === "spinning") {
+            const prevSpinCounter = spinCounter;
+            spinCounter += animDirection * animSpeed;
+            if (animDirection === -1) {
+              if (prevSpinCounter > 180 && spinCounter <= 180) {
+                logoFlareCounter = logoFlareFrames;
+              }
+              if (prevSpinCounter > 110 && spinCounter <= 110) {
+                logoPulseCounter = logoPulseFrames;
+                logoPulseReverse = true;
+              }
+            }
+            angle += spinSpeed * animDirection * animSpeed;
+            activeSpinFrames += animDirection * animSpeed;
+            if (animDirection === 1 && activeSpinFrames >= activeFramesPerRevolution * spinRevolutions) {
+              activeSpinFrames = activeFramesPerRevolution * spinRevolutions;
+              angle = startAngle + Math.PI * 2;
+              phase = "tilted";
+            }
+            if (animDirection === -1 && spinCounter <= 0) {
+              spinCounter = 0;
+              phase = "waiting";
+            }
+          } else if (phase === "tilted") {
+            tiltCounter += animDirection * animSpeed;
+            tiltAngle = tiltAngleTarget * Math.min(1, Math.max(0, tiltCounter / tiltInFrames));
+            if (tiltCounter >= tiltInFrames) {
+              tiltCounter = tiltInFrames;
+              phase = "starHold";
+            } else if (tiltCounter <= 0) {
+              tiltCounter = 0;
+              if (animDirection === -1) {
+                phase = "spinning";
+              }
+            }
+          } else if (phase === "starHold") {
+            starHoldCounter += animDirection * animSpeed;
+            if (starHoldCounter >= starHoldFrames) {
+              starHoldCounter = starHoldFrames;
+              phase = "starReveal";
+            } else if (starHoldCounter <= 0) {
+              starHoldCounter = 0;
+              phase = "tilted";
+            }
+          } else if (phase === "starReveal") {
+            starRevealCounter += animDirection * animSpeed;
+            const p = Math.min(1, Math.max(0, starRevealCounter / starRevealFrames));
+            starFadeOpacity = 1 - p;
+            orthoBlend = p;
+            if (starRevealCounter >= starRevealFrames) {
+              starRevealCounter = starRevealFrames;
+              phase = "starOfDavid";
+            } else if (starRevealCounter <= 0) {
+              starRevealCounter = 0;
+              phase = "starHold";
+            }
+          } else if (phase === "starOfDavid") {
+            if (animDirection === -1) {
+              phase = "starReveal";
+            } else if (PREVIEW_SPIN) {
+              previewSpinAngle += spinSpeed;
+            }
+          }
+        }
+        let t1, t2;
+        const dragM = dragQuat[1] || dragQuat[2] || dragQuat[3] ? qToMatrix2(dragQuat) : null;
+        const place = (v, ox) => {
+          const r = rotateX2(rotateY2([-(v[0] + ox), v[1], v[2]], -angle), tiltAngle);
+          return dragM ? matApply2(dragM, r) : r;
+        };
+        const renderedOffset = xOffset + inspectionSeparation;
+        t1 = tet1Base.map((v) => place(v, renderedOffset));
+        t2 = tet2Base.map((v) => place(v, -renderedOffset));
+        if (PREVIEW_SPIN && previewSpinAngle !== 0) {
+          t1 = t1.map((v) => rotateY2(v, previewSpinAngle));
+          t2 = t2.map((v) => rotateY2(v, previewSpinAngle));
+        }
+        let globalOpacityMod = 1;
+        if (isHovered && phase !== "intro") {
+          globalOpacityMod = 1.2;
+        }
+        const mergeHiddenOpacity = phase === "preSpin" ? Math.max(0, 1 - preSpinCounter / preSpinMax / mergeFadeEnd) : 0;
+        if (phase === "intro") {
+          const t = Math.min(introCounter / introMax, 1);
+          const edges = [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]];
+          const drawInterpolated = (base, isLeft, isRightTet) => {
+            const xSign = isLeft ? 1 : -1;
+            const finalVerts = base.map((v) => [-(v[0] + xSign * xOffset), v[1], v[2]]);
+            ctx.lineWidth = lineWidth;
+            edges.forEach((edge, i) => {
+              const [vIdxA, vIdxB] = edge;
+              const targetA = finalVerts[vIdxA];
+              const targetB = finalVerts[vIdxB];
+              const y = (i - 2.5) * 30;
+              const xHalf = 80;
+              const startA = [-(xSign * xOffset - xHalf), y, 0];
+              const startB = [-(xSign * xOffset + xHalf), y, 0];
+              const rod = moveRod2(startA, startB, targetA, targetB, t);
+              const currA = rod.a;
+              const currB = rod.b;
+              const pA = project2(currA);
+              const pB = project2(currB);
+              const currentOpacity = 1;
+              ctx.strokeStyle = colorWithOpacity2(textColor, currentOpacity);
+              if (isRightTet) {
+                const dist3D = Math.hypot(currB[0] - currA[0], currB[1] - currA[1], currB[2] - currA[2]);
+                const gapRatio = brokenLineGapWidth / dist3D;
+                const t1_end = 0.5 - gapRatio;
+                const t2_start = 0.5 + gapRatio;
+                const m1 = [currA[0] + (currB[0] - currA[0]) * t1_end, currA[1] + (currB[1] - currA[1]) * t1_end, currA[2] + (currB[2] - currA[2]) * t1_end];
+                const m2 = [currA[0] + (currB[0] - currA[0]) * t2_start, currA[1] + (currB[1] - currA[1]) * t2_start, currA[2] + (currB[2] - currA[2]) * t2_start];
+                const qM1 = project2(m1), qM2 = project2(m2);
+                ctx.beginPath();
+                ctx.moveTo(pA[0], pA[1]);
+                ctx.lineTo(qM1[0], qM1[1]);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(qM2[0], qM2[1]);
+                ctx.lineTo(pB[0], pB[1]);
+                ctx.stroke();
+              } else {
+                ctx.beginPath();
+                ctx.moveTo(pA[0], pA[1]);
+                ctx.lineTo(pB[0], pB[1]);
+                ctx.stroke();
+              }
+            });
+          };
+          drawInterpolated(tet1Base, true, false);
+          drawInterpolated(tet2Base, false, true);
+        } else if (phase === "moving" || phase === "preSpin" || phase === "holdMerge") {
+          const occ1 = buildOccluders2(t1);
+          const occ2 = buildOccluders2(t2);
+          drawMergingTet2(t1, false, 1, occ2, mergeHiddenOpacity);
+          drawMergingTet2(t2, true, 1, occ1, mergeHiddenOpacity);
+          const segs = phase === "preSpin" || NOFX ? [] : getIntersectionSegments2(t1, t2);
+          drawMergeSeams2(segs, occ1.concat(occ2), 1);
+        } else {
+          const occ1 = buildOccluders2(t1);
+          const occ2 = buildOccluders2(t2);
+          const orbitFromRest = Math.min(1, Math.hypot(dragQuat[1], dragQuat[2], dragQuat[3]) * 5);
+          const structuralEdgeOpacity = Math.max(starFadeOpacity, orbitFromRest);
+          const outlineRevealOpacity = (1 - starFadeOpacity) * (1 - orbitFromRest);
+          drawMergingTet2(t1, false, globalOpacityMod, occ2, 0, structuralEdgeOpacity, outlineRevealOpacity);
+          drawMergingTet2(t2, true, globalOpacityMod, occ1, 0, structuralEdgeOpacity, outlineRevealOpacity);
+          const segs = NOFX ? [] : getIntersectionSegments2(t1, t2);
+          drawMergeSeams2(segs, occ1.concat(occ2), starFadeOpacity * globalOpacityMod);
+        }
+        requestAnimationFrame(frame2);
+      }, coupleScroll2 = function() {
+        if (REDUCED_MOTION || scrollCoupled || !hasStarted) return;
+        scrollCoupled = true;
+        scrollHost?.classList.add("scroll-coupled");
+      }, decoupleScroll2 = function() {
+        if (!scrollCoupled) return;
+        scrollCoupled = false;
+        scrollImpulse = 0;
+        animVelocity = restSign;
+        animDirection = restSign;
+        animSpeed = 1;
+        scrollHost?.classList.remove("scroll-coupled");
+      }, atSequenceEnd2 = function(sign) {
+        return sign > 0 ? phase === "starOfDavid" : phase === "intro" && introCounter <= 0;
+      }, applyPointerDrag2 = function(x, y, sdx, sdy) {
+        if (rollMode) {
+          const r = canvas.getBoundingClientRect();
+          const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+          const before = Math.atan2(y - sdy - cy, x - sdx - cx);
+          const after = Math.atan2(y - cy, x - cx);
+          let d = after - before;
+          if (d > Math.PI) d -= Math.PI * 2;
+          if (d < -Math.PI) d += Math.PI * 2;
+          dragQuat = qNorm2(qMul2(qAxis2(0, 0, 1, -d), dragQuat));
+          return;
+        }
+        const dq = qMul2(
+          qAxis2(0, 1, 0, -sdx * DRAG_GAIN),
+          // sideways travel turns it about screen-up
+          qAxis2(1, 0, 0, -sdy * DRAG_GAIN)
+          // vertical travel tips it about screen-right
+        );
+        dragQuat = qNorm2(qMul2(dq, dragQuat));
+      }, twoFingerAngle2 = function(e) {
+        if (e.touches.length < 2) return null;
+        const a = e.touches[0], b = e.touches[1];
+        return Math.atan2(b.clientY - a.clientY, b.clientX - a.clientX);
+      }, updateSeparationControl2 = function() {
+        if (!separateBtn) return;
+        const available = expanded && isPaused && SEPARABLE_PHASES.has(phase);
+        separateBtn.hidden = !available;
+        if (!available) {
+          inspectionSeparationTarget = 0;
+          separateBtn.setAttribute("aria-pressed", "false");
+          separateBtn.setAttribute("aria-label", "Pull tetrahedra apart");
+        }
+      }, takeScrollLock2 = function() {
+        const root = document.documentElement;
+        const gap = window.innerWidth - root.clientWidth;
+        if (gap > 0) document.body.style.paddingRight = `${gap}px`;
+        root.style.overflow = "hidden";
+        root.style.overscrollBehavior = "none";
+        document.body.style.overflow = "hidden";
+        document.body.style.overscrollBehavior = "none";
+      }, releaseScrollLock2 = function() {
+        const root = document.documentElement;
+        root.style.overflow = "";
+        root.style.overscrollBehavior = "";
+        document.body.style.overflow = "";
+        document.body.style.overscrollBehavior = "";
+        document.body.style.paddingRight = "";
+      }, positionPortaledContainer2 = function() {
+        if (!scrollHost || expanded) return;
+        const box = placeholder.getBoundingClientRect();
+        scrollHost.style.left = `${box.left + window.scrollX}px`;
+        scrollHost.style.top = `${box.top + window.scrollY}px`;
+        scrollHost.style.width = `${box.width}px`;
+        scrollHost.style.height = `${box.height}px`;
+      }, updatePortalPresentation2 = function(animate) {
+        if (!scrollHost || expanded) return;
+        positionPortaledContainer2();
+        const hero = hexParent?.closest("#hero");
+        const baseOpacity = hero ? hero.classList.contains("finale") ? 1 : 0.1 : Math.max(0, Math.min(1, Number.parseFloat(getComputedStyle(hexParent ?? scrollHost).opacity) || 1));
+        const scrollOpacity = Math.max(0, 1 - window.scrollY / 300);
+        scrollHost.style.transition = animate ? "opacity 1.6s ease" : "";
+        scrollHost.style.opacity = String(baseOpacity * scrollOpacity);
+        scrollHost.style.pointerEvents = hexParent ? getComputedStyle(hexParent).pointerEvents : "";
+      }, setExpanded2 = function(next) {
+        if (expanded === next || !scrollHost || !stage) return;
+        expanded = next;
+        const first = stage.getBoundingClientRect();
+        window.clearTimeout(closingTimer);
+        if (next) {
+          if (hexParent) hexParent.style.opacity = "1";
+          scrollHost.style.transition = "";
+          scrollHost.style.pointerEvents = "";
+          for (const property of ["left", "top", "width", "height"]) {
+            scrollHost.style.removeProperty(property);
+          }
+          scrollHost.classList.add("expanded");
+        }
+        if (backdrop) {
+          backdrop.style.transition = "none";
+          backdrop.style.opacity = next ? "0" : "1";
+          void backdrop.offsetWidth;
+          backdrop.style.transition = `opacity ${EXPAND_MS}ms ease`;
+          backdrop.style.opacity = next ? "1" : "0";
+        }
+        if (!next) setRollMode2(false);
+        for (const el of [logoBg, logoPulse, logoGlow]) {
+          if (el) el.style.display = next ? "none" : "";
+        }
+        if (next) takeScrollLock2();
+        if (expandBtn) {
+          expandBtn.setAttribute("aria-label", next ? "Exit full screen" : "Expand to full screen");
+          expandBtn.setAttribute("aria-pressed", String(next));
+        }
+        updateSeparationControl2();
+        if (container) container.style.opacity = "1";
+        const restBox = stage.getBoundingClientRect();
+        const otherBox = next ? first : placeholderStage.getBoundingClientRect();
+        const scale = restBox.width ? otherBox.width / restBox.width : 1;
+        const dx = otherBox.left + otherBox.width / 2 - (restBox.left + restBox.width / 2);
+        const dy = otherBox.top + otherBox.height / 2 - (restBox.top + restBox.height / 2);
+        const offset = `translate(${dx}px, ${dy}px) scale(${scale})`;
+        scrollHost.classList.add("tetra-animating");
+        stage.style.transition = "none";
+        stage.style.transform = next ? offset : "";
+        void stage.offsetWidth;
+        stage.style.transition = `transform ${EXPAND_MS}ms cubic-bezier(0.22, 0.61, 0.36, 1)`;
+        stage.style.transform = next ? "" : offset;
+        let finished = false;
+        const finish = () => {
+          if (finished) return;
+          finished = true;
+          window.clearTimeout(closingTimer);
+          stage.removeEventListener("transitionend", onEnd);
+          scrollHost.classList.remove("tetra-animating");
+          stage.style.transition = "";
+          stage.style.transform = "";
+          if (!next) {
+            positionPortaledContainer2();
+            scrollHost.classList.remove("expanded");
+            releaseScrollLock2();
+            if (hexParent) hexParent.style.opacity = "";
+            updatePortalPresentation2(true);
+          }
+          syncCanvasResolution2();
+          positionLogoBg2();
+        };
+        const onEnd = (e) => {
+          if (e.target === stage && e.propertyName === "transform") finish();
+        };
+        stage.addEventListener("transitionend", onEnd);
+        closingTimer = window.setTimeout(finish, EXPAND_MS + 120);
+      }, revealExpandButton2 = function() {
+        if (controls) controls.hidden = false;
+      }, setRollMode2 = function(next) {
+        rollMode = next;
+        rollBtn?.setAttribute("aria-pressed", String(next));
       };
-      
-      drawInterpolated(tet1Base, true, false);
-      drawInterpolated(tet2Base, false, true);
-    } else if (phase === 'moving' || phase === 'preSpin') {
-      // Phase 1: Two large tetrahedrons merging (or spinning before merging)
-      drawTet(t1, 1, false, 1); // Left tet (solid)
-      drawTet(t2, 1, true, 1);  // Right tet (broken)
-      drawIntersections(t1, t2); // Just calculate
-    } else if (phase === 'waiting') {
-      // Transition: Fade out large tets, fade in star tetrahedron
-      const t = delayCounter / delayMax; // 0 to 1
-      drawTet(t1, 1, false, 1 - t);
-      drawTet(t2, 1, true, 1 - t);
-      const intersections = drawIntersections(t1, t2);
-      drawSmallTets(t1, t2, intersections, t);
-    } else {
-      // Phase 2: Completed Star Tetrahedron spinning
-      const intersections = drawIntersections(t1, t2);
-      
-      let hiddenLineOpacity = null;
-      if (spinCounter > spinOpaqueStart) {
-        const t = Math.min(1, (spinCounter - spinOpaqueStart) / (spinOpaqueMax - spinOpaqueStart));
-        hiddenLineOpacity = t; 
+      var syncCanvasResolution = syncCanvasResolution2, colorWithOpacity = colorWithOpacity2, lightenColor = lightenColor2, rotateY = rotateY2, rotateX = rotateX2, qMul = qMul2, qAxis = qAxis2, qNorm = qNorm2, qToMatrix = qToMatrix2, matApply = matApply2, slerpDir = slerpDir2, moveRod = moveRod2, cross = cross2, sub = sub2, dot = dot2, intersectEdgeFace = intersectEdgeFace2, isPointInTriangle = isPointInTriangle2, project = project2, faceIsFront = faceIsFront2, makeOccluder = makeOccluder2, buildOccluders = buildOccluders2, isSampleOccluded = isSampleOccluded2, occlusionRuns = occlusionRuns2, drawMergingTet = drawMergingTet2, getIntersectionSegments = getIntersectionSegments2, drawMergeSeams = drawMergeSeams2, positionLogoBg = positionLogoBg2, updateThemeColors = updateThemeColors2, frame = frame2, coupleScroll = coupleScroll2, decoupleScroll = decoupleScroll2, atSequenceEnd = atSequenceEnd2, applyPointerDrag = applyPointerDrag2, twoFingerAngle = twoFingerAngle2, updateSeparationControl = updateSeparationControl2, takeScrollLock = takeScrollLock2, releaseScrollLock = releaseScrollLock2, positionPortaledContainer = positionPortaledContainer2, updatePortalPresentation = updatePortalPresentation2, setExpanded = setExpanded2, revealExpandButton = revealExpandButton2, setRollMode = setRollMode2;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      const W = 500, H = 500;
+      let renderScale = 1;
+      const PREVIEW_SPIN = new URLSearchParams(window.location.search).has("previewSpin");
+      const _q = new URLSearchParams(window.location.search);
+      const FREEZE = _q.get("freeze");
+      const FREEZE_P = parseFloat(_q.get("p") || "0.5");
+      const FREEZE_X = parseFloat(_q.get("x") || "40");
+      const LABEL_EDGES = _q.has("label");
+      const NOFX = _q.has("nofx");
+      const R = 180;
+      const y1 = R;
+      const y2 = -R / 3;
+      const xzR = Math.sqrt(8 / 9) * R;
+      const tet1Base = [
+        [0, y1, 0],
+        // Apex
+        [xzR, y2, 0],
+        // Base point 1
+        [xzR * Math.cos(2 * Math.PI / 3), y2, xzR * Math.sin(2 * Math.PI / 3)],
+        // Base point 2
+        [xzR * Math.cos(4 * Math.PI / 3), y2, xzR * Math.sin(4 * Math.PI / 3)]
+        // Base point 3
+      ];
+      const tet2Base = tet1Base.map((v) => [-v[0], -v[1], -v[2]]);
+      const OCC_STEP = 5;
+      const SEAM_EDGE_FACES = [[1, 3], [1, 2], [2, 3], [0, 1], [0, 3], [0, 2]];
+      let angle = Math.PI / 6;
+      let previewSpinAngle = 0;
+      const maxXOffset = 100;
+      let xOffset = maxXOffset;
+      let phase = "intro";
+      let isPaused = false;
+      let inspectionSeparation = 0;
+      let inspectionSeparationTarget = 0;
+      const INSPECTION_SEPARATION_MAX = 72;
+      const INSPECTION_SEPARATION_EASE = 0.1;
+      let animDirection = 1;
+      const SPEED_PARAM = parseFloat(_q.get("speed") ?? "");
+      let animSpeed = Number.isFinite(SPEED_PARAM) && SPEED_PARAM > 0 ? SPEED_PARAM : 1;
+      const REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const TOUCH_GAIN = 0.045;
+      const SETTLE = 0.06;
+      let scrollCoupled = false;
+      let scrollImpulse = 0;
+      let animVelocity = 1;
+      let restSign = 1;
+      const DRAG_GAIN = 8e-3;
+      const DRAG_RETURN = 0.08;
+      const DRAG_SETTLED = 5e-4;
+      const QUAT_IDENTITY = [1, 0, 0, 0];
+      let dragQuat = QUAT_IDENTITY;
+      let dragging = false;
+      let returningFromOrbit = false;
+      let dragMoved = false;
+      let delayCounter = 0;
+      const delayMax = 45;
+      let holdCounter = 0;
+      const holdMergeMax = 120;
+      let introCounter = 0;
+      const introMax = 240;
+      let hasStarted = false;
+      let preSpinCounter = 0;
+      const preSpinMax = 600;
+      const mergeFadeEnd = 0.55;
+      const startAngleDegrees = 209.88;
+      const startAngle = startAngleDegrees * Math.PI / 180;
+      let spinCounter = 0;
+      let activeSpinFrames = 0;
+      const spinRevolutions = 2;
+      let tiltAngle = 0;
+      let tiltCounter = 0;
+      const tiltInFrames = 180;
+      const tiltAngleDegrees = 90;
+      const tiltAngleTarget = tiltAngleDegrees * Math.PI / 180;
+      let starHoldCounter = 0;
+      const starHoldFrames = 60;
+      let starRevealCounter = 0;
+      const starRevealFrames = 90;
+      let starFadeOpacity = 1;
+      let orthoBlend = 0;
+      const mergeSpeed = 0.6;
+      const mergeSpinSpeed = 0;
+      const spinSpeed = 0.012;
+      const activeFramesPerRevolution = Math.round(Math.PI * 2 / spinSpeed);
+      const lineWidth = 6;
+      const brokenLineGapWidth = lineWidth * 1;
+      let textColor = "rgba(0,0,0,1)";
+      let bgColor = "#fff";
+      let glowBlur = 0;
+      let invitePhase = 0;
+      let connectionPulseCounter = 0;
+      const connectionPulseFrames = 60;
+      let logoPulseCounter = 0;
+      const logoPulseFrames = 275;
+      let logoFlareCounter = 0;
+      const logoFlareFrames = 70;
+      let logoPulseReverse = false;
+      let rumbleIntensity = 0;
+      let rumblePhase = 0;
+      const logoBg = document.getElementById("logo-bg");
+      const logoGlow = document.getElementById("logo-glow");
+      const logoPulse = document.getElementById("logo-pulse");
+      const container = canvas.closest(".star-tetra-container");
+      positionLogoBg2();
+      syncCanvasResolution2();
+      window.addEventListener("resize", () => {
+        syncCanvasResolution2();
+        positionLogoBg2();
+      }, { passive: true });
+      window.addEventListener("scroll", () => {
+        if (!container) return;
+        if (container.classList.contains("expanded")) {
+          container.style.opacity = "1";
+          return;
+        }
+        if (container.classList.contains("tetra-portaled")) {
+          updatePortalPresentation2(false);
+          return;
+        }
+        container.style.opacity = String(Math.max(0, 1 - window.scrollY / 300));
+      }, { passive: true });
+      let logoRotation = 0;
+      let logoSpeed = 2e-3;
+      let targetLogoSpeed = 2e-3;
+      const ambientSpeed = 2e-3;
+      const hoverSpeed = 5e-4;
+      const reverseSpeed = -4e-3;
+      let isHovered = false;
+      let lastScrollY = typeof window !== "undefined" ? window.scrollY : 0;
+      let scrollVelocity = 0;
+      let breathTime = 0;
+      const breathCycle = 400;
+      const breathCycle2 = 670;
+      let logoNudge = 0;
+      let nextNudgeAt = 480 + Math.random() * 420;
+      updateThemeColors2();
+      if (FREEZE) {
+        hasStarted = true;
+        isPaused = true;
+        if (FREEZE === "preSpin") {
+          phase = "preSpin";
+          preSpinCounter = Math.max(0, Math.min(1, FREEZE_P)) * preSpinMax;
+          angle = preSpinCounter / preSpinMax * (startAngle + Math.PI * 2);
+        } else if (FREEZE === "moving") {
+          phase = "moving";
+          preSpinCounter = preSpinMax;
+          xOffset = FREEZE_X;
+          angle = startAngle + Math.PI * 2;
+        } else if (FREEZE === "holdMerge") {
+          phase = "holdMerge";
+          preSpinCounter = preSpinMax;
+          xOffset = 0;
+          angle = startAngle + Math.PI * 2;
+        } else if (FREEZE === "starHold") {
+          phase = "starHold";
+          preSpinCounter = preSpinMax;
+          xOffset = 0;
+          angle = startAngle + Math.PI * 2;
+          tiltAngle = tiltAngleTarget;
+        } else if (FREEZE === "starReveal") {
+          phase = "starReveal";
+          preSpinCounter = preSpinMax;
+          xOffset = 0;
+          angle = startAngle + Math.PI * 2;
+          tiltAngle = tiltAngleTarget;
+          starRevealCounter = Math.max(0, Math.min(1, FREEZE_P)) * starRevealFrames;
+          const revealP = Math.max(0, Math.min(1, FREEZE_P));
+          starFadeOpacity = 1 - revealP;
+          orthoBlend = revealP;
+        } else if (FREEZE === "starOfDavid") {
+          phase = "starOfDavid";
+          preSpinCounter = preSpinMax;
+          xOffset = 0;
+          angle = startAngle + Math.PI * 2;
+          tiltAngle = tiltAngleTarget;
+          starFadeOpacity = 0;
+          orthoBlend = 1;
+        }
       }
-      
-      drawSmallTets(t1, t2, intersections, 1, hiddenLineOpacity);
+      frame2();
+      canvas.addEventListener("mouseenter", () => {
+        isHovered = true;
+      });
+      canvas.addEventListener("mouseleave", () => {
+        isHovered = false;
+      });
+      canvas.addEventListener("click", () => {
+        if (dragMoved) {
+          dragMoved = false;
+          return;
+        }
+        if (phase === "intro" && introCounter === 0 && !hasStarted) {
+          hasStarted = true;
+          revealExpandButton2();
+          coupleScroll2();
+          return;
+        }
+        coupleScroll2();
+        if (phase === "starOfDavid") {
+          animDirection = -1;
+          animVelocity = -1;
+          restSign = -1;
+          isPaused = false;
+          return;
+        }
+        if (isPaused) {
+          inspectionSeparationTarget = 0;
+          if (dragQuat[1] || dragQuat[2] || dragQuat[3] || inspectionSeparation > 0.05) {
+            returningFromOrbit = true;
+          }
+          isPaused = false;
+        } else {
+          isPaused = true;
+          dragging = false;
+        }
+        updateSeparationControl2();
+      });
+      const scrollHost = canvas.closest(".star-tetra-container");
+      canvas.addEventListener("wheel", (e) => {
+        if (!scrollCoupled) return;
+        const sign = e.deltaY < 0 ? -1 : 1;
+        if (atSequenceEnd2(sign)) {
+          decoupleScroll2();
+          return;
+        }
+        e.preventDefault();
+        scrollImpulse += e.deltaY * 0.01;
+      }, { passive: false });
+      let touchX = 0, touchY = 0;
+      let pinchAngle = null;
+      canvas.addEventListener("touchstart", (e) => {
+        if (!e.touches[0]) return;
+        touchX = e.touches[0].clientX;
+        touchY = e.touches[0].clientY;
+        pinchAngle = twoFingerAngle2(e);
+        dragMoved = false;
+        if (scrollCoupled && isPaused) dragging = true;
+      }, { passive: true });
+      canvas.addEventListener("touchmove", (e) => {
+        if (!scrollCoupled || !e.touches[0]) return;
+        const x = e.touches[0].clientX;
+        const y = e.touches[0].clientY;
+        const dx = x - touchX;
+        const dy = touchY - y;
+        touchX = x;
+        touchY = y;
+        e.preventDefault();
+        const twist = twoFingerAngle2(e);
+        if (twist !== null && dragging) {
+          if (pinchAngle !== null) {
+            let d = twist - pinchAngle;
+            if (d > Math.PI) d -= Math.PI * 2;
+            if (d < -Math.PI) d += Math.PI * 2;
+            dragQuat = qNorm2(qMul2(qAxis2(0, 0, 1, -d), dragQuat));
+            dragMoved = true;
+          }
+          pinchAngle = twist;
+          return;
+        }
+        pinchAngle = twist;
+        if (dragging) {
+          applyPointerDrag2(x, y, dx, -dy);
+          if (Math.abs(dx) > 2 || Math.abs(dy) > 2) dragMoved = true;
+        } else {
+          scrollImpulse += (dy + dx) * TOUCH_GAIN;
+        }
+      }, { passive: false });
+      for (const evt of ["touchend", "touchcancel"]) {
+        canvas.addEventListener(evt, (e) => {
+          const te = e;
+          if (te.touches.length > 0) {
+            touchX = te.touches[0].clientX;
+            touchY = te.touches[0].clientY;
+            pinchAngle = twoFingerAngle2(te);
+            return;
+          }
+          pinchAngle = null;
+          dragging = false;
+        }, { passive: true });
+      }
+      const expandBtn = document.getElementById("tetra-expand");
+      const rollBtn = document.getElementById("tetra-roll");
+      const separateBtn = document.getElementById("tetra-separate");
+      const controls = canvas.parentElement?.querySelector(".tetra-controls");
+      const backdrop = canvas.closest(".star-tetra-container")?.querySelector(".tetra-backdrop");
+      let expanded = false;
+      let rollMode = false;
+      const SEPARABLE_PHASES = /* @__PURE__ */ new Set(["spinning", "tilted", "starHold", "starReveal", "starOfDavid"]);
+      const stage = canvas.closest(".star-tetra-stage");
+      const EXPAND_MS = 420;
+      let closingTimer = 0;
+      const placeholder = document.createElement("div");
+      placeholder.className = "star-tetra-container tetra-placeholder";
+      placeholder.setAttribute("aria-hidden", "true");
+      const placeholderStage = document.createElement("div");
+      placeholderStage.className = "star-tetra-stage";
+      for (const attr of scrollHost?.attributes ?? []) {
+        if (attr.name.startsWith("data-astro-")) placeholder.setAttribute(attr.name, attr.value);
+      }
+      for (const attr of stage?.attributes ?? []) {
+        if (attr.name.startsWith("data-astro-")) placeholderStage.setAttribute(attr.name, attr.value);
+      }
+      placeholder.appendChild(placeholderStage);
+      const hexParent = scrollHost?.parentElement ?? null;
+      if (scrollHost) {
+        scrollHost.replaceWith(placeholder);
+        document.body.appendChild(scrollHost);
+        scrollHost.classList.add("tetra-portaled");
+        updatePortalPresentation2(false);
+      }
+      window.addEventListener("resize", () => {
+        positionPortaledContainer2();
+      }, { passive: true });
+      const heroForPortal = hexParent?.closest("#hero");
+      if (heroForPortal) {
+        new MutationObserver(() => updatePortalPresentation2(true)).observe(heroForPortal, {
+          attributes: true,
+          attributeFilter: ["class"]
+        });
+      }
+      expandBtn?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        setExpanded2(!expanded);
+      });
+      rollBtn?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        setRollMode2(!rollMode);
+      });
+      separateBtn?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (!expanded || !isPaused || !SEPARABLE_PHASES.has(phase)) return;
+        const separating = inspectionSeparationTarget < INSPECTION_SEPARATION_MAX / 2;
+        inspectionSeparationTarget = separating ? INSPECTION_SEPARATION_MAX : 0;
+        separateBtn.setAttribute("aria-pressed", String(separating));
+        separateBtn.setAttribute("aria-label", separating ? "Bring tetrahedra together" : "Pull tetrahedra apart");
+      });
+      canvas.addEventListener("dblclick", (e) => {
+        if (!hasStarted) return;
+        e.preventDefault();
+        setExpanded2(!expanded);
+      });
+      const DOUBLE_TAP_MS = 320;
+      const DOUBLE_TAP_SLOP = 32;
+      let lastTapT = 0, lastTapX = 0, lastTapY = 0;
+      canvas.addEventListener("touchend", (e) => {
+        if (!hasStarted || e.touches.length > 0) return;
+        const t = e.changedTouches[0];
+        if (!t) return;
+        const now = e.timeStamp;
+        const near = Math.abs(t.clientX - lastTapX) < DOUBLE_TAP_SLOP && Math.abs(t.clientY - lastTapY) < DOUBLE_TAP_SLOP;
+        if (!dragMoved && now - lastTapT < DOUBLE_TAP_MS && near) {
+          setExpanded2(!expanded);
+          lastTapT = 0;
+          return;
+        }
+        lastTapT = now;
+        lastTapX = t.clientX;
+        lastTapY = t.clientY;
+      }, { passive: true });
+      let mouseDragging = false;
+      let mouseX = 0, mouseY = 0;
+      canvas.addEventListener("mousedown", (e) => {
+        if (e.button !== 0 || !scrollCoupled || !isPaused) return;
+        e.preventDefault();
+        mouseDragging = true;
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        dragMoved = false;
+      });
+      window.addEventListener("mousemove", (e) => {
+        if (!mouseDragging) return;
+        const sdx = e.clientX - mouseX;
+        const sdy = e.clientY - mouseY;
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        applyPointerDrag2(e.clientX, e.clientY, sdx, sdy);
+        if (Math.abs(sdx) > 2 || Math.abs(sdy) > 2) dragMoved = true;
+      });
+      window.addEventListener("mouseup", () => {
+        mouseDragging = false;
+      });
+      window.addEventListener("keydown", (e) => {
+        if (e.key !== "Escape") return;
+        if (expanded) {
+          setExpanded2(false);
+          return;
+        }
+        decoupleScroll2();
+      });
+      if (typeof IntersectionObserver !== "undefined") {
+        new IntersectionObserver(
+          (entries) => {
+            if (!entries[0]?.isIntersecting) decoupleScroll2();
+          },
+          { threshold: 0 }
+        ).observe(canvas);
+      }
     }
-
-    requestAnimationFrame(frame); // Schedule next frame
   }
+})();
 
-  // Start the animation
-  frame();
-
-  canvas.addEventListener('click', (e) => {
-    if (phase === 'intro' && introCounter === 0 && !hasStarted) {
-      hasStarted = true;
-      return; 
-    }
-
-    if (isPaused) {
-      // Resuming
-      if (phase === 'spinning') {
-        animDirection = -animDirection;
-      }
-      isPaused = false;
-    } else {
-      // Pausing
-      isPaused = true;
-    }
-  });
-
-  // Add cursor style to indicate interactivity
-  canvas.style.cursor = 'pointer';
-</script>
+  </script>
 </body>
 </html>

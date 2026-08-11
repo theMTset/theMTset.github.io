@@ -119,7 +119,7 @@ reduced-motion-aware React component, live demo, and integration instructions.
 
 > The hero geometry from Simply Curious. Two tetrahedra merge, resolve into a star, and spin.
 >
-> Hidden-line occlusion, drawn by hand in a few hundred lines of canvas. No libraries.
+> Hidden-line occlusion and direct manipulation, drawn by hand in canvas. No 3D libraries.
 
 ### Simply Curious — brand + full build
 
