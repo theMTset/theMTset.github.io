@@ -11,9 +11,10 @@
 
   // Opening choreography. Strike 1 is distant and easy to miss — it only suggests there
   // is something to look at. Strike 2 comes down on top of the words: closer, louder,
-  // and it leaves the text glowing for a few seconds so it can actually be read. After
-  // that the storm settles into its sparse ambient rhythm and never does this again.
+  // and it leaves the text glowing for a few seconds so it can actually be read. The storm
+  // ends there; lightning never follows the visitor into the rest of the portfolio.
   const BIG_STRIKE_INDEX = 1;
+  const TOTAL_STRIKES = 2;
   const AFTERGLOW_MS = 6400;
   const AFTERGLOW_HOLD_MS = 1600;
   const AFTERGLOW_PEAK = .66;
@@ -136,13 +137,12 @@
   function nextStrikeDelay(first) {
     if (first) return 650;
     // Beat between the distant opener and the one that lands on the words.
-    if (strikeCount === BIG_STRIKE_INDEX) return random(2100, 2900);
-    return random(3200, 9800);
+    return random(2100, 2900);
   }
 
   function scheduleStorm(first = false) {
     window.clearTimeout(stormTimer);
-    if (reducedMotion) return;
+    if (reducedMotion || strikeCount >= TOTAL_STRIKES) return;
     stormTimer = window.setTimeout(async () => {
       await strike();
       scheduleStorm();

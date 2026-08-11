@@ -180,7 +180,15 @@ button { font: inherit; }
   width: clamp(3.6rem, 8vw, 6.5rem);
   aspect-ratio: 1;
   margin-top: clamp(2.5rem, 6vh, 5rem);
+  color: inherit;
+  text-decoration: none;
+  border-radius: 50%;
   transform: translateY(calc(var(--progress) * -5vh));
+}
+
+.mark:focus-visible {
+  outline: 1px solid rgba(var(--cold), .38);
+  outline-offset: .65rem;
 }
 
 /* The pool of light behind the mark. This is the only part that brightens. */
@@ -489,9 +497,17 @@ body.geometry-open .sound-toggle { opacity: 0; pointer-events: none; }
 @media (max-width: 650px) {
   .sound-label { display: none; }
   .sound-toggle { top: 1rem; right: 1rem; }
+  /* Keep the linked ∅ just visible after the lightning fades without turning it into a CTA. */
+  .mark::before { opacity: calc(.1 + var(--lit) * var(--mark-glow)); }
   .small-line { transform: translateY(-6rem); }
   .answer-whisper { transform: translateY(7rem); }
-  .shaft { background: radial-gradient(circle at 50% 31%, #071019 0, #020406 12%, #000 34%); }
+  .shaft { background: radial-gradient(circle at 50% 31%, #0a1720 0, #03080d 17%, #000 42%); }
+  .ring {
+    border-color: rgba(126, 166, 194, .16);
+    box-shadow: inset 0 0 80px rgba(89, 137, 169, .1), 0 0 35px #000;
+  }
+  .ring::before,
+  .ring::after { background: rgba(174, 208, 229, .15); }
   .ring,
   .descent-geometry { top: 31%; }
   .descent-copy { left: 6vw; bottom: max(1.25rem, env(safe-area-inset-bottom)); width: 88vw; }
