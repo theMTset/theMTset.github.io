@@ -44,8 +44,9 @@ same brand and should not look like each other.
 The portfolio uses the same star-tetrahedron geometry but gives it a different expression.
 Here it is found in the dark: cool blue rather than gold, already assembled, and always
 turning. There is no click-to-begin or scripted Simply Curious story. Dragging turns the
-shape directly; release returns it to its ambient track. This preserves the "same person
-built both" connection without making the portfolio hero an offcut of the product hero.
+shape directly; release holds the chosen orientation briefly before returning it to its
+ambient track. This preserves the "same person built both" connection without making the
+portfolio hero an offcut of the product hero.
 
 ---
 
@@ -173,8 +174,15 @@ share the product presentation.
 The cue now catches the same lightning as the question at scroll zero and fades out as
 soon as `--progress` rises. It is not permanently visible in the dark, so the opening
 keeps its atmosphere, but every readable strike also reveals the instruction to “look
-deeper.” Reduced-motion mode supplies a static low-opacity fallback because no strike
-will occur.
+deeper.” The storm is capped at its two opening strikes; no ambient strikes recur over
+later sections. Reduced-motion mode supplies a static low-opacity fallback because no
+strike will occur.
+
+The ∅ mark is a restrained link to `https://github.com/theMTset`. On small screens its
+backlight keeps a low resting opacity so the link remains discoverable after the storm
+without reading as a conventional call to action. The descent also uses a slightly
+brighter mobile-only shaft gradient and ring edge so the hole remains legible on a small,
+dark display; the desktop treatment is unchanged.
 
 ---
 
