@@ -39,6 +39,7 @@
   var TEXT = "turbopuffer";
   var FLICKER_MS = 450;
   var STEP_MS = 80;
+  var EMULATED_MOUSE_GUARD_MS = 1200;
 
   var container = document.getElementById("trail");
   var charEls = TEXT.split("").map(function (ch) {
@@ -50,6 +51,7 @@
 
   var resolveAt = new Array(TEXT.length).fill(-Infinity);
   var hoverIndex = -1;
+  var ignoreMouseUntil = -Infinity;
   var rafId = null;
 
   function randomChar() {
@@ -120,17 +122,33 @@
     ensureLoop();
   }
 
-  container.addEventListener("mouseenter", function (e) { rippleInto(indexFromX(e.clientX)); });
-  container.addEventListener("mousemove", function (e) { handleMove(e.clientX); });
+  function markTouchInput() {
+    ignoreMouseUntil = performance.now() + EMULATED_MOUSE_GUARD_MS;
+  }
+
+  container.addEventListener("mouseenter", function (e) {
+    if (performance.now() >= ignoreMouseUntil) rippleInto(indexFromX(e.clientX));
+  });
+  container.addEventListener("mousemove", function (e) {
+    if (performance.now() >= ignoreMouseUntil) handleMove(e.clientX);
+  });
   container.addEventListener("mouseleave", releaseHover);
   container.addEventListener("touchstart", function (e) {
+    markTouchInput();
     if (e.touches[0]) rippleInto(indexFromX(e.touches[0].clientX));
   }, { passive: true });
   container.addEventListener("touchmove", function (e) {
+    markTouchInput();
     if (e.touches[0]) handleMove(e.touches[0].clientX);
   }, { passive: true });
-  container.addEventListener("touchend", releaseHover);
-  container.addEventListener("touchcancel", releaseHover);
+  container.addEventListener("touchend", function () {
+    markTouchInput();
+    releaseHover();
+  });
+  container.addEventListener("touchcancel", function () {
+    markTouchInput();
+    releaseHover();
+  });
 
   staggerFrom(Math.floor(TEXT.length / 2), true);
   ensureLoop();

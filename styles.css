@@ -452,31 +452,6 @@ body.geometry-open .sound-toggle { opacity: 0; pointer-events: none; }
   letter-spacing: -.055em;
 }
 
-.threshold {
-  position: relative;
-  z-index: 5;
-  display: grid;
-  place-content: center;
-  min-height: 100vh;
-  text-align: center;
-  background: #000;
-}
-
-.threshold p {
-  margin: 0 0 2rem;
-  color: rgba(230, 238, 243, .7);
-  font-size: clamp(1.4rem, 4vw, 3.8rem);
-  font-weight: 300;
-  letter-spacing: -.04em;
-}
-
-.threshold span {
-  color: rgba(230, 238, 243, .22);
-  font: 400 .62rem/1 "Inter", sans-serif;
-  letter-spacing: .4em;
-  text-transform: uppercase;
-}
-
 .work {
   position: relative;
   z-index: 5;

@@ -86,25 +86,16 @@ because the visitor can then directly manipulate the geometry above it.
 
 ---
 
-## 4. Threshold — **LIVE on `designer-application`**, transition open
+## 4. Selected work — **LIVE on `designer-application`**
 
-> Everything below was built by someone who wanted to know how it worked.
->
-> the MT set
-
-The copy is settled for this branch. The visual handoff from the interactive geometry
-to selected work still needs design. Generic `main` retains its placeholder until a
-role-neutral handoff is chosen.
-
----
-
-## 5. Selected work — **LIVE on `designer-application`**
+The designer branch moves directly from the final falling qualities into the work. The
+former threshold sentence and extra full-height pause have been removed.
 
 Section heading: `selected work`
 
 ### Turbopuffer — interaction design
 
-> turbopuffer's logo scrambles into place on hover. I reverse-engineered it from their
+> turbopuffer's logo scrambles into place on hover or touch. I reverse-engineered it from their
 > production bundle, then rebuilt it with Claude Code: the word now converges onto wherever
 > your pointer lands and trails precisely along its path as you move.
 >
@@ -130,7 +121,7 @@ reduced-motion-aware React component, live demo, and integration instructions.
 
 ---
 
-## 6. About — **LIVE on `designer-application`**
+## 5. About — **LIVE on `designer-application`**
 
 > I've always been driven by curiosity.
 >
@@ -150,7 +141,7 @@ reduced-motion-aware React component, live demo, and integration instructions.
 
 ---
 
-## 7. Case study template — draft structure
+## 6. Case study template — draft structure
 
 Every project page uses the same five beats. Consistency here is what turns a list of
 projects into an argument about how someone thinks.
@@ -167,7 +158,7 @@ and it's honest about the tools.
 
 ---
 
-## 8. Contact — **LIVE on `designer-application`**
+## 7. Contact — **LIVE on `designer-application`**
 
 > Built something you want taken apart?
 > Or have something that needs putting back together?
@@ -180,9 +171,8 @@ One prompt, one address. No form.
 
 ## Unresolved
 
-- [ ] Design the handoff from the settled geometry into selected work.
 - [ ] Real name on generic `main`, or only on role-specific application branches?
-- [ ] Does the atmospheric voice extend into case studies, or stop at the threshold?
+- [ ] Does the atmospheric voice extend into case studies?
       (Leaning: stop. Case studies should be readable by a hiring manager on a phone.)
 - [ ] Generic meta/social tagline for `main`. Application branches should provide their
       own role-specific title and description rather than merging those values upstream.

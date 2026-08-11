@@ -59,16 +59,15 @@ portfolio hero an offcut of the product hero.
 | `.opening` | 185vh | Built | "is it empty?" — invisible until lightning |
 | `.answer` | 205vh | Built | "no. it is **MT**" |
 | `.descent` | 500vh | Built | The fall. Copy collides into a persistent stack while the interactive geometry grows. |
-| `.threshold` | 100vh | Built copy; transition open | Handoff to designer-specific selected work. |
-| `.work` | Content height | Built | Three interaction, motion, and brand/build examples. |
+| `.work` | Content height | Built | Follows the descent directly with three interaction, motion, and brand/build examples. |
 | `.about` | Content height | Built | Plain-language account of method and range. |
 | `.contact` | 60vh | Built | One direct email route. |
 
 ### Role-specific continuation
 
-The generic `main` branch intentionally stops at the threshold. This
-`designer-application` branch continues into selected work, About, and Contact. The
-visual transition from the settled geometry into selected work still needs design.
+The generic `main` branch intentionally stops at its placeholder threshold. This
+`designer-application` branch omits that pause and continues directly from the descent
+into selected work, About, and Contact.
 
 | Section | Purpose |
 |---|---|
@@ -207,8 +206,6 @@ unrelated role.
 
 ## Open questions
 
-- [ ] How does the settled descent hand off to selected work without making the geometry
-      disappear or turning the next section into an abrupt cut?
 - [ ] Does the generic portfolio eventually include a conventional work index, or remain
       only the shared entrance used by role-specific branches?
 - [ ] Is this the primary portfolio URL, or an entrance that hands off to a plainer site?
