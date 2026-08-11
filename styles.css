@@ -464,6 +464,68 @@ button { font: inherit; }
   font-size: .92rem;
 }
 
+.about {
+  position: relative;
+  z-index: 5;
+  background: #000;
+  padding: 2rem 8vw 8rem;
+}
+
+.about-inner {
+  max-width: 42rem;
+}
+
+.about-inner p {
+  margin: 0 0 1.4rem;
+  color: rgba(230, 238, 243, .82);
+  font-size: 1.15rem;
+  font-weight: 300;
+  line-height: 1.55;
+}
+
+.about-signature {
+  margin-top: 2.5rem;
+  color: rgba(230, 238, 243, .4);
+  font-size: .78rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.contact {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  place-content: center;
+  gap: 1.5rem;
+  min-height: 60vh;
+  text-align: center;
+  background: #000;
+  padding: 4rem 8vw 6rem;
+}
+
+.contact p {
+  margin: 0;
+  color: rgba(230, 238, 243, .7);
+  font-size: clamp(1.1rem, 2.6vw, 1.5rem);
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+.contact a {
+  color: var(--paper);
+  font-size: 1.1rem;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(230, 238, 243, .3);
+  padding-bottom: 2px;
+  transition: border-color .2s ease, color .2s ease;
+}
+
+.contact a:hover,
+.contact a:focus-visible {
+  color: rgba(var(--cold), 1);
+  border-color: rgba(var(--cold), .8);
+}
+
 .no-script {
   position: fixed;
   z-index: 100;
