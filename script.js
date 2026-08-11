@@ -243,7 +243,14 @@
   const descentCopy = document.querySelector('.descent-copy');
   const geometry = document.querySelector('.descent-geometry');
   const geometryFrame = geometry?.querySelector('iframe');
-  const geometryExpand = document.querySelector('.geometry-expand');
+
+  const DROP_DURATION_MS = 720;
+  const DROP_COLLISION_MS = 260;
+  const GEOMETRY_START = .03;
+  const GEOMETRY_END = .84;
+  let dropSequenceStarted = reducedMotion;
+  let dropSequenceStart = 0;
+  let lastGeometryProgress = -1;
 
   const clamp = (value, min = 0, max = 1) => Math.min(Math.max(value, min), max);
   const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
@@ -256,29 +263,25 @@
     return n * (t -= 2.625 / d) * t + .984375;
   };
 
-  function updateDrops(descentProgress, viewport) {
-    if (reducedMotion) {
-      dropLines.forEach(line => {
-        line.style.opacity = '1';
-        line.style.transform = 'none';
-      });
-      return;
-    }
-
-    const duration = .115;
+  function renderDropSequence(now) {
+    const elapsed = now - dropSequenceStart;
+    let active = false;
     let collision = 0;
+
     dropLines.forEach((line, index) => {
-      const start = Number(line.dataset.dropStart);
-      const local = clamp((descentProgress - start) / duration);
+      const delay = Number(line.dataset.dropDelay);
+      const local = clamp((elapsed - delay) / DROP_DURATION_MS);
       const position = easeOutBounce(local);
-      const fallDistance = viewport + line.offsetTop + line.offsetHeight;
+      const fallDistance = Math.max(window.innerHeight, 1) + line.offsetTop + line.offsetHeight;
       line.style.opacity = String(clamp(local * 3));
       line.style.transform = `translateY(${-fallDistance * (1 - position)}px)`;
+      if (local < 1) active = true;
 
       if (index > 0) {
-        const sinceImpact = (descentProgress - (start + duration)) / .045;
+        const sinceImpact = (elapsed - delay - DROP_DURATION_MS) / DROP_COLLISION_MS;
         if (sinceImpact >= 0 && sinceImpact <= 1) {
           collision += Math.sin(sinceImpact * Math.PI * 4) * (1 - sinceImpact);
+          active = true;
         }
       }
     });
@@ -286,6 +289,25 @@
     if (descentCopy) {
       descentCopy.style.transform = `translateY(${(collision * 7).toFixed(2)}px)`;
     }
+    if (active) window.requestAnimationFrame(renderDropSequence);
+  }
+
+  function startDropSequence() {
+    if (dropSequenceStarted) return;
+    dropSequenceStarted = true;
+    window.requestAnimationFrame(now => {
+      dropSequenceStart = now;
+      renderDropSequence(now);
+    });
+  }
+
+  function syncGeometryProgress(progress) {
+    if (!geometryFrame?.contentWindow || Math.abs(progress - lastGeometryProgress) < .001) return;
+    lastGeometryProgress = progress;
+    geometryFrame.contentWindow.postMessage({
+      type: 'mtset:geometry-progress',
+      progress
+    }, '*');
   }
 
   function updateScroll() {
@@ -296,6 +318,7 @@
     const rect = descent.getBoundingClientRect();
     const descentProgress = clamp(-rect.top / Math.max(descent.offsetHeight - viewport, 1));
     root.style.setProperty('--descent-progress', descentProgress.toFixed(3));
+    if (!dropSequenceStarted && rect.top <= 0 && rect.bottom > viewport) startDropSequence();
 
     rings.forEach((ring, index) => {
       const scale = 1 + descentProgress * (2.3 + index * .55);
@@ -304,34 +327,24 @@
       ring.style.transform = `rotate(${rotation + (index * 11)}deg) scale(${scale})`;
     });
 
-    updateDrops(descentProgress, viewport);
-
-    if (geometry && !geometry.classList.contains('is-expanded')) {
-      const growth = reducedMotion ? 1 : easeOutCubic(clamp((descentProgress - .03) / .86));
+    if (geometry) {
+      const formation = reducedMotion
+        ? 1
+        : clamp((descentProgress - GEOMETRY_START) / (GEOMETRY_END - GEOMETRY_START));
+      const growth = reducedMotion ? 1 : easeOutCubic(formation);
       const mobile = window.innerWidth <= 650;
       const maxSize = mobile
-        ? Math.min(window.innerWidth * .68, viewport * .43)
-        : Math.min(window.innerWidth * .52, viewport * .54);
+        ? Math.min(window.innerWidth * .86, viewport * .56)
+        : Math.min(window.innerWidth * .56, viewport * .58);
       const size = 72 + (maxSize - 72) * growth;
       geometry.style.width = `${Math.max(size, 72).toFixed(1)}px`;
-      const ready = reducedMotion || descentProgress >= .84;
+      const ready = formation >= 1;
       geometry.classList.toggle('geometry-ready', ready);
-      if (geometryExpand) geometryExpand.disabled = !ready;
       if (geometryFrame) geometryFrame.style.pointerEvents = ready ? 'auto' : 'none';
+      syncGeometryProgress(Number(formation.toFixed(4)));
     }
 
     scrollTicking = false;
-  }
-
-  function setGeometryExpanded(expanded) {
-    if (!geometry || !geometryExpand) return;
-    geometry.classList.toggle('is-expanded', expanded);
-    document.body.classList.toggle('geometry-open', expanded);
-    geometryExpand.setAttribute('aria-pressed', String(expanded));
-    geometryExpand.setAttribute('aria-label', expanded
-      ? 'Exit full screen star tetrahedron'
-      : 'Expand star tetrahedron to full screen');
-    if (!expanded) updateScroll();
   }
 
   window.addEventListener('scroll', () => {
@@ -350,15 +363,17 @@
     }
   });
   soundButton.addEventListener('click', toggleSound);
-  geometryExpand?.addEventListener('click', () => {
-    setGeometryExpanded(!geometry.classList.contains('is-expanded'));
+  geometryFrame?.addEventListener('load', () => {
+    lastGeometryProgress = -1;
+    updateScroll();
   });
-  window.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && geometry?.classList.contains('is-expanded')) {
-      setGeometryExpanded(false);
-      geometryExpand.focus();
-    }
-  });
+
+  if (reducedMotion) {
+    dropLines.forEach(line => {
+      line.style.opacity = '1';
+      line.style.transform = 'none';
+    });
+  }
 
   syncStormRegion();
   if (reducedMotion) {

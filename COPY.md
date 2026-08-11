@@ -85,6 +85,10 @@ The causal order is deliberate. “I need” is stronger than “I like,” and 
 qualities give the falling-word animation a repeatable rhythm. “interactive” lands last
 because the visitor can then directly manipulate the geometry above it.
 
+The lines begin automatically on first entry and play once per page load. The geometry's
+formation remains tied to scroll in both directions. When it finishes, the interaction
+hint `drag to explore` rises beneath it.
+
 ---
 
 ## 4. Selected work — **LIVE on `designer-application`**

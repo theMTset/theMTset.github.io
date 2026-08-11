@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Interactive star tetrahedron</title>
   <!-- Generated from simply-curious/website 24f95c0314782f69706d2ec114fcafd67c1b9cfe. The source renderer and
-       hidden-line implementation are preserved; this portfolio mode replaces its scripted
-       sequence with a slow ambient spin, sticky direct orbit, and delayed spring return. -->
+       hidden-line implementation are preserved; this portfolio mode lets the parent page scrub
+       the opening formation, then hands the completed shape to ambient spin and direct orbit. -->
   <style>
     :root { color-scheme: dark; }
     html, body {
@@ -17,10 +17,10 @@
       background: transparent;
     }
     body {
-      --mark-color: #bfdcff;
+      --mark-color: #fff;
       --bg: #020406;
       --thr-bg: #020406;
-      --thr-gold: #bfdcff;
+      --thr-gold: #fff;
     }
   .star-tetra-container {
     position: relative;
@@ -201,7 +201,7 @@
 <body>
   <div class="star-tetra-container">
     <div class="star-tetra-stage">
-      <canvas id="c" width="500" height="500" aria-label="A rotating star tetrahedron. Drag to turn it."></canvas>
+      <canvas id="c" width="500" height="500" aria-label="A star tetrahedron forming with scroll. Drag to turn it once complete."></canvas>
     </div>
   </div>
   <script>
@@ -726,7 +726,7 @@
         if (Math.abs(inspectionSeparationTarget - inspectionSeparation) < 0.02) {
           inspectionSeparation = inspectionSeparationTarget;
         }
-        if (AMBIENT_MODE && !ambientPointerDown && !returningFromOrbit && ambientReturnAt > 0 && performance.now() >= ambientReturnAt) {
+        if (AMBIENT_MODE && formationComplete && !ambientPointerDown && !returningFromOrbit && ambientReturnAt > 0 && performance.now() >= ambientReturnAt) {
           returningFromOrbit = Boolean(dragQuat[1] || dragQuat[2] || dragQuat[3]);
           ambientReturnAt = 0;
         }
@@ -884,7 +884,7 @@
             }
           }
         }
-        if (AMBIENT_MODE && !REDUCED_MOTION && !ambientPointerDown && !returningFromOrbit && ambientReturnAt === 0) {
+        if (AMBIENT_MODE && formationComplete && !REDUCED_MOTION && !ambientPointerDown && !returningFromOrbit && ambientReturnAt === 0) {
           angle += AMBIENT_SPIN_SPEED;
         }
         let t1, t2;
@@ -1155,11 +1155,12 @@
       const AMBIENT_MODE = true;
       const AMBIENT_SPIN_SPEED = 35e-4;
       const AMBIENT_RETURN_DELAY_MS = 2e3;
-      let angle = Math.PI / 6;
+      let formationComplete = false;
+      let angle = 0;
       let previewSpinAngle = 0;
       const maxXOffset = 100;
-      let xOffset = 0;
-      let phase = "holdMerge";
+      let xOffset = maxXOffset;
+      let phase = "intro";
       let isPaused = true;
       let inspectionSeparation = 0;
       let inspectionSeparationTarget = 0;
@@ -1310,6 +1311,81 @@
           orthoBlend = 1;
         }
       }
+
+      // The portfolio page owns the formation timeline. Map its normalized scroll
+      // progress onto the original intro, pre-spin, and merge phases. At the end,
+      // release the completed geometry into its ambient spin and drag behavior.
+      const applyPortfolioProgress = (value) => {
+        const progress = Math.min(1, Math.max(0, Number(value) || 0));
+        const wasComplete = formationComplete;
+        const movingFrames = maxXOffset / mergeSpeed;
+        const sequenceFrame = progress * (introMax + preSpinMax + movingFrames);
+
+        formationComplete = progress >= 1;
+        hasStarted = true;
+        isPaused = true;
+        animDirection = 1;
+        delayCounter = 0;
+        holdCounter = 0;
+        spinCounter = 0;
+        activeSpinFrames = 0;
+        tiltCounter = 0;
+        tiltAngle = 0;
+        starHoldCounter = 0;
+        starRevealCounter = 0;
+        starFadeOpacity = 1;
+        orthoBlend = 0;
+
+        if (!formationComplete) {
+          connectionPulseCounter = 0;
+          logoPulseCounter = 0;
+          logoFlareCounter = 0;
+          dragQuat = QUAT_IDENTITY;
+          inspectionSeparation = 0;
+          inspectionSeparationTarget = 0;
+          returningFromOrbit = false;
+          ambientPointerDown = false;
+          ambientReturnAt = 0;
+        }
+
+        if (sequenceFrame <= introMax) {
+          phase = "intro";
+          introCounter = sequenceFrame;
+          preSpinCounter = 0;
+          xOffset = maxXOffset;
+          angle = 0;
+        } else if (sequenceFrame <= introMax + preSpinMax) {
+          phase = "preSpin";
+          introCounter = introMax;
+          preSpinCounter = sequenceFrame - introMax;
+          xOffset = maxXOffset;
+          angle = preSpinCounter / preSpinMax * (startAngle + Math.PI * 2);
+        } else if (!formationComplete) {
+          phase = "moving";
+          introCounter = introMax;
+          preSpinCounter = preSpinMax;
+          const moved = sequenceFrame - introMax - preSpinMax;
+          xOffset = Math.max(0, maxXOffset - moved * mergeSpeed);
+          angle = startAngle + Math.PI * 2;
+        } else {
+          phase = "holdMerge";
+          introCounter = introMax;
+          preSpinCounter = preSpinMax;
+          xOffset = 0;
+          if (!wasComplete) {
+            angle = startAngle + Math.PI * 2;
+            connectionPulseCounter = connectionPulseFrames;
+            logoPulseCounter = logoPulseFrames;
+            logoPulseReverse = false;
+          }
+        }
+      };
+
+      window.addEventListener("message", (event) => {
+        if (event.source !== window.parent || event.data?.type !== "mtset:geometry-progress") return;
+        applyPortfolioProgress(event.data.progress);
+      });
+      if (!FREEZE) applyPortfolioProgress(REDUCED_MOTION ? 1 : 0);
       frame2();
       canvas.addEventListener("mouseenter", () => {
         isHovered = true;

@@ -42,11 +42,11 @@ same brand and should not look like each other.
 | Subject | The product | The person who built it |
 
 The portfolio uses the same star-tetrahedron geometry but gives it a different expression.
-Here it is found in the dark: cool blue rather than gold, already assembled, and always
-turning. There is no click-to-begin or scripted Simply Curious story. Dragging turns the
-shape directly; release holds the chosen orientation briefly before returning it to its
-ambient track. This preserves the "same person built both" connection without making the
-portfolio hero an offcut of the product hero.
+Here it is found in the dark: white rather than gold, forming as the visitor descends.
+The original opening sequence scrubs forward and backward with scroll; once assembled,
+the shape turns on its ambient track and can be dragged directly. This preserves the
+"same person built both" connection without making the portfolio hero an offcut of the
+product hero.
 
 ---
 
@@ -123,8 +123,9 @@ The copy is a causal sequence:
 > interactive
 
 Each line falls from above, bounces on arrival, jolts the existing stack, and remains.
-The sequence is scroll-driven and reversible. Reduced-motion mode shows the completed
-stack without falling or collision.
+The timed sequence starts automatically on the visitor's first entry into the descent
+and plays only once per page load. Reduced-motion mode shows the completed stack without
+falling or collision.
 
 ### Geometry source and behavior
 
@@ -134,13 +135,15 @@ in `simply-curious/website`, component commit
 perspective projection, and hidden-line occlusion work while replacing the product's
 scripted phase machine with a portfolio-specific ambient mode:
 
-- the completed 3D star is visible immediately and rotates slowly;
+- the parent page scrubs the original intro, pre-spin, and merge phases with scroll;
+- the geometry grows with that formation and is brighter and larger on mobile;
+- after formation, the completed 3D star rotates slowly;
 - mouse or one-finger drag turns it about the screen axes;
 - release holds the chosen orientation for two seconds so another drag can continue from
   it; after that idle delay, the shortest eased path returns to the ambient track;
 - grabbing it during the hold or return cancels the reset immediately;
-- scroll never changes its speed or direction and clicks do not pause it;
-- the host page supplies a full-screen overlay control;
+- scrolling upward reverses the formation sequence; clicks do not pause it;
+- a `drag to explore` hint rises beneath the completed geometry;
 - before the final part of the descent, the iframe ignores pointer input so it cannot
   trap a mobile scroll gesture;
 - reduced-motion mode keeps the star static but still permits direct inspection.
