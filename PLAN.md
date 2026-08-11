@@ -1,6 +1,6 @@
 # the MT set — Site Plan
 
-**Status:** generic portfolio foundation built through the descent; role-specific work lives on branches.
+**Status:** designer-role branch built through selected work, About, and Contact; shared foundation comes from `main`.
 **Last updated:** 2026-08-11
 
 ---
@@ -58,12 +58,16 @@ built both" connection without making the portfolio hero an offcut of the produc
 | `.opening` | 185vh | Built | "is it empty?" — invisible until lightning |
 | `.answer` | 205vh | Built | "no. it is **MT**" |
 | `.descent` | 500vh | Built | The fall. Copy collides into a persistent stack while the interactive geometry grows. |
-| `.threshold` | 100vh | Placeholder on `main` | Handoff to role-specific work; its final transition remains open. |
+| `.threshold` | 100vh | Built copy; transition open | Handoff to designer-specific selected work. |
+| `.work` | Content height | Built | Three interaction, motion, and brand/build examples. |
+| `.about` | Content height | Built | Plain-language account of method and range. |
+| `.contact` | 60vh | Built | One direct email route. |
 
-### Needed
+### Role-specific continuation
 
-The generic `main` branch intentionally stops at the threshold. Role-specific branches
-continue into selected work, About, and Contact.
+The generic `main` branch intentionally stops at the threshold. This
+`designer-application` branch continues into selected work, About, and Contact. The
+visual transition from the settled geometry into selected work still needs design.
 
 | Section | Purpose |
 |---|---|
@@ -141,6 +145,15 @@ scripted phase machine with a portfolio-specific ambient mode:
 
 The portfolio remains plain HTML, CSS, and JavaScript. The renderer is isolated in an
 iframe so its canvas styles and pointer handling do not leak into the surrounding page.
+
+### Turbopuffer React deliverable
+
+The portfolio itself remains vanilla, but the Turbopuffer case study links the real,
+tested React + TypeScript deliverable at
+`assets/work/scramble-text/ScrambleText.tsx`. Its adjacent README documents the changed
+props, integration call site, accessibility behavior, and reduced-motion handling. The
+public link targets this branch in `theMTset/theMTset`; it will resolve after the branch
+is pushed.
 
 ---
 

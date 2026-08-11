@@ -553,6 +553,29 @@ body.geometry-open .sound-toggle { opacity: 0; pointer-events: none; }
   font-size: .92rem;
 }
 
+.work-code-link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: .45rem;
+  margin-top: 1.25rem;
+  padding-bottom: .2rem;
+  color: rgba(var(--cold), .78);
+  font: 400 .72rem/1.4 "Inter", sans-serif;
+  letter-spacing: .12em;
+  text-decoration: none;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(var(--cold), .25);
+  transition: color .2s ease, border-color .2s ease;
+}
+
+.work-code-link:hover,
+.work-code-link:focus-visible {
+  color: rgba(var(--cold), 1);
+  border-color: rgba(var(--cold), .75);
+}
+
+.work-code-link:focus-visible { outline: 1px solid rgba(var(--cold), .65); outline-offset: 4px; }
+
 .about {
   position: relative;
   z-index: 5;

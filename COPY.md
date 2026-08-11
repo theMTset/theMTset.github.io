@@ -85,76 +85,67 @@ because the visitor can then directly manipulate the geometry above it.
 
 ---
 
-## 4. Threshold — branch-specific, needs transition design
+## 4. Threshold — **LIVE on `designer-application`**, transition open
 
-> there is more down here.
+> Everything below was built by someone who wanted to know how it worked.
 >
 > the MT set
 
-Currently a dead end. This is where the star tetrahedron completes its reveal and the
-site has to become a portfolio. Candidate replacements:
-
-**Option A — the turn, stated plainly:**
-> It looked empty.
->
-> It never was.
-
-**Option B — hand off to the work:**
-> Everything below was built by someone who wanted to know how it worked.
-
-**Option C — keep it short and let the geometry talk:**
-> ∅
->
-> not empty.
+The copy is settled for this branch. The visual handoff from the interactive geometry
+to selected work still needs design. Generic `main` retains its placeholder until a
+role-neutral handoff is chosen.
 
 ---
 
-## 5. The four bodies of work — draft
+## 5. Selected work — **LIVE on `designer-application`**
 
-Section intro:
+Section heading: `selected work`
 
-> Not organized by job title. Organized by what came out of it.
+### Turbopuffer — interaction design
 
-### Building Digital Products
-> Software, architecture, AI, and applications. The things that run.
+> turbopuffer's logo scrambles into place on hover. I reverse-engineered it from their
+> production bundle, then rebuilt it with Claude Code: the word now converges onto wherever
+> your pointer lands and trails precisely along its path as you move.
+>
+> Three rounds of iteration on the interaction model. Shipped as a typed, working
+> component — not a mockup.
 
-### Designing Experiences
-> Interfaces, brand, graphics, motion. Making complicated technology feel simple.
+Source link: `view the React + TypeScript component ↗`
 
-### Solving Complex Problems
-> Case studies. The decisions, the dead ends, and what I'd do differently.
+The linked `ScrambleText.tsx` is the actual accessible, reduced-motion-aware React
+component from `~/Projects/turbopuffer`, copied into this branch for publication.
 
-### Building Things
-> Decks, bathrooms, furnaces, floors. Not construction credentials — evidence of method.
+### Simply Curious — motion, from scratch
+
+> The hero geometry from Simply Curious. Two tetrahedra merge, resolve into a star, and spin.
+>
+> Hidden-line occlusion, drawn by hand in a few hundred lines of canvas. No libraries.
+
+### Simply Curious — brand + full build
+
+> Brand mark for Simply Curious, a product I designed and built end to end.
+>
+> Astro, Cloudflare Workers, D1 — logo to backend, one person.
 
 ---
 
-## 6. About — draft
-
-The master plan's philosophy section, tightened. The original is good thinking but reads
-like notes to self; this is the same content aimed at a reader.
+## 6. About — **LIVE on `designer-application`**
 
 > I've always been driven by curiosity.
 >
-> Designing software, drawing vector graphics, remodeling a bathroom, repairing an HVAC
-> system, building a deck — it's the same question every time.
+> Before software: physics, then electrical work, then whatever the house needed next.
+> A bathroom. A deck. A furnace two HVAC technicians had already given up on. I found
+> what they missed.
 >
-> **How does this work?**
+> Same question every time. How does this actually work?
 >
-> I like taking complex systems apart, understanding how they were built, improving
-> them, and putting them back together better than before.
+> Now the question points at interfaces and motion instead of wiring. I design the surface
+> and build what runs underneath it — I've never been able to treat those as separate
+> disciplines. Learn, understand, simplify, improve, ship.
 >
-> I don't see software, design, and engineering as separate disciplines. They're the
-> same process wearing different clothes: learn, understand, simplify, improve, build.
+> The work above is the evidence.
 >
-> My favorite thing is fixing what other people have given up on. Two HVAC technicians
-> couldn't find what was wrong with my furnace. I found it.
->
-> That's the whole portfolio, really. The projects are just evidence.
-
-**Cut from the original on purpose:** the bulleted strengths list ("Systems Thinking,"
-"Software Development," "User Experience"). Claiming systems thinking is weak; the
-furnace sentence demonstrates it. Show, don't label.
+> Matt Titchenal — the MT set
 
 ---
 
@@ -175,14 +166,14 @@ and it's honest about the tools.
 
 ---
 
-## 8. Contact — draft
+## 8. Contact — **LIVE on `designer-application`**
 
-> Built something you want taken apart? Or have something that needs putting back
-> together?
+> Built something you want taken apart?
+> Or have something that needs putting back together?
 >
-> [email]
+> theMTrepo@gmail.com
 
-One line, one address. No form.
+One prompt, one address. No form.
 
 ---
 
