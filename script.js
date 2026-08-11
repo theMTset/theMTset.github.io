@@ -240,64 +240,38 @@
   const descent = document.querySelector('.descent');
   const rings = document.querySelectorAll('.ring');
   const dropLines = [...document.querySelectorAll('.drop-line')];
-  const descentCopy = document.querySelector('.descent-copy');
   const geometry = document.querySelector('.descent-geometry');
   const geometryFrame = geometry?.querySelector('iframe');
 
-  const DROP_DURATION_MS = 720;
-  const DROP_COLLISION_MS = 260;
+  const DROP_DURATION_MS = 900;
   const GEOMETRY_START = .03;
   const GEOMETRY_END = .84;
   let dropSequenceStarted = reducedMotion;
-  let dropSequenceStart = 0;
   let lastGeometryProgress = -1;
 
   const clamp = (value, min = 0, max = 1) => Math.min(Math.max(value, min), max);
   const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
-  const easeOutBounce = (t) => {
-    const n = 7.5625;
-    const d = 2.75;
-    if (t < 1 / d) return n * t * t;
-    if (t < 2 / d) return n * (t -= 1.5 / d) * t + .75;
-    if (t < 2.5 / d) return n * (t -= 2.25 / d) * t + .9375;
-    return n * (t -= 2.625 / d) * t + .984375;
-  };
-
-  function renderDropSequence(now) {
-    const elapsed = now - dropSequenceStart;
-    let active = false;
-    let collision = 0;
-
-    dropLines.forEach((line, index) => {
-      const delay = Number(line.dataset.dropDelay);
-      const local = clamp((elapsed - delay) / DROP_DURATION_MS);
-      const position = easeOutBounce(local);
-      const fallDistance = Math.max(window.innerHeight, 1) + line.offsetTop + line.offsetHeight;
-      line.style.opacity = String(clamp(local * 3));
-      line.style.transform = `translateY(${-fallDistance * (1 - position)}px)`;
-      if (local < 1) active = true;
-
-      if (index > 0) {
-        const sinceImpact = (elapsed - delay - DROP_DURATION_MS) / DROP_COLLISION_MS;
-        if (sinceImpact >= 0 && sinceImpact <= 1) {
-          collision += Math.sin(sinceImpact * Math.PI * 4) * (1 - sinceImpact);
-          active = true;
-        }
-      }
-    });
-
-    if (descentCopy) {
-      descentCopy.style.transform = `translateY(${(collision * 7).toFixed(2)}px)`;
-    }
-    if (active) window.requestAnimationFrame(renderDropSequence);
-  }
-
   function startDropSequence() {
     if (dropSequenceStarted) return;
     dropSequenceStarted = true;
-    window.requestAnimationFrame(now => {
-      dropSequenceStart = now;
-      renderDropSequence(now);
+    const viewport = Math.max(window.innerHeight, 1);
+    const fallDistances = dropLines.map(line => viewport + line.offsetTop + line.offsetHeight);
+
+    dropLines.forEach((line, index) => {
+      const animation = line.animate([
+        { opacity: 0, transform: `translate3d(0, ${-fallDistances[index]}px, 0)` },
+        { opacity: 1, transform: 'translate3d(0, 0, 0)' }
+      ], {
+        duration: DROP_DURATION_MS,
+        delay: Number(line.dataset.dropDelay),
+        easing: 'cubic-bezier(.16, 1, .3, 1)',
+        fill: 'both'
+      });
+      animation.addEventListener('finish', () => {
+        line.style.opacity = '1';
+        line.style.transform = 'translate3d(0, 0, 0)';
+        animation.cancel();
+      }, { once: true });
     });
   }
 

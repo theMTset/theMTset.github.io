@@ -393,7 +393,6 @@ button { font: inherit; }
   color: rgba(228, 237, 242, .88);
   text-shadow: 0 2px 24px #000, 0 0 8px #000;
   pointer-events: none;
-  will-change: transform;
 }
 
 .drop-line {
@@ -401,6 +400,7 @@ button { font: inherit; }
   opacity: 0;
   transform: translateY(-100vh);
   will-change: transform, opacity;
+  backface-visibility: hidden;
 }
 
 .drop-premise {

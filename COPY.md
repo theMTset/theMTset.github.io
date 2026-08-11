@@ -69,7 +69,7 @@ mobile displays.
 ## 3. The descent — **LIVE**
 
 The descent now states method and outcome instead of adding more atmosphere. The lines
-are unnumbered. They fall from above, collide into a bottom stack, and remain visible:
+are unnumbered. They fall from above, settle into a bottom stack, and remain visible:
 
 > I need to know how things are built.
 >

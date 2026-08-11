@@ -122,10 +122,11 @@ The copy is a causal sequence:
 >
 > interactive
 
-Each line falls from above, bounces on arrival, jolts the existing stack, and remains.
-The timed sequence starts automatically on the visitor's first entry into the descent
-and plays only once per page load. Reduced-motion mode shows the completed stack without
-falling or collision.
+Each line falls from above, decelerates into place without rebounding, and remains. The
+browser composites each transform independently so active scrolling does not compete
+with a JavaScript animation loop. The timed sequence starts automatically on the
+visitor's first entry into the descent and plays only once per page load. Reduced-motion
+mode shows the completed stack without falling.
 
 ### Geometry source and behavior
 
