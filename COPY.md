@@ -3,7 +3,7 @@
 Every word that appears on the site, in order. Live copy is marked **LIVE**; everything
 else is draft and should be argued with.
 
-**Last updated:** 2026-08-04
+**Last updated:** 2026-08-11
 
 ---
 
@@ -32,23 +32,22 @@ not more mood.
 
 > **is it empty?**
 
-Invisible until lightning strikes. The visitor sees a black screen, then — for maybe
-200ms — a question.
+Invisible until lightning strikes. The visitor sees a black screen, then the second
+strike leaves the question readable as a sustained afterimage.
 
 Scroll cue: `look deeper`
 
 *Note: this is the riskiest thing on the site and the best.*
 
-**Decided 2026-08-04:** the question stays fully black at rest (`--question-rest: 0`).
-The bounce risk is handled by exposure budget, not by turning the text on — the storm
-arrives close (first strike at 650ms, then ~1.3–3.2s gaps for four strikes) and the
-flash decays like an afterimage instead of cutting to black. A new visitor gets several
-long reads; a visitor who stays gets the sparse atmosphere. Tuning knobs live in
-`ARRIVAL_STRIKES` and `nextStrikeDelay()` in [script.js](script.js).
+**Decided 2026-08-11:** the question stays fully black at rest (`--question-rest: 0`).
+The first strike is distant. The second is longer, thicker, and reaches through the
+question. Its text afterglow begins on the first pulse, holds at full strength, and then
+decays within a 6.4-second total; it never drops to black between flash and glow. Ambient
+strikes resume afterward. Tuning knobs live beside `BIG_STRIKE_INDEX` and in
+`nextStrikeDelay()` in [script.js](script.js).
 
-**Still open:** the `look deeper` cue is invisible at scroll 0 — it fades *in* as you
-scroll. So a cold visitor sees black, occasional lightning, and no affordance at all.
-That is the real bounce risk, not the question. See PLAN.md.
+The `look deeper` cue catches the same lightning at scroll zero and fades out once the
+visitor moves. Reduced-motion mode shows it statically at low opacity.
 
 ---
 
@@ -65,35 +64,28 @@ line — it's the only fully-lit thing on the page so far.
 
 ---
 
-## 3. The descent — fragments
+## 3. The descent — **LIVE**
 
-Three fragments pass as you fall. **LIVE**, and they're good — keep the cadence, sharpen
-the specificity.
+The descent now states method and outcome instead of adding more atmosphere. The lines
+are unnumbered. They fall from above, collide into a bottom stack, and remain visible:
 
-> **01** — I make things at the edge of light and noise.
+> I need to know how things are built.
 >
-> **02** — Some are built. Some are found.
+> so I can make things
 >
-> **03** — This is where they collect.
+> intuitive
+>
+> understandable
+>
+> interactive
 
-**Draft alternate**, if the four-ring structure wins and fragments should name the work
-rather than set mood:
-
-> **01** — I take things apart to see how they work.
->
-> **02** — Software. Graphics. A furnace two techs gave up on.
->
-> **03** — Same question every time: how does this work?
->
-> **04** — This is where the answers collect.
-
-The alternate is less atmospheric and more useful. Test both. Fragment 02 in the
-alternate is the single highest-value line on the site — it establishes range in nine
-words.
+The causal order is deliberate. “I need” is stronger than “I like,” and the three final
+qualities give the falling-word animation a repeatable rhythm. “interactive” lands last
+because the visitor can then directly manipulate the geometry above it.
 
 ---
 
-## 4. Threshold — **LIVE**, needs replacing
+## 4. Threshold — branch-specific, needs transition design
 
 > there is more down here.
 >
@@ -196,11 +188,9 @@ One line, one address. No form.
 
 ## Unresolved
 
-- [ ] Real name on the site, or does MT carry it? (Leaning: real name on About and
-      contact. A portfolio that can't be attributed is a portfolio that can't be hired.)
+- [ ] Design the handoff from the settled geometry into selected work.
+- [ ] Real name on generic `main`, or only on role-specific application branches?
 - [ ] Does the atmospheric voice extend into case studies, or stop at the threshold?
       (Leaning: stop. Case studies should be readable by a hiring manager on a phone.)
-- [ ] Tagline for meta/social preview. Current `<meta description>` is "The MT Set —
-      something waits in the dark," which is mood, not information. Something that works
-      as a link preview in Slack: *"Matt Titchenal — software, design, and taking things
-      apart."*
+- [ ] Generic meta/social tagline for `main`. Application branches should provide their
+      own role-specific title and description rather than merging those values upstream.

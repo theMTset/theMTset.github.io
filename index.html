@@ -58,27 +58,36 @@
       </div>
     </section>
 
-    <section class="descent" aria-label="A descent into the MT set">
-      <div class="shaft" aria-hidden="true">
-        <div class="ring ring-1"></div>
-        <div class="ring ring-2"></div>
-        <div class="ring ring-3"></div>
-        <div class="ring ring-4"></div>
-        <div class="core"></div>
-      </div>
+    <section id="descent" class="descent" aria-label="A descent into the MT set">
+      <div class="shaft">
+        <div class="shaft-rings" aria-hidden="true">
+          <div class="ring ring-1"></div>
+          <div class="ring ring-2"></div>
+          <div class="ring ring-3"></div>
+          <div class="ring ring-4"></div>
+        </div>
 
-      <article class="fragment fragment-left">
-        <span class="fragment-number">01</span>
-        <p>I make things at the edge of light and noise.</p>
-      </article>
-      <article class="fragment fragment-right">
-        <span class="fragment-number">02</span>
-        <p>Some are built. Some are found.</p>
-      </article>
-      <article class="fragment fragment-left last-fragment">
-        <span class="fragment-number">03</span>
-        <p>This is where they collect.</p>
-      </article>
+        <div class="descent-geometry">
+          <iframe
+            src="assets/work/star-tetrahedron-ambient.html"
+            title="Interactive rotating star tetrahedron — drag to turn it"
+          ></iframe>
+          <button class="geometry-expand" type="button" aria-label="Expand star tetrahedron to full screen" aria-pressed="false" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path class="geometry-icon-open" d="M9 3H3v6M15 3h6v6M9 21H3v-6M15 21h6v-6" />
+              <path class="geometry-icon-close" d="M3 9h6V3M21 9h-6V3M3 15h6v6M21 15h-6v6" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="descent-copy">
+          <p class="drop-line drop-premise" data-drop-start="0.07">I need to know how things are built.</p>
+          <p class="drop-line drop-anchor" data-drop-start="0.25">so I can make things</p>
+          <p class="drop-line drop-quality" data-drop-start="0.43">intuitive</p>
+          <p class="drop-line drop-quality" data-drop-start="0.59">understandable</p>
+          <p class="drop-line drop-quality" data-drop-start="0.75">interactive</p>
+        </div>
+      </div>
     </section>
 
     <section class="threshold" aria-label="To be continued">
