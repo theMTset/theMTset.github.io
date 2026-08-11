@@ -136,7 +136,9 @@ scripted phase machine with a portfolio-specific ambient mode:
 
 - the completed 3D star is visible immediately and rotates slowly;
 - mouse or one-finger drag turns it about the screen axes;
-- release takes the shortest eased path back to the ambient track;
+- release holds the chosen orientation for two seconds so another drag can continue from
+  it; after that idle delay, the shortest eased path returns to the ambient track;
+- grabbing it during the hold or return cancels the reset immediately;
 - scroll never changes its speed or direction and clicks do not pause it;
 - the host page supplies a full-screen overlay control;
 - before the final part of the descent, the iframe ignores pointer input so it cannot
