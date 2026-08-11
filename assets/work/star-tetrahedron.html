@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Star Tetrahedron</title>
+  <style>
+    body { margin: 0; background: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+    canvas { display: block; max-width: 100%; max-height: 100%; }
+  </style>
+</head>
+<body>
+<canvas id="c" width="500" height="500"></canvas>
+<script>
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const W = 500, H = 500; // Canvas dimensions
+
+  // Configuration: Both tetrahedrons are inscribed in a sphere of radius R
+  const R = 180;
+
+  // Tetrahedron 1 (Top-pointing): Apex at +Y, base triangle below it
+  const y1 = R;
+  const y2 = -R / 3;
+  const xzR = Math.sqrt(8 / 9) * R; // Horizontal radius of the base triangle
+
+  const tet1Base = [
+    [0,   y1, 0], // Apex
+    [xzR, y2, 0], // Base point 1
+    [xzR * Math.cos(2 * Math.PI / 3), y2, xzR * Math.sin(2 * Math.PI / 3)], // Base point 2
+    [xzR * Math.cos(4 * Math.PI / 3), y2, xzR * Math.sin(4 * Math.PI / 3)], // Base point 3
+  ];
+
+  // Tetrahedron 2 (Bottom-pointing): Exact point inversion of tet1 for perfect duality
+  const tet2Base = tet1Base.map(v => [-v[0], -v[1], -v[2]]);
+
+  // --- Vector & Math Utilities ---
+
+  // Rotate a 3D point [x, y, z] around the Y-axis
+  function rotateY(v, a) {
+    const [x, y, z] = v;
+    return [
+      x * Math.cos(a) + z * Math.sin(a),
+      y,
+      -x * Math.sin(a) + z * Math.cos(a)
+    ];
+  }
+
+  // Calculate the cross product of two vectors (perpendicular vector)
+  function cross(a, b) {
+    return [
+      a[1] * b[2] - a[2] * b[1],
+      a[2] * b[0] - a[0] * b[2],
+      a[0] * b[1] - a[1] * b[0]
+    ];
+  }
+
+  // Subtract vector b from vector a
+  function sub(a, b) {
+    return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+  }
+
+  // Calculate the dot product of two vectors (scalar projection)
+  function dot(a, b) {
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  }
+
+  // Calculate where a 3D line (edge) intersects a 3D triangle (face)
+  function intersectEdgeFace(p1, p2, f1, f2, f3) {
+    const edge = sub(p2, p1);
+    const normal = cross(sub(f2, f1), sub(f3, f1));
+    const denom = dot(normal, edge);
+    if (Math.abs(denom) < 1e-6) return null; // Line is parallel to face
+    const t = dot(normal, sub(f1, p1)) / denom;
+    if (t < 0 || t > 1) return null; // Intersection point is outside the edge segment
+    return [p1[0] + t * edge[0], p1[1] + t * edge[1], p1[2] + t * edge[2]];
+  }
+
+  // Determine if a point p lies inside triangle (a, b, c) using barycentric coordinates
+  function isPointInTriangle(p, a, b, c) {
+    const v0 = sub(c, a), v1 = sub(b, a), v2 = sub(p, a);
+    const dot00 = dot(v0, v0), dot01 = dot(v0, v1), dot02 = dot(v0, v2);
+    const dot11 = dot(v1, v1), dot12 = dot(v1, v2);
+    const invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+    const u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+    const v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+    return (u >= -1e-4) && (v >= -1e-4) && (u + v <= 1 + 1e-4);
+  }
+
+  // --- Projection ---
+
+  // Convert 3D coordinates to 2D screen coordinates using perspective projection
+  function project(v) {
+    const fov = 700; // 700 Field of view / Focal length
+    const z = v[2] + 800; // 800 Camera distance from origin
+    return [W / 2 + v[0] * fov / z, H / 2 - v[1] * fov / z];
+  }
+
+  // Draw a basic wireframe tetrahedron with simple back-face culling
+  function drawTet(verts, hiddenOpacity = 1, isRightTet = false, globalOpacity = 1) {
+    const edges = [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]]; // Connects vertices
+    const faces = [[1,2,3],[0,2,1],[0,3,2],[0,1,3]]; // Defines triangles
+    
+    const p = verts.map(project); // 2D projected points
+    
+    // Identify which edges are part of front-facing triangles
+    const edgeVisible = new Array(edges.length).fill(false);
+    
+    for (const f of faces) {
+      const v1 = verts[f[0]], v2 = verts[f[1]], v3 = verts[f[2]];
+      const normal = cross(sub(v2, v1), sub(v3, v1));
+      
+      const centroid = [(v1[0]+v2[0]+v3[0])/3, (v1[1]+v2[1]+v3[1])/3, (v1[2]+v2[2]+v3[2])/3];
+      // Ensure normal points outward from the tetrahedron
+      if (dot(normal, centroid) < 0) {
+        normal[0] = -normal[0]; normal[1] = -normal[1]; normal[2] = -normal[2];
+      }
+
+      const viewVec = [-centroid[0], -centroid[1], -800 - centroid[2]];
+      
+      // If dot product is positive, the face is pointing towards the camera
+      if (dot(normal, viewVec) > 0) {
+        const fEdges = [[f[0],f[1]], [f[1],f[2]], [f[2],f[0]]];
+        for (const fe of fEdges) {
+          const idx = edges.findIndex(e => (e[0]===fe[0] && e[1]===fe[1]) || (e[0]===fe[1] && e[1]===fe[0]));
+          if (idx !== -1) edgeVisible[idx] = true;
+        }
+      }
+    }
+
+    ctx.lineWidth = lineWidth;
+    for (let i = 0; i < edges.length; i++) {
+      const [a, b] = edges[i];
+      // Visible edges are solid; hidden edges use the provided opacity
+      const opacity = (edgeVisible[i] ? 1 : hiddenOpacity) * globalOpacity;
+      ctx.strokeStyle = `rgba(0,0,0,${opacity})`;
+      
+      if (isRightTet) {
+        // Draw broken line for the right tetrahedron
+        const vA = verts[a], vB = verts[b];
+        const dist3D = Math.hypot(vB[0]-vA[0], vB[1]-vA[1], vB[2]-vA[2]);
+        const gapRatio = (lineWidth / 2) / dist3D;
+        
+        // Two segments: [0, 0.5 - gapRatio] and [0.5 + gapRatio, 1]
+        const t1_end = 0.5 - gapRatio;
+        const t2_start = 0.5 + gapRatio;
+
+        const m1 = [vA[0] + (vB[0]-vA[0])*t1_end, vA[1] + (vB[1]-vA[1])*t1_end, vA[2] + (vB[2]-vA[2])*t1_end];
+        const m2 = [vA[0] + (vB[0]-vA[0])*t2_start, vA[1] + (vB[1]-vA[1])*t2_start, vA[2] + (vB[2]-vA[2])*t2_start];
+        
+        const qA = p[a], qB = p[b], qM1 = project(m1), qM2 = project(m2);
+
+        ctx.beginPath(); ctx.moveTo(qA[0], qA[1]); ctx.lineTo(qM1[0], qM1[1]); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(qM2[0], qM2[1]); ctx.lineTo(qB[0], qB[1]); ctx.stroke();
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(p[a][0], p[a][1]);
+        ctx.lineTo(p[b][0], p[b][1]);
+        ctx.stroke();
+      }
+    }
+  }
+
+  // Find all points where the edges of tetrahedron 1 pierce the faces of tetrahedron 2, and vice-versa
+  function getIntersectionPoints(t1, t2) {
+    const edges = [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]];
+    const faces = [[1,2,3],[0,2,1],[0,3,2],[0,1,3]];
+    const pts = [];
+    
+    // Check T1 edges against T2 faces
+    for (const [e1, e2] of edges) {
+      for (const [f1, f2, f3] of faces) {
+        const p = intersectEdgeFace(t1[e1], t1[e2], t2[f1], t2[f2], t2[f3]);
+        if (p && isPointInTriangle(p, t2[f1], t2[f2], t2[f3])) pts.push(p);
+      }
+    }
+    // Check T2 edges against T1 faces
+    for (const [e1, e2] of edges) {
+      for (const [f1, f2, f3] of faces) {
+        const p = intersectEdgeFace(t2[e1], t2[e2], t1[f1], t1[f2], t1[f3]);
+        if (p && isPointInTriangle(p, t1[f1], t1[f2], t1[f3])) pts.push(p);
+      }
+    }
+    
+    // Remove duplicate points that are very close to each other
+    const unique = [];
+    for (const p of pts) {
+      if (!unique.some(up => Math.hypot(p[0]-up[0], p[1]-up[1], p[2]-up[2]) < 1)) {
+        unique.push(p);
+      }
+    }
+    return unique;
+  }
+
+  // Wrapper function to get intersection points
+  function drawIntersections(t1, t2) {
+    const uniquePts = getIntersectionPoints(t1, t2);
+    return uniquePts;
+  }
+
+  // Complex drawing function for the "Star Tetrahedron" state, handling 8 small tetrahedrons
+  function drawSmallTets(t1, t2, intersections, globalOpacity = 1) {
+    const edges = [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]];
+    const tetFaces = [[1,2,3],[0,2,1],[0,3,2],[0,1,3]];
+    const allTets = [];
+    const test3 = 800; // Camera distance for occlusion checks
+
+    // 1. Identify 8 small tetrahedrons formed at the vertices of the two large ones
+    [t1, t2].forEach((parentTet, parentIdx) => {
+      for (let i = 0; i < 4; i++) {
+        const v = parentTet[i]; // The large tet vertex
+        const connected = [];
+        for (const [a, b] of edges) {
+          if (a === i || b === i) {
+            const otherV = parentTet[a === i ? b : a];
+            // Find intersection points that lie on this specific edge
+            for (const p of intersections) {
+              const d1 = Math.hypot(v[0]-p[0], v[1]-p[1], v[2]-p[2]);
+              const d2 = Math.hypot(p[0]-otherV[0], p[1]-otherV[1], p[2]-otherV[2]);
+              const dTot = Math.hypot(v[0]-otherV[0], v[1]-otherV[1], v[2]-otherV[2]);
+              if (Math.abs(d1 + d2 - dTot) < 1) connected.push(p);
+            }
+          }
+        }
+        // A small tet is formed by the vertex and its 3 adjacent intersection points
+        if (connected.length === 3) {
+          const isTop = (parentIdx === 0 && i === 0);
+          const isBottom = (parentIdx === 1 && i === 0);
+          allTets.push({verts: [v, ...connected], isTop, isBottom, parentIdx});
+        }
+      }
+    });
+
+    // 2. Find all front-facing triangles from ALL small tets to use as "occluders" (masks)
+    const occluders = [];
+    allTets.forEach(tetObj => {
+      const tet = tetObj.verts;
+      tetFaces.forEach(f => {
+        const v1 = tet[f[0]], v2 = tet[f[1]], v3 = tet[f[2]];
+        const normal = cross(sub(v2, v1), sub(v3, v1));
+        const centroid = [(v1[0]+v2[0]+v3[0])/3, (v1[1]+v2[1]+v3[1])/3, (v1[2]+v2[2]+v3[2])/3];
+        if (dot(normal, centroid) < 0) { normal[0]=-normal[0]; normal[1]=-normal[1]; normal[2]=-normal[2]; }
+        const viewVec = [-centroid[0], -centroid[1], -test3 - centroid[2]];
+        if (dot(normal, viewVec) > 0) occluders.push({v1, v2, v3, normal, centroid});
+      });
+    });
+
+    // 3. Process edges and check visibility
+    const processedEdges = new Map();
+
+    allTets.forEach(tetObj => {
+      const tet = tetObj.verts;
+      const edgeStatus = new Array(edges.length).fill(0); // 0: hidden, 1: visible
+
+      // Check visibility within its own small tet (local back-face culling)
+      tetFaces.forEach(f => {
+        const v1 = tet[f[0]], v2 = tet[f[1]], v3 = tet[f[2]];
+        const normal = cross(sub(v2, v1), sub(v3, v1));
+        const centroid = [(v1[0]+v2[0]+v3[0])/3, (v1[1]+v2[1]+v3[1])/3, (v1[2]+v2[2]+v3[2])/3];
+        if (dot(normal, centroid) < 0) { normal[0]=-normal[0]; normal[1]=-normal[1]; normal[2]=-normal[2]; }
+        const viewVec = [-centroid[0], -centroid[1], -800 - centroid[2]];
+        if (dot(normal, viewVec) > 0) {
+          [[f[0],f[1]], [f[1],f[2]], [f[2],f[0]]].forEach(fe => {
+            const idx = edges.findIndex(e => (e[0]===fe[0] && e[1]===fe[1]) || (e[0]===fe[1] && e[1]===fe[0]));
+            if (idx !== -1) edgeStatus[idx] = 1;
+          });
+        }
+      });
+
+      for (let i = 0; i < edges.length; i++) {
+        const [a, b] = edges[i];
+        const vA = tet[a], vB = tet[b];
+        const isBackFace = edgeStatus[i] === 0;
+        const edgeKey = [vA, vB].map(v => v.map(c => c.toFixed(2)).join(',')).sort().join('|');
+
+        // Identify base edges of the top/bottom small tets
+        const isBaseEdge = (a !== 0 && b !== 0);
+        const forceOpaque = (tetObj.isTop || tetObj.isBottom) && isBaseEdge;
+
+        if (!processedEdges.has(edgeKey)) {
+          processedEdges.set(edgeKey, {
+            isVisible: !isBackFace, 
+            isWingEdge: (a===0 || b===0), 
+            a, b, vA, vB, tet,
+            forceOpaque
+          });
+        } else {
+          if (!isBackFace) processedEdges.get(edgeKey).isVisible = true;
+          if (forceOpaque) processedEdges.get(edgeKey).forceOpaque = true;
+        }
+      }
+    });
+
+    // 4. Categorize edges (Center vs Polar vs Wing)
+    const centerEdges = [];
+    const otherEdges = [];
+
+    processedEdges.forEach((data,key)=>{
+      const {vA,vB,isWingEdge} = data;
+      const sameY = Math.abs(vA[1]-vB[1]) < 1;
+      const atPlane = Math.abs(Math.abs(vA[1])-60) < 1;
+      const isPolarEdge = (!isWingEdge) && sameY && atPlane;
+      const isCenterEdge = (!isWingEdge) && !isPolarEdge;
+
+      if(isCenterEdge) centerEdges.push({data,key});
+      else otherEdges.push({data,key});
+    });
+
+    // 5. Select which center edges to show (interior pattern logic)
+    const leftSwitch = -42, rightSwitch = -42;
+    const visibleCenterKeys = new Set();
+
+    centerEdges.forEach(({data,key})=>{
+      const mid = [(data.vA[0]+data.vB[0])/2, (data.vA[1]+data.vB[1])/2, (data.vA[2]+data.vB[2])/2];
+      if(mid[0] < 0) { if(mid[2] < leftSwitch) visibleCenterKeys.add(key); }
+      else { if(mid[2] < rightSwitch) visibleCenterKeys.add(key); }
+    });
+
+    // 6. Final Drawing Loop
+    processedEdges.forEach((data,key)=>{
+      const {isVisible:baseVisible, isWingEdge, vA,vB, tet, forceOpaque}=data;
+      const sameY = Math.abs(vA[1]-vB[1])<1;
+      const atPlane = Math.abs(Math.abs(vA[1])-60)<1;
+      const isPolarEdge = (!isWingEdge)&&sameY&&atPlane;
+      const isCenterEdge = (!isWingEdge)&&!isPolarEdge;
+
+      // Draw Center edges
+      if(isCenterEdge){
+        if(!visibleCenterKeys.has(key) && !forceOpaque) return;
+        const pA=project(vA), pB=project(vB);
+        ctx.lineWidth=lineWidth; ctx.strokeStyle=`rgba(0,0,0,${globalOpacity})`;
+        ctx.beginPath(); ctx.moveTo(pA[0],pA[1]); ctx.lineTo(pB[0],pB[1]); ctx.stroke();
+        return;
+      }
+
+      // Draw Polar edges (horizontal edges of the central octahedron)
+      if(isPolarEdge){
+        const pA=project(vA), pB=project(vB);
+        ctx.lineWidth=lineWidth;
+        const opacity = ((baseVisible || forceOpaque) ? 0 : 0.25) * globalOpacity;
+        ctx.strokeStyle = `rgba(0,0,0,${opacity})`;
+        ctx.beginPath(); ctx.moveTo(pA[0],pA[1]); ctx.lineTo(pB[0],pB[1]); ctx.stroke();
+        return;
+      }
+
+      // Draw Wing edges (the spikes of the star) with segment-based occlusion
+      const numSegments=100;
+      for(let s=0;s<numSegments;s++){
+        const t_start=s/numSegments, t_end=(s+1)/numSegments;
+        const p1=[vA[0]+(vB[0]-vA[0])*t_start, vA[1]+(vB[1]-vA[1])*t_start, vA[2]+(vB[2]-vA[2])*t_start];
+        const p2=[vA[0]+(vB[0]-vA[0])*t_end, vA[1]+(vB[1]-vA[1])*t_end, vA[2]+(vB[2]-vA[2])*t_end];
+        let segmentVisible = baseVisible || forceOpaque;
+
+        if(segmentVisible && !forceOpaque){
+          const mid=[(p1[0]+p2[0])/2, (p1[1]+p2[1])/2, (p1[2]+p2[2])/2];
+          const projMid=project(mid);
+          for(const occ of occluders){
+            if(tet.some(v=>v===occ.v1)) continue; // Don't occlude with yourself
+            const tr1=project(occ.v1), tr2=project(occ.v2), tr3=project(occ.v3);
+            if(isPointInTriangle([projMid[0],projMid[1],0], [tr1[0],tr1[1],0], [tr2[0],tr2[1],0], [tr3[0],tr3[1],0])){
+              const distMid = Math.sqrt(mid[0]**2 + mid[1]**2 + (mid[2]+800)**2);
+              const distOcc = Math.sqrt(occ.centroid[0]**2 + occ.centroid[1]**2 + (occ.centroid[2]+800)**2);
+              if(distMid > distOcc+1){ segmentVisible=false; break; }
+            }
+          }
+        }
+        const q1=project(p1), q2=project(p2);
+        ctx.lineWidth = segmentVisible?lineWidth:lineWidth/2;
+        const opacity = (segmentVisible ? 1 : 0) * globalOpacity;
+        ctx.strokeStyle = `rgba(0,0,0,${opacity})`;
+        ctx.beginPath(); ctx.moveTo(q1[0],q1[1]); ctx.lineTo(q2[0],q2[1]); ctx.stroke();
+      }
+    });
+  }
+
+  // Animation state
+  let angle = Math.PI / 6;      // Starting rotation angle
+  let xOffset = 140;   // Starting distance between tetrahedrons during 'moving' phase
+  let phase = 'intro'; // Starting animation phase:
+                        // Phases: 'intro', 'preSpin', 'moving', 'waiting', 'spinning'
+  let isPaused = false;
+  let animDirection = 1; // 1 for forward, -1 for backward
+
+  let delayCounter = 0;
+  const delayMax = 15;  // Delay in frames (e.g., 60 frames = ~1 second)
+  
+  let introCounter = 0;
+  const introMax = 240; // Intro duration in frames
+  let hasStarted = false;
+
+  let preSpinCounter = 0;
+  const preSpinMax = 320; // Spin duration in frames
+  const startAngle = Math.PI / 6;
+
+  let spinCounter = 0;
+  const spinOpaqueStart = 120; // Start transitioning hidden lines to opaque after 120 frames of spinning
+  const spinOpaqueMax = 240;   // Reach full opacity after another 240 frames
+
+  // --- Animation Speed Configuration ---
+  const mergeSpeed = 1;    // Speed at which tetrahedrons merge (default: 3)
+  const mergeSpinSpeed = 0.012; // Speed of rotation while merging
+  const spinSpeed = 0.012; // Speed of rotation in 'spinning' phase (default: 0.012)
+  const lineWidth = 6;     // Line width for the tetrahedrons
+
+  // Main animation loop
+  function frame() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, W, H);
+
+    // Update animation state
+    if (!isPaused) {
+      if (phase === 'intro') {
+        if (hasStarted) {
+          introCounter += animDirection;
+        }
+        if (introCounter >= introMax) {
+          introCounter = introMax;
+          phase = 'preSpin';
+        } else if (introCounter <= 0) {
+          introCounter = 0;
+          if (animDirection === -1) {
+            hasStarted = false;
+            animDirection = 1;
+            // Reset other variables to ensure a clean restart
+            angle = startAngle;
+            xOffset = 140;
+            preSpinCounter = 0;
+            delayCounter = 0;
+            spinCounter = 0;
+          }
+        }
+      } else if (phase === 'preSpin') {
+        preSpinCounter += animDirection;
+        angle = startAngle + (preSpinCounter / preSpinMax) * Math.PI * 2;
+        if (preSpinCounter >= preSpinMax) {
+          preSpinCounter = preSpinMax;
+          angle = startAngle + Math.PI * 2;
+          phase = 'moving';
+        } else if (preSpinCounter <= 0) {
+          preSpinCounter = 0;
+          angle = startAngle;
+          phase = 'intro';
+        }
+      } else if (phase === 'moving') {
+        xOffset -= mergeSpeed * animDirection; // Bring tets together or pull apart
+        angle += mergeSpinSpeed * animDirection; // Spin while merging or un-merging
+        if (xOffset <= 0) {
+          xOffset = 0;
+          phase = 'waiting'; // Transition to waiting phase
+        } else if (xOffset >= 140) {
+          xOffset = 140;
+          phase = 'preSpin';
+        }
+      } else if (phase === 'waiting') {
+        delayCounter += animDirection;
+        angle += spinSpeed * animDirection; // Continue spinning during wait/transition
+        if (delayCounter >= delayMax) {
+          delayCounter = delayMax;
+          phase = 'spinning'; // Transition to rotation phase
+          if (animDirection === -1) {
+            spinCounter = 0; // Ensure we start at 0 when entering from waiting in reverse
+          }
+        } else if (delayCounter <= 0) {
+          delayCounter = 0;
+          phase = 'moving';
+        }
+      } else {
+        angle += spinSpeed * animDirection; // Rotate the star tetrahedron
+        spinCounter += animDirection;
+        if (animDirection === -1 && spinCounter <= 0) {
+          spinCounter = 0;
+          phase = 'waiting';
+        }
+      }
+    }
+
+    // Apply transformation (translation + rotation) to base vertices
+    let t1, t2;
+    t1 = tet1Base.map(v => rotateY([v[0] + xOffset, v[1], v[2]], angle));
+    t2 = tet2Base.map(v => rotateY([v[0] - xOffset, v[1], v[2]], angle));
+
+    // Render based on current phase
+    if (phase === 'intro') {
+      const t = introCounter / introMax;
+      const edges = [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]];
+      
+      const drawInterpolated = (base, isLeft, isRightTet) => {
+        const xSign = isLeft ? 1 : -1;
+        
+        // The rotation should be 0 at the start of intro and reach 'startAngle' (PI/6) at the end
+        const currentAngle = startAngle * t;
+        
+        const finalVerts = base.map(v => rotateY([v[0] + xSign * xOffset, v[1], v[2]], currentAngle));
+        
+        ctx.lineWidth = lineWidth;
+        edges.forEach((edge, i) => {
+          const [vIdxA, vIdxB] = edge;
+          const targetA = finalVerts[vIdxA];
+          const targetB = finalVerts[vIdxB];
+          
+          const y = (i - 2.5) * 30;
+          const xHalf = 80;
+          const startA = [xSign * xOffset - xHalf, y, 0];
+          const startB = [xSign * xOffset + xHalf, y, 0];
+          
+          const currA = [
+            startA[0] + (targetA[0] - startA[0]) * t,
+            startA[1] + (targetA[1] - startA[1]) * t,
+            startA[2] + (targetA[2] - startA[2]) * t
+          ];
+          const currB = [
+            startB[0] + (targetB[0] - startB[0]) * t,
+            startB[1] + (targetB[1] - startB[1]) * t,
+            startB[2] + (targetB[2] - startB[2]) * t
+          ];
+          
+          const pA = project(currA);
+          const pB = project(currB);
+          
+          ctx.strokeStyle = `rgba(0,0,0,1)`;
+          if (isRightTet) {
+            const dist3D = Math.hypot(currB[0]-currA[0], currB[1]-currA[1], currB[2]-currA[2]);
+            const gapRatio = (lineWidth / 2) / dist3D;
+            const t1_end = 0.5 - gapRatio;
+            const t2_start = 0.5 + gapRatio;
+            const m1 = [currA[0] + (currB[0]-currA[0])*t1_end, currA[1] + (currB[1]-currA[1])*t1_end, currA[2] + (currB[2]-currA[2])*t1_end];
+            const m2 = [currA[0] + (currB[0]-currA[0])*t2_start, currA[1] + (currB[1]-currA[1])*t2_start, currA[2] + (currB[2]-currA[2])*t2_start];
+            const qM1 = project(m1), qM2 = project(m2);
+            ctx.beginPath(); ctx.moveTo(pA[0], pA[1]); ctx.lineTo(qM1[0], qM1[1]); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(qM2[0], qM2[1]); ctx.lineTo(pB[0], pB[1]); ctx.stroke();
+          } else {
+            ctx.beginPath(); ctx.moveTo(pA[0], pA[1]); ctx.lineTo(pB[0], pB[1]); ctx.stroke();
+          }
+        });
+      };
+      
+      drawInterpolated(tet1Base, true, false);
+      drawInterpolated(tet2Base, false, true);
+    } else if (phase === 'moving' || phase === 'preSpin') {
+      // Phase 1: Two large tetrahedrons merging (or spinning before merging)
+      drawTet(t1, 1, false, 1); // Left tet (solid)
+      drawTet(t2, 1, true, 1);  // Right tet (broken)
+      drawIntersections(t1, t2); // Just calculate
+    } else if (phase === 'waiting') {
+      // Transition: Fade out large tets, fade in star tetrahedron
+      const t = delayCounter / delayMax; // 0 to 1
+      drawTet(t1, 1, false, 1 - t);
+      drawTet(t2, 1, true, 1 - t);
+      const intersections = drawIntersections(t1, t2);
+      drawSmallTets(t1, t2, intersections, t);
+    } else {
+      // Phase 2: Completed Star Tetrahedron spinning
+      const intersections = drawIntersections(t1, t2);
+      
+      let hiddenLineOpacity = null;
+      if (spinCounter > spinOpaqueStart) {
+        const t = Math.min(1, (spinCounter - spinOpaqueStart) / (spinOpaqueMax - spinOpaqueStart));
+        hiddenLineOpacity = t; 
+      }
+      
+      drawSmallTets(t1, t2, intersections, 1, hiddenLineOpacity);
+    }
+
+    requestAnimationFrame(frame); // Schedule next frame
+  }
+
+  // Start the animation
+  frame();
+
+  canvas.addEventListener('click', (e) => {
+    if (phase === 'intro' && introCounter === 0 && !hasStarted) {
+      hasStarted = true;
+      return; 
+    }
+
+    if (isPaused) {
+      // Resuming
+      if (phase === 'spinning') {
+        animDirection = -animDirection;
+      }
+      isPaused = false;
+    } else {
+      // Pausing
+      isPaused = true;
+    }
+  });
+
+  // Add cursor style to indicate interactivity
+  canvas.style.cursor = 'pointer';
+</script>
+</body>
+</html>
