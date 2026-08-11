@@ -110,10 +110,10 @@ Section heading: `selected work`
 > Three rounds of iteration on the interaction model. Shipped as a typed, working
 > component — not a mockup.
 
-Source link: `view the React + TypeScript component ↗`
+Source link: `view the React component repository ↗`
 
-The linked `ScrambleText.tsx` is the actual accessible, reduced-motion-aware React
-component from `~/Projects/turbopuffer`, copied into this branch for publication.
+The linked `theMTset/scramble-text-interaction` repository contains the accessible,
+reduced-motion-aware React component, live demo, and integration instructions.
 
 ### Simply Curious — motion, from scratch
 

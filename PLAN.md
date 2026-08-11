@@ -148,11 +148,11 @@ iframe so its canvas styles and pointer handling do not leak into the surroundin
 
 ### Turbopuffer React deliverable
 
-The portfolio itself remains vanilla, but the Turbopuffer case study links the real,
-tested React + TypeScript deliverable at
-`assets/work/scramble-text/ScrambleText.tsx`. Its adjacent README documents the changed
-props, integration call site, accessibility behavior, and reduced-motion handling. The
-public link targets this branch in `theMTset/theMTset.github.io`.
+The portfolio itself remains vanilla, but the Turbopuffer case study links the dedicated
+public repository at `theMTset/scramble-text-interaction`. That repository owns the tested
+React + TypeScript component, live Vite demo, integration instructions, accessibility
+behavior, reduced-motion handling, and 0BSD license. Keeping the reusable artifact in its
+own repository avoids two competing source copies.
 
 ---
 
