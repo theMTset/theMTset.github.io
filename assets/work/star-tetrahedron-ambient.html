@@ -6,7 +6,7 @@
   <title>Interactive star tetrahedron</title>
   <!-- Generated from simply-curious/website 24f95c0314782f69706d2ec114fcafd67c1b9cfe. The source renderer and
        hidden-line implementation are preserved; this portfolio mode replaces its scripted
-       sequence with a slow ambient spin, direct orbit, and spring return. -->
+       sequence with a slow ambient spin, sticky direct orbit, and delayed spring return. -->
   <style>
     :root { color-scheme: dark; }
     html, body {
@@ -726,6 +726,10 @@
         if (Math.abs(inspectionSeparationTarget - inspectionSeparation) < 0.02) {
           inspectionSeparation = inspectionSeparationTarget;
         }
+        if (AMBIENT_MODE && !ambientPointerDown && !returningFromOrbit && ambientReturnAt > 0 && performance.now() >= ambientReturnAt) {
+          returningFromOrbit = Boolean(dragQuat[1] || dragQuat[2] || dragQuat[3]);
+          ambientReturnAt = 0;
+        }
         if (returningFromOrbit) {
           let q = dragQuat[0] < 0 ? [-dragQuat[0], -dragQuat[1], -dragQuat[2], -dragQuat[3]] : dragQuat;
           q = qNorm2([
@@ -880,7 +884,7 @@
             }
           }
         }
-        if (AMBIENT_MODE && !REDUCED_MOTION && !ambientPointerDown && !returningFromOrbit) {
+        if (AMBIENT_MODE && !REDUCED_MOTION && !ambientPointerDown && !returningFromOrbit && ambientReturnAt === 0) {
           angle += AMBIENT_SPIN_SPEED;
         }
         let t1, t2;
@@ -1150,6 +1154,7 @@
       const SEAM_EDGE_FACES = [[1, 3], [1, 2], [2, 3], [0, 1], [0, 3], [0, 2]];
       const AMBIENT_MODE = true;
       const AMBIENT_SPIN_SPEED = 35e-4;
+      const AMBIENT_RETURN_DELAY_MS = 2e3;
       let angle = Math.PI / 6;
       let previewSpinAngle = 0;
       const maxXOffset = 100;
@@ -1179,6 +1184,7 @@
       let returningFromOrbit = false;
       let dragMoved = false;
       let ambientPointerDown = false;
+      let ambientReturnAt = 0;
       let delayCounter = 0;
       const delayMax = 45;
       let holdCounter = 0;
@@ -1369,6 +1375,7 @@
           dragging = true;
           ambientPointerDown = true;
           returningFromOrbit = false;
+          ambientReturnAt = 0;
         }
       }, { passive: true });
       canvas.addEventListener("touchmove", (e) => {
@@ -1413,7 +1420,10 @@
           dragging = false;
           if (AMBIENT_MODE) {
             ambientPointerDown = false;
-            returningFromOrbit = Boolean(dragQuat[1] || dragQuat[2] || dragQuat[3]);
+            returningFromOrbit = false;
+            ambientReturnAt = dragQuat[1] || dragQuat[2] || dragQuat[3]
+              ? performance.now() + AMBIENT_RETURN_DELAY_MS
+              : 0;
           }
         }, { passive: true });
       }
@@ -1505,6 +1515,7 @@
         if (AMBIENT_MODE) {
           ambientPointerDown = true;
           returningFromOrbit = false;
+          ambientReturnAt = 0;
         }
         mouseX = e.clientX;
         mouseY = e.clientY;
@@ -1523,7 +1534,10 @@
         mouseDragging = false;
         if (AMBIENT_MODE && ambientPointerDown) {
           ambientPointerDown = false;
-          returningFromOrbit = Boolean(dragQuat[1] || dragQuat[2] || dragQuat[3]);
+          returningFromOrbit = false;
+          ambientReturnAt = dragQuat[1] || dragQuat[2] || dragQuat[3]
+            ? performance.now() + AMBIENT_RETURN_DELAY_MS
+            : 0;
         }
       });
       window.addEventListener("keydown", (e) => {
