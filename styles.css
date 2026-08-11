@@ -78,6 +78,11 @@ button { font: inherit; }
   overflow: visible;
 }
 
+/* Lightning is confined to the opening and answer; scroll logic applies this at descent. */
+.storm-paused .flash,
+.storm-paused .storm { opacity: 0; }
+.storm-paused .noise { opacity: .025; }
+
 .bolt {
   fill: none;
   stroke-linecap: round;
@@ -256,7 +261,7 @@ button { font: inherit; }
 
 .small-line {
   align-self: center;
-  color: rgba(215, 229, 238, .42);
+  color: rgba(215, 229, 238, .65);
   font: 300 clamp(.82rem, 1.2vw, 1rem)/1 "Inter", sans-serif;
   letter-spacing: .55em;
   transform: translateY(-8rem);
@@ -278,7 +283,7 @@ button { font: inherit; }
 
 .answer-whisper {
   align-self: center;
-  color: rgba(215, 229, 238, .25);
+  color: rgba(215, 229, 238, .48);
   font: 300 .65rem/1 "Inter", sans-serif;
   letter-spacing: .35em;
   text-transform: uppercase;

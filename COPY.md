@@ -42,10 +42,10 @@ Scroll cue: `look deeper`
 **Decided 2026-08-11:** the question stays fully black at rest (`--question-rest: 0`).
 The first strike is distant. The second is longer, thicker, and reaches through the
 question. Its text afterglow begins on the first pulse, holds at full strength, and then
-decays within a 6.4-second total; it never drops to black between flash and glow. Those
-two opening strikes are the entire storm—no ambient lightning follows the visitor down
-the portfolio. Tuning knobs live beside `BIG_STRIKE_INDEX` and in `nextStrikeDelay()` in
-[script.js](script.js).
+decays within a 6.4-second total; it never drops to black between flash and glow. Sparse
+lightning continues while the visitor remains in the opening or answer, then stops at the
+descent boundary so it never flashes over the portfolio below. Tuning knobs live beside
+`BIG_STRIKE_INDEX` and in `nextStrikeDelay()` in [script.js](script.js).
 
 The `look deeper` cue catches the same lightning at scroll zero and fades out once the
 visitor moves. Reduced-motion mode shows it statically at low opacity.
@@ -60,8 +60,9 @@ visitor moves. Reduced-motion mode shows it statically at low opacity.
 >
 > keep going
 
-The pun lands here or it doesn't land at all. "MT" is set in white against the dimmer
-line — it's the only fully-lit thing on the page so far.
+The pun lands here or it doesn't land at all. "MT" remains the brightest element, while
+the smaller “no.” and “keep going” lines use enough contrast to remain legible on dark
+mobile displays.
 
 ---
 

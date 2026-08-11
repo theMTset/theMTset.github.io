@@ -152,9 +152,10 @@ iframe so its canvas styles and pointer handling do not leak into the surroundin
 The cue now catches the same lightning as the question at scroll zero and fades out as
 soon as `--progress` rises. It is not permanently visible in the dark, so the opening
 keeps its atmosphere, but every readable strike also reveals the instruction to “look
-deeper.” The storm is capped at its two opening strikes; no ambient strikes recur over
-later sections. Reduced-motion mode supplies a static low-opacity fallback because no
-strike will occur.
+deeper.” After the two choreographed opening strikes, sparse lightning continues while
+the visitor remains in the opening or answer. Crossing into the descent clears the storm
+and cancels its timer; returning above that boundary resumes it. Reduced-motion mode
+supplies a static low-opacity fallback because no strike will occur.
 
 The ∅ mark is a restrained link to `https://github.com/theMTset`. On small screens its
 backlight keeps a low resting opacity so the link remains discoverable after the storm
