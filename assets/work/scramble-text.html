@@ -38,6 +38,7 @@
   var CHARS = "0123456789&%$#@";
   var TEXT = "turbopuffer";
   var FLICKER_MS = 450;
+  var RELEASE_MS = 2000;
   var STEP_MS = 80;
   var EMULATED_MOUSE_GUARD_MS = 1200;
 
@@ -117,7 +118,7 @@
 
   function releaseHover() {
     if (hoverIndex === -1) return;
-    resolveAt[hoverIndex] = performance.now() + FLICKER_MS;
+    resolveAt[hoverIndex] = performance.now() + RELEASE_MS;
     hoverIndex = -1;
     ensureLoop();
   }
