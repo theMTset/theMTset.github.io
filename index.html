@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="description" content="The MT Set — something waits in the dark." />
+  <title>the MT set</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+  <div class="flash" aria-hidden="true"></div>
+  <svg class="storm" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+    <defs>
+      <filter id="lightning-glow" x="-100%" y="-20%" width="300%" height="140%">
+        <feGaussianBlur stdDeviation="8" result="blur" />
+        <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+      </filter>
+    </defs>
+    <path class="bolt bolt-glow" d="" />
+    <path class="bolt bolt-core" d="" />
+    <path class="bolt bolt-branch" d="" />
+  </svg>
+
+  <button class="sound-toggle" type="button" aria-label="Turn thunder sound on" aria-pressed="false">
+    <span class="sound-icon" aria-hidden="true"></span>
+    <span class="sound-label">sound off</span>
+  </button>
+
+  <main>
+    <section class="opening" aria-labelledby="first-question">
+      <div class="opening-sticky">
+        <p id="first-question" class="question storm-lit">is it empty?</p>
+
+        <div class="mark" aria-hidden="true">
+          <svg viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="35" />
+            <line x1="8" y1="92" x2="92" y2="8" />
+          </svg>
+        </div>
+
+        <div class="scroll-cue" aria-hidden="true">
+          <span>look deeper</span>
+          <i></i>
+        </div>
+      </div>
+    </section>
+
+    <section class="answer" aria-labelledby="answer-title">
+      <div class="answer-sticky">
+        <p class="small-line">no.</p>
+        <h1 id="answer-title" class="answer-title storm-lit">it is <strong>MT</strong></h1>
+        <p class="answer-whisper">keep going</p>
+      </div>
+    </section>
+
+    <section class="descent" aria-label="A descent into the MT set">
+      <div class="shaft" aria-hidden="true">
+        <div class="ring ring-1"></div>
+        <div class="ring ring-2"></div>
+        <div class="ring ring-3"></div>
+        <div class="ring ring-4"></div>
+        <div class="core"></div>
+      </div>
+
+      <article class="fragment fragment-left">
+        <span class="fragment-number">01</span>
+        <p>I make things at the edge of light and noise.</p>
+      </article>
+      <article class="fragment fragment-right">
+        <span class="fragment-number">02</span>
+        <p>Some are built. Some are found.</p>
+      </article>
+      <article class="fragment fragment-left last-fragment">
+        <span class="fragment-number">03</span>
+        <p>This is where they collect.</p>
+      </article>
+    </section>
+
+    <section class="threshold" aria-label="To be continued">
+      <p>there is more down here.</p>
+      <span>the MT set</span>
+    </section>
+  </main>
+
+  <noscript><p class="no-script">This experience needs JavaScript to make the storm.</p></noscript>
+  <script src="script.js"></script>
+</body>
+</html>

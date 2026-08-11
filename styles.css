@@ -1,0 +1,421 @@
+:root {
+  color-scheme: dark;
+  --light: 0;
+  --progress: 0;
+  --cold: 192, 220, 255;
+  --paper: #e9eef2;
+
+  /* "is it empty?" visibility.
+     --question-rest: alpha with no lightning. 0 = unreadable in the dark. Original value: .025
+     --question-lit:  alpha the lightning adds on top. Original value: .96 */
+  --question-rest: 0;
+  --question-lit: .96;
+
+  /* Lingering text glow after the big second strike. Driven by JS, decays to 0.
+     Separate from --light so the sky goes dark while the words stay lit. */
+  --afterglow: 0;
+
+  /* What the text is lit by: the storm itself, or its afterglow. */
+  --lit: max(var(--light), var(--afterglow));
+
+  /* Resting opacity of the "look deeper" cue. 0 = it only exists in the lightning. */
+  --cue-rest: 0;
+
+  /* How brightly the sky behind the ∅ flares. The mark itself never lights up —
+     it is a void, and you only see it because the light is behind it. */
+  --mark-glow: .5;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  background: #000;
+  color: var(--paper);
+  font-family: "Space Grotesk", "Inter", sans-serif;
+  scroll-behavior: smooth;
+  scrollbar-color: #30343a #000;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  overflow-x: hidden;
+  background: #000;
+}
+
+button { font: inherit; }
+
+.noise,
+.flash,
+.storm {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.noise {
+  z-index: 20;
+  opacity: calc(.025 + var(--light) * .07);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E");
+  mix-blend-mode: screen;
+}
+
+.flash {
+  z-index: 18;
+  opacity: var(--light);
+  background:
+    radial-gradient(circle at var(--strike-x, 52%) -10%, rgba(225, 240, 255, .95), transparent 48%),
+    linear-gradient(rgba(112, 151, 183, .22), rgba(8, 16, 24, .1));
+  mix-blend-mode: screen;
+}
+
+.storm {
+  z-index: 19;
+  opacity: calc(var(--light) * 1.3);
+  overflow: visible;
+}
+
+.bolt {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.bolt-glow {
+  stroke: rgba(140, 195, 255, .62);
+  stroke-width: 8;
+  filter: url(#lightning-glow);
+}
+
+.bolt-core { stroke: #f5fbff; stroke-width: 1.2; }
+.bolt-branch { stroke: rgba(225, 242, 255, .86); stroke-width: .8; }
+
+.sound-toggle {
+  position: fixed;
+  z-index: 30;
+  top: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  padding: .6rem;
+  border: 0;
+  color: rgba(230, 238, 244, .42);
+  background: transparent;
+  cursor: pointer;
+  transition: color .3s ease;
+}
+
+.sound-toggle:hover,
+.sound-toggle:focus-visible { color: rgba(240, 247, 252, .9); }
+.sound-toggle:focus-visible { outline: 1px solid rgba(210, 230, 245, .45); outline-offset: 4px; }
+
+.sound-icon {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.sound-toggle[aria-pressed="true"] .sound-icon {
+  background: currentColor;
+  animation: soundPulse 2.4s ease-in-out infinite;
+}
+
+.sound-label {
+  font: 400 .58rem/1 "Inter", sans-serif;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+.opening { height: 185vh; }
+
+/* Question and mark are one centred group. Without this the implicit rows stretch to
+   fill the viewport and the two split to opposite halves of the screen. */
+.opening-sticky { align-content: center; }
+
+.opening-sticky,
+.answer-sticky {
+  position: sticky;
+  top: 0;
+  display: grid;
+  place-items: center;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+}
+
+.question {
+  margin: 0;
+  color: rgba(224, 234, 241, calc(var(--question-rest) + var(--lit) * var(--question-lit)));
+  font-size: clamp(2.1rem, 6.5vw, 6.8rem);
+  font-weight: 300;
+  letter-spacing: -.045em;
+  text-shadow:
+    0 0 calc(12px * var(--lit)) rgba(var(--cold), calc(var(--lit) * .9)),
+    0 0 calc(50px * var(--lit)) rgba(var(--cold), calc(var(--lit) * .5));
+  transform: translateY(calc(var(--progress) * -7vh));
+  transition: color 80ms linear;
+}
+
+.storm-lit { user-select: none; }
+
+/* The empty set, below the question. Drawn rather than loaded so its geometry can be
+   tuned and its glow can be driven by the storm. Reference art: image.png (unused). */
+.mark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(3.6rem, 8vw, 6.5rem);
+  aspect-ratio: 1;
+  margin-top: clamp(2.5rem, 6vh, 5rem);
+  transform: translateY(calc(var(--progress) * -5vh));
+}
+
+/* The pool of light behind the mark. This is the only part that brightens. */
+.mark::before {
+  content: "";
+  position: absolute;
+  inset: -60%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--cold), .55), rgba(var(--cold), .15) 44%, transparent 70%);
+  opacity: calc(var(--lit) * var(--mark-glow));
+}
+
+.mark svg {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.mark :is(circle, line) {
+  fill: none;
+  stroke: #04070a;
+  stroke-width: 5.8;
+}
+
+.scroll-cue {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: .75rem;
+  /* Lit by the storm like everything else, then fades out once you start scrolling.
+     Original (faded IN as you scrolled): clamp(0, calc((var(--progress) - .03) * 8), .42) */
+  opacity: calc((var(--cue-rest) + var(--lit) * .45) * clamp(0, calc(1 - var(--progress) * 4), 1));
+  transform: translateX(-50%);
+}
+
+.scroll-cue span {
+  font: 400 .57rem/1 "Inter", sans-serif;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+}
+
+.scroll-cue i {
+  display: block;
+  width: 1px;
+  height: 38px;
+  background: linear-gradient(var(--paper), transparent);
+  animation: drift 2.2s ease-in-out infinite;
+}
+
+.answer {
+  position: relative;
+  z-index: 2;
+  height: 205vh;
+  background: radial-gradient(ellipse at 50% 50%, rgba(8, 14, 19, .8), #000 63%);
+}
+
+.answer-sticky { align-content: center; }
+
+.small-line,
+.answer-title,
+.answer-whisper { grid-area: 1 / 1; margin: 0; }
+
+.small-line {
+  align-self: center;
+  color: rgba(215, 229, 238, .42);
+  font: 300 clamp(.82rem, 1.2vw, 1rem)/1 "Inter", sans-serif;
+  letter-spacing: .55em;
+  transform: translateY(-8rem);
+}
+
+.answer-title {
+  color: rgba(230, 238, 243, .92);
+  font-size: clamp(2.7rem, 8vw, 8.5rem);
+  font-weight: 300;
+  letter-spacing: -.06em;
+}
+
+.answer-title strong {
+  color: #fff;
+  font-weight: 500;
+  letter-spacing: -.08em;
+  text-shadow: 0 0 35px rgba(160, 211, 255, .25);
+}
+
+.answer-whisper {
+  align-self: center;
+  color: rgba(215, 229, 238, .25);
+  font: 300 .65rem/1 "Inter", sans-serif;
+  letter-spacing: .35em;
+  text-transform: uppercase;
+  transform: translateY(9rem);
+}
+
+.descent {
+  position: relative;
+  z-index: 3;
+  min-height: 390vh;
+  background: #000;
+}
+
+.shaft {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  perspective: 700px;
+  background: radial-gradient(circle at 50% 50%, #071019 0, #020406 11%, #000 32%);
+}
+
+.ring,
+.core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 44% 56% 52% 48% / 56% 42% 58% 44%;
+  transform: translate(-50%, -50%) rotate(var(--turn));
+}
+
+.ring {
+  border: 1px solid rgba(126, 156, 178, .08);
+  box-shadow: inset 0 0 80px rgba(89, 127, 155, .055), 0 0 35px #000;
+}
+
+.ring::before,
+.ring::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(174, 208, 229, .09);
+  filter: blur(2px);
+}
+
+.ring::before { width: 5px; height: 5px; top: 14%; left: 15%; }
+.ring::after { width: 3px; height: 3px; right: 9%; bottom: 27%; }
+.ring-1 { --turn: 8deg; width: 130vmax; height: 110vmax; }
+.ring-2 { --turn: -14deg; width: 82vmax; height: 72vmax; }
+.ring-3 { --turn: 28deg; width: 48vmax; height: 42vmax; }
+.ring-4 { --turn: -38deg; width: 25vmax; height: 21vmax; }
+
+.core {
+  width: 8vmax;
+  aspect-ratio: 1;
+  background: #02070b;
+  box-shadow: 0 0 45px rgba(79, 145, 184, .12);
+}
+
+.fragment {
+  position: absolute;
+  z-index: 2;
+  width: min(28rem, 72vw);
+  color: rgba(228, 237, 242, .75);
+  text-shadow: 0 2px 20px #000;
+}
+
+.fragment-left { left: 9vw; }
+.fragment-right { right: 9vw; text-align: right; }
+.fragment:nth-of-type(1) { top: 80vh; }
+.fragment:nth-of-type(2) { top: 195vh; }
+.last-fragment { top: 310vh; }
+
+.fragment-number {
+  display: block;
+  margin-bottom: 1.25rem;
+  color: rgba(161, 192, 211, .34);
+  font: 400 .6rem/1 "Inter", sans-serif;
+  letter-spacing: .28em;
+}
+
+.fragment p {
+  margin: 0;
+  font-size: clamp(1.25rem, 2.5vw, 2.35rem);
+  font-weight: 300;
+  line-height: 1.35;
+  letter-spacing: -.025em;
+}
+
+.threshold {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  place-content: center;
+  min-height: 100vh;
+  text-align: center;
+  background: #000;
+}
+
+.threshold p {
+  margin: 0 0 2rem;
+  color: rgba(230, 238, 243, .7);
+  font-size: clamp(1.4rem, 4vw, 3.8rem);
+  font-weight: 300;
+  letter-spacing: -.04em;
+}
+
+.threshold span {
+  color: rgba(230, 238, 243, .22);
+  font: 400 .62rem/1 "Inter", sans-serif;
+  letter-spacing: .4em;
+  text-transform: uppercase;
+}
+
+.no-script {
+  position: fixed;
+  z-index: 100;
+  bottom: 1rem;
+  left: 1rem;
+  color: #fff;
+}
+
+@keyframes drift {
+  0%, 100% { transform: scaleY(.5); transform-origin: top; opacity: .2; }
+  50% { transform: scaleY(1); transform-origin: top; opacity: .8; }
+}
+
+@keyframes soundPulse {
+  50% { box-shadow: 0 0 15px currentColor; opacity: .55; }
+}
+
+@media (max-width: 650px) {
+  .sound-label { display: none; }
+  .sound-toggle { top: 1rem; right: 1rem; }
+  .small-line { transform: translateY(-6rem); }
+  .answer-whisper { transform: translateY(7rem); }
+  .fragment-left { left: 8vw; }
+  .fragment-right { right: 8vw; }
+  .ring-1 { width: 175vmax; height: 130vmax; }
+  .ring-2 { width: 110vmax; height: 88vmax; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .noise { opacity: .025; }
+  .scroll-cue i,
+  .sound-toggle[aria-pressed="true"] .sound-icon { animation: none; }
+  .question { color: rgba(230, 238, 243, .8); }
+  /* No storm here, so --lit is pinned low. Light the mark and cue statically instead,
+     or they never become visible at all. */
+  .mark::before { opacity: .55; }
+  .scroll-cue { opacity: calc(.34 * clamp(0, calc(1 - var(--progress) * 4), 1)); }
+}
