@@ -556,15 +556,23 @@
   // follow — slowing an impact is what turns it back into an arrival.
   const SET_CRASH_MS = 330;
 
+  // Being knocked over is its own beat. The letters used to jump to their scattered positions
+  // in a single frame, so the set was upright and then it was wreckage with nothing in
+  // between — the impact had no visible consequence, just a cut. Now they travel there, and
+  // the shockwave crosses the set outward from wherever it was struck, so you watch it happen
+  // to one letter after another.
+  const SET_KNOCK_MS = 420;
+  const SET_KNOCK_SPREAD_MS = 240;
+
   // The reorder is the part worth watching, and what made it unreadable was overlap, not
   // speed. The gap between letters used to be a fortieth of how long a letter took to travel,
   // which put 38 of the set's 62 letters in the air at the same time: nothing to track, just
   // a general shimmer. The gap is what fixes that. At these values about 18 are moving at
   // once, so the wave is a third of the set wide and you can see it cross.
   //
-  // The debris also has to register as debris before it starts sorting itself out, which is
-  // what the hold buys — the scatter itself is instant, being an impact.
-  const SET_SCATTER_HOLD_MS = 700;
+  // The debris still holds before it sorts itself out, but for less time than it used to:
+  // watching the scatter arrive does most of the work the hold was there to do.
+  const SET_SCATTER_HOLD_MS = 480;
   const SET_LETTER_MS = 1000;
   const SET_LETTER_GAP_MS = 55;
 
@@ -596,9 +604,11 @@
   // Positions are cached rather than measured per frame — sixty-odd letters is too many to ask the
   // browser about sixty times a second. They are cached in page coordinates, so scrolling does
   // not invalidate them; only a resize does, and that resets and re-measures.
-  const REPEL_RADIUS = 132;
-  const REPEL_PUSH = 44;
-  const REPEL_TURN = 26;
+  const REPEL_RADIUS = 138;
+  const REPEL_PUSH = 86;
+  // How far each letter turns to lie along the way it was thrown. 1 would point it exactly
+  // outward; a little under keeps the set readable while it splays.
+  const REPEL_SPLAY = .85;
   const REPEL_EASE = .16;
   const REPEL_REST = .05;
 
@@ -623,10 +633,15 @@
         // Where the letter sits in the document, independent of how far down the page is.
         cx: box.left + window.scrollX + box.width / 2,
         cy: box.top + window.scrollY + box.height / 2,
+        // Per-letter variation. Without it every letter takes exactly the same path for its
+        // distance and the whole thing reads as one smooth field rather than sixty objects.
+        spread: random(.68, 1.4),
+        skew: random(-.34, .34),
         spin: random(-1, 1),
         x: 0,
         y: 0,
-        turn: 0
+        turn: 0,
+        radial: 0
       };
     });
   }
@@ -654,10 +669,26 @@
           // Squared falloff, so the shove is concentrated right under the pointer instead of
           // nudging the whole set evenly.
           const force = 1 - distance / REPEL_RADIUS;
-          const push = force * force * REPEL_PUSH;
-          targetX = (dx / distance) * push;
-          targetY = (dy / distance) * push;
-          targetTurn = force * force * REPEL_TURN * letter.spin;
+          const push = force * force * REPEL_PUSH * letter.spread;
+          // Thrown outward, but deliberately not on a true radial. A field where every letter
+          // moves exactly away from one point, by exactly the same rule, is the definition of
+          // a lens — it reads as the text being distorted rather than as letters being
+          // repelled. The per-letter skew and spread are what make them separate objects
+          // flying off in their own directions.
+          const heading = Math.atan2(dy, dx) + letter.skew;
+          targetX = Math.cos(heading) * push;
+          targetY = Math.sin(heading) * push;
+
+          // And each one turns to lie along the way it was thrown, so the set splays outward
+          // from the pointer instead of staying upright while it slides. A letter looks the
+          // same rotated half a turn, so the outward angle is resolved to whichever half-turn
+          // sits nearest the one it is already holding — without that, a letter passing
+          // straight above the pointer spins the long way round to an identical angle.
+          let radial = Math.atan2(dy, dx) * 180 / Math.PI;
+          while (radial - letter.radial > 90) radial -= 180;
+          while (letter.radial - radial > 90) radial += 180;
+          letter.radial = radial;
+          targetTurn = (radial * REPEL_SPLAY + letter.spin * 12) * force;
           active = true;
         }
       }
@@ -729,13 +760,28 @@
     }, { passive: true });
   }
 
-  function scatterSet(letters, impactFrom) {
+  function scatterSet(letters, impactFrom, impactX) {
     const size = parseFloat(getComputedStyle(contactSet).fontSize) || 20;
     const boxes = letters.map(letter => letter.getBoundingClientRect());
     const order = shuffledOrder(letters.length);
     // Mostly turned over or onto their side; a few stay upright so it reads as debris
     // rather than a uniform effect.
     const turns = [90, -90, 180, 180, -90, 90, 0];
+
+    // Where the blow landed, and how far the furthest letter is from it — the shockwave is
+    // timed against that, so it sweeps the whole set in SET_KNOCK_SPREAD_MS however wide the
+    // set happens to be. Stacked, the rows met in the middle and there is no single word to
+    // point at, so the set's own centre stands in.
+    const centres = boxes.map(box => box.left + box.width / 2);
+    const origin = impactX ?? (Math.min(...centres) + Math.max(...centres)) / 2;
+    const reach = Math.max(...centres.map(centre => Math.abs(centre - origin))) || 1;
+
+    // Knock, hold and reorder run as one animation per letter on a timeline every letter
+    // shares. Chaining separate animations would mean a later one's backwards fill stamping
+    // its own first frame over whatever the earlier one was still doing.
+    const knockEnd = SET_KNOCK_SPREAD_MS + SET_KNOCK_MS;
+    const holdEnd = knockEnd + SET_SCATTER_HOLD_MS;
+    const total = holdEnd + (letters.length - 1) * SET_LETTER_GAP_MS + SET_LETTER_MS;
 
     letters.forEach((letter, index) => {
       const box = boxes[index];
@@ -745,25 +791,28 @@
       const turn = turns[Math.floor(Math.random() * turns.length)];
       const scattered = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px) rotate(${turn}deg)`;
       const apex = random(.7, 1.3) * size;
+      const arc = `translate(${(dx * .45).toFixed(1)}px, ${(dy * .45 - apex).toFixed(1)}px) rotate(${(turn * .35).toFixed(1)}deg)`;
 
-      letter.style.transform = scattered;
-      const animation = letter.animate([
-        { transform: scattered },
-        { transform: `translate(${(dx * .45).toFixed(1)}px, ${(dy * .45 - apex).toFixed(1)}px) rotate(${(turn * .35).toFixed(1)}deg)`, offset: .5 },
-        { transform: 'none' }
-      ], {
-        duration: SET_LETTER_MS,
-        // fill: 'both' holds the scattered first keyframe through the delay, so the hold
-        // costs nothing extra — the debris simply sits there until its letter's turn.
-        delay: SET_SCATTER_HOLD_MS + index * SET_LETTER_GAP_MS,
-        easing: 'cubic-bezier(.3, .78, .32, 1)',
-        fill: 'both'
-      });
+      const knockAt = SET_KNOCK_SPREAD_MS * (Math.abs(centres[index] - origin) / reach);
+      const returnAt = holdEnd + index * SET_LETTER_GAP_MS;
+
+      // Offsets are absolute milliseconds divided through by the shared duration. Each letter
+      // waits upright for the wave, is thrown, lies there, then hops home on its own beat.
+      const frames = [];
+      if (knockAt > 0) frames.push({ offset: 0, transform: 'none', easing: 'linear' });
+      frames.push({ offset: knockAt / total, transform: 'none', easing: 'cubic-bezier(.16, .74, .3, 1)' });
+      frames.push({ offset: (knockAt + SET_KNOCK_MS) / total, transform: scattered, easing: 'linear' });
+      frames.push({ offset: returnAt / total, transform: scattered, easing: 'cubic-bezier(.3, .78, .32, 1)' });
+      frames.push({ offset: (returnAt + SET_LETTER_MS * .5) / total, transform: arc, easing: 'cubic-bezier(.3, .78, .32, 1)' });
+      frames.push({ offset: (returnAt + SET_LETTER_MS) / total, transform: 'none' });
+      if (returnAt + SET_LETTER_MS < total) frames.push({ offset: 1, transform: 'none' });
+
+      const animation = letter.animate(frames, { duration: total, fill: 'both' });
       animation.addEventListener('finish', () => {
         letter.style.transform = 'none';
         animation.cancel();
-        // Longest delay, so this is the set finally at rest — the only moment its letters can
-        // be measured, and the earliest the pointer can be allowed to disturb them.
+        // Every letter shares the timeline, so they all land together and this handler — the
+        // last registered — runs with the whole set home and measurable.
         if (index === letters.length - 1) enableRepel(letters);
       }, { once: true });
     });
@@ -818,7 +867,8 @@
           // impact, so the first to land runs it and the guard drops the other.
           if (crash && !scattered) {
             scattered = true;
-            scatterSet(letters, stacked ? 0 : from);
+            const box = word.getBoundingClientRect();
+            scatterSet(letters, stacked ? 0 : from, stacked ? null : box.left + box.width / 2);
           }
         }, { once: true });
       });

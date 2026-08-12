@@ -465,26 +465,26 @@ button { font: inherit; }
   backface-visibility: hidden;
 }
 
-/* This is the premise the rest of the passage rests on, so it is no longer the faintest thing
-   on the screen — near-full strength, and a step up in size. */
+/* The claim itself, and the largest line in the passage. The one below it is the aside that
+   lands the joke, so it steps down rather than up. */
 .descent-lead {
   margin: 0;
-  color: rgba(226, 236, 242, .92);
-  font: 300 clamp(.95rem, 1.6vw, 1.25rem)/1.4 "Inter", sans-serif;
-  letter-spacing: .015em;
+  color: rgba(230, 238, 243, .94);
+  font-size: clamp(1.15rem, 2vw, 1.6rem);
+  font-weight: 300;
+  line-height: 1.25;
+  letter-spacing: -.025em;
 }
 
 .descent-claim {
-  margin: clamp(.45rem, 1.2vh, .9rem) 0 0;
-  color: rgba(228, 237, 242, .8);
-  font-size: clamp(1rem, 1.8vw, 1.4rem);
-  font-weight: 300;
-  line-height: 1.3;
-  letter-spacing: -.02em;
+  margin: clamp(.4rem, 1.1vh, .8rem) 0 0;
+  color: rgba(203, 219, 229, .66);
+  font: 300 clamp(.85rem, 1.4vw, 1.1rem)/1.4 "Inter", sans-serif;
+  letter-spacing: .015em;
 }
 
-/* Named in the claim before it is spelled out below, and coloured to say the two are the
-   same thing. */
+/* Both halves of the pun carry it: the IUI above and the UI below are coloured the same, so
+   the eye sees one contained in the other before the acrostic spells out why. */
 .iui-name {
   color: rgba(var(--cold), .95);
   font-weight: 400;

@@ -84,19 +84,22 @@ mobile displays.
 The descent states method and outcome instead of adding more atmosphere. The passage sits
 centred directly beneath the geometry and stays visible once it has played:
 
-> knowing how things are built
+> I like to build an **IUI**
 >
-> lets me build what I call an **IUI**
+> rather than just a **UI**
 >
 > **I**ntuitive
 > **U**nderstandable
 > **I**nteractive
 
 The acronym is the point, and it is a play on UI — the three qualities are the interface.
-So the payoff has to be earned rather than stated: the two lines fade up in turn, then the
-letters `I` `U` `I` arrive stacked and alone, meaning nothing yet, and only then does the
-rest of each word cross the screen from the right and slam into its letter. The letter is
-squashed against the arriving word and the row rocks with the hit.
+The second line is what lands the joke, so `IUI` and `UI` are coloured the same and the eye
+sees one contained in the other before the acrostic spells out why.
+
+The payoff is earned rather than stated: the two lines fade up in turn, then the letters
+`I` `U` `I` arrive stacked and alone, meaning nothing yet, and only then does the rest of
+each word cross the screen from the right and slam into its letter. The letter is squashed
+against the arriving word and the row rocks with the hit.
 
 “interactive” lands last because the visitor can then directly manipulate the geometry
 above it.
