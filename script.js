@@ -389,6 +389,21 @@
     });
   }
 
+  // The closing set fills itself once, when the visitor actually reaches it.
+  const contact = document.querySelector('.contact');
+  if (contact) {
+    if (reducedMotion || !('IntersectionObserver' in window)) {
+      contact.classList.add('revealed');
+    } else {
+      const contactObserver = new IntersectionObserver((entries) => {
+        if (!entries.some(entry => entry.isIntersecting)) return;
+        contact.classList.add('revealed');
+        contactObserver.disconnect();
+      }, { threshold: .4 });
+      contactObserver.observe(contact);
+    }
+  }
+
   syncStormRegion();
   if (reducedMotion) {
     setLight(.15);

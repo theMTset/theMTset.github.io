@@ -214,12 +214,24 @@ and it's honest about the tools.
 
 ## 7. Contact — **LIVE on `designer-application`**
 
-> Built something you want taken apart?
-> Or have something that needs putting back together?
+> { curious, literal, relentless, self-taught, hands-on, thorough }
 >
 > theMTrepo@gmail.com
 
-One prompt, one address. No form.
+**Decided 2026-08-12:** replaced the "Built something you want taken apart?" prompt with the
+closing beat of the site's own question. The braces arrive first and empty; the words then
+fill them one at a time, so the page ends by proving the set is not empty after all.
+
+The words describe the person, not the biography — the About section directly above already
+tells the physics/farming/machining story, and repeating it here would only echo. Each word
+rises into place and blooms once on arrival, the same move the storm makes on the opening
+question. The stagger is the inline `--d` on each span; the braces both sit at 0.
+
+The set reveals once, on first entry, via IntersectionObserver. Reduced-motion mode shows it
+complete and static. `<html class="js">` is set inline in the head so the words are never
+left invisible if the script fails to run.
+
+One set, one address. No form.
 
 ---
 

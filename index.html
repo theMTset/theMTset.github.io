@@ -10,6 +10,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <!-- Guards the styles that start hidden and are revealed by script, so they stay
+       readable if the script never runs. Inline and in head to avoid a flash. -->
+  <script>document.documentElement.classList.add('js');</script>
 </head>
 <body>
   <div class="noise" aria-hidden="true"></div>
@@ -170,7 +173,7 @@
         <p>Now the question points at getting a job. I've been a stay-at-home dad for the past few
         years, still working part-time as an electrician. My son is getting older, so it's time to
         think about full-time again. My boss would take me back tomorrow, but I've enjoyed working
-        with AI too much to go back to wiring. As my older brother put it: "You're the only one who
+        with AI too much to go back to wiring. As my older son put it: "You're the only one who
         actually enjoys work." He's watched me at it constantly these past few months — building,
         talking about it, losing whole days to it. The time just flies.</p>
 
@@ -192,7 +195,19 @@
     </section>
 
     <section class="contact" aria-label="Contact">
-      <p>Built something you want taken apart?<br />Or have something that needs putting back together?</p>
+      <!-- The closing beat of the site's own question. The braces arrive empty, then the
+           words fill them: the set turns out not to be empty after all. --d is the stagger
+           position — both braces sit at 0 so the empty set lands first. -->
+      <p class="contact-set">
+        <i class="brace" style="--d: 0" aria-hidden="true">{</i>
+        <span style="--d: 1">curious,</span>
+        <span style="--d: 2">literal,</span>
+        <span style="--d: 3">relentless,</span>
+        <span style="--d: 4">self-taught,</span>
+        <span style="--d: 5">hands-on,</span>
+        <span style="--d: 6">thorough</span>
+        <i class="brace" style="--d: 0" aria-hidden="true">}</i>
+      </p>
       <a href="mailto:theMTrepo@gmail.com">theMTrepo@gmail.com</a>
     </section>
   </main>

@@ -594,19 +594,44 @@ button { font: inherit; }
   z-index: 5;
   display: grid;
   place-content: center;
-  gap: 1.5rem;
+  /* Without this the address stretches to the column width and its underline runs on
+     well past the text. */
+  justify-items: center;
+  gap: 2rem;
   min-height: 60vh;
   text-align: center;
   background: #000;
   padding: 4rem 8vw 6rem;
 }
 
-.contact p {
-  margin: 0;
-  color: rgba(230, 238, 243, .7);
-  font-size: clamp(1.1rem, 2.6vw, 1.5rem);
+/* Flex rather than inline text so the words are individually animatable and the whitespace
+   between them collapses; gap does the spacing. It wraps to as many lines as it needs. */
+.contact-set {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: .3em .5em;
+  max-width: 58rem;
+  margin: 0 auto;
+  color: rgba(230, 238, 243, .82);
+  font-size: clamp(1.15rem, 3.2vw, 1.75rem);
   font-weight: 300;
-  line-height: 1.5;
+  line-height: 1.4;
+}
+
+.contact-set .brace {
+  color: rgba(var(--cold), .5);
+  font-style: normal;
+}
+
+/* Everything holds its layout position while hidden, so the closing brace never jumps as
+   the set fills — it is already waiting where the last word will end. */
+.js .contact-set > * { opacity: 0; }
+
+.contact.revealed .contact-set > * {
+  animation: wordArrive .9s cubic-bezier(.22, .61, .36, 1) both;
+  animation-delay: calc(var(--d) * 135ms);
 }
 
 .contact a {
@@ -639,6 +664,14 @@ button { font: inherit; }
 
 @keyframes soundPulse {
   50% { box-shadow: 0 0 15px currentColor; opacity: .55; }
+}
+
+/* Each word rises into place and blooms once on arrival, then the glow decays — the same
+   move the storm makes on the question at the top of the page. */
+@keyframes wordArrive {
+  from { opacity: 0; transform: translateY(.5em); text-shadow: 0 0 0 rgba(var(--cold), 0); }
+  55% { opacity: 1; text-shadow: 0 0 24px rgba(var(--cold), .55); }
+  to { opacity: 1; transform: none; text-shadow: 0 0 0 rgba(var(--cold), 0); }
 }
 
 @media (max-width: 650px) {
@@ -683,6 +716,8 @@ button { font: inherit; }
   :root { --mark-rest: 1; }
   .scroll-cue { opacity: calc(.34 * clamp(0, calc(1 - var(--progress) * 4), 1)); }
   .drop-line { opacity: 1; transform: none; }
+  .js .contact-set > *,
+  .contact.revealed .contact-set > * { opacity: 1; transform: none; animation: none; }
   .descent-copy { transform: none !important; }
   .geometry-hint { opacity: 1; transform: translate(-50%, 0); transition: none; }
 }
