@@ -238,10 +238,7 @@
   }
 
   const descent = document.querySelector('.descent');
-  const opening = document.querySelector('.opening');
   const openingSticky = document.querySelector('.opening-sticky');
-  const answer = document.querySelector('.answer');
-  const answerSticky = document.querySelector('.answer-sticky');
   const smallLine = document.querySelector('.small-line');
   const mark = document.querySelector('.mark');
   const markSlot = document.querySelector('.mark-slot');
@@ -283,35 +280,42 @@
   }
 
   // The ∅ leaves the opening with the visitor and comes to rest just above "no.", brightening
-  // the whole way. Both endpoints are measured inside their own sticky frame rather than in
-  // the viewport, so they stay fixed while that frame scrolls past and stay correct at any
-  // breakpoint. It fades out with the answer so a fixed element never floats over the work.
+  // the whole way.
+  //
+  // On screen the ∅ does not move at all: it holds the spot it occupies in the opening
+  // while the page descends past it. Only once the "no." line has risen far enough to sit
+  // directly beneath it does it catch, and from that moment it rides with "no." — up and
+  // off the top with the rest of the answer. So it travels down the document without ever
+  // travelling across the viewport. Math.min is the whole handoff: whichever position is
+  // higher wins, which is the resting spot until "no." overtakes it.
   const MARK_GAP_RATIO = .32;
+  // How far out the ∅ starts brightening, in viewports of remaining approach. Sized so the
+  // glow is coming up through the whole descent and is full exactly as it catches.
+  const MARK_APPROACH = 1.7;
 
   function updateMark(viewport) {
     if (!mark || !markSlot) return;
 
     const slot = markSlot.getBoundingClientRect();
     const size = slot.height || mark.offsetHeight;
-    const openCenter = slot.top - openingSticky.getBoundingClientRect().top + size / 2;
+    // Measured inside the opening's sticky frame, so it survives that frame scrolling away.
+    const restCenter = slot.top - openingSticky.getBoundingClientRect().top + size / 2;
 
     const noLine = smallLine.getBoundingClientRect();
     const gap = Math.max(20, size * MARK_GAP_RATIO);
-    const settleCenter = noLine.top - answerSticky.getBoundingClientRect().top - gap - size / 2;
+    const attachedCenter = noLine.top - gap - size / 2;
 
-    // Ease-out: most of the movement lands in the first stretch of scroll, so the opening
-    // answers the very first swipe instead of appearing to hold still.
-    const travel = easeOutCubic(clamp(window.scrollY / Math.max(opening.offsetHeight * .9, 1)));
-    root.style.setProperty('--mark-travel', travel.toFixed(3));
-
-    const y = openCenter + (settleCenter - openCenter) * travel;
+    const y = Math.min(restCenter, attachedCenter);
     mark.style.transform = `translate3d(-50%, ${(y - size / 2).toFixed(1)}px, 0)`;
 
-    const tail = answer.getBoundingClientRect().bottom - viewport;
-    const exit = clamp(1 - tail / (viewport * .6));
-    mark.style.opacity = (1 - exit).toFixed(3);
-    mark.style.pointerEvents = exit > .5 ? 'none' : 'auto';
-    mark.style.visibility = exit >= 1 ? 'hidden' : 'visible';
+    const travel = clamp(1 - (attachedCenter - restCenter) / (viewport * MARK_APPROACH));
+    root.style.setProperty('--mark-travel', travel.toFixed(3));
+
+    // It leaves by scrolling off the top with the answer, not by fading. Only stop it
+    // being a floating link once it is genuinely gone.
+    const gone = y + size / 2 < 0;
+    mark.style.pointerEvents = gone ? 'none' : 'auto';
+    mark.style.visibility = gone ? 'hidden' : 'visible';
   }
 
   function syncGeometryProgress(progress) {
@@ -370,6 +374,9 @@
   }, { passive: true });
 
   window.addEventListener('resize', updateScroll, { passive: true });
+  // The ∅'s resting spot is measured off the question's rendered box, which shifts when the
+  // web fonts land. Without this it sits a few pixels out until the first scroll event.
+  document.fonts?.ready.then(() => updateScroll());
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) {
       syncStormRegion();

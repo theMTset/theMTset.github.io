@@ -50,13 +50,18 @@ descent boundary so it never flashes over the portfolio below. Tuning knobs live
 The `look deeper` cue catches the same lightning at scroll zero and fades out once the
 visitor moves. Reduced-motion mode shows it statically at low opacity.
 
-**Decided 2026-08-12:** the ∅ now travels. It is a fixed element rather than part of either
-sticky frame, and scroll carries it from beneath the question to a rest just above the
-`no.` line in section 2, brightening the whole way until it holds the lightning-struck
-state permanently. Its glow also has a resting floor (`--mark-rest`) that is raised on
-phones, which are dimmer and rarely viewed in the dark — before this the mark was invisible
-on mobile between strikes. Scroll response is eased (`easeOutCubic`) so the first swipe
-produces obvious motion instead of the opening appearing to hold still.
+**Decided 2026-08-12:** the ∅ now travels down the document without ever moving across the
+viewport. It is a fixed element rather than part of either sticky frame, and it holds the
+spot it occupies in the opening while the page descends past it. Only when the `no.` line
+of section 2 has risen far enough to sit directly beneath it does it catch — from then on it
+rides with `no.`, holding a constant gap, and leaves by scrolling off the top with the rest
+of the answer rather than by fading. Its glow rises through the whole approach and is full,
+equal to a direct lightning strike, exactly as it catches.
+
+The glow also has a resting floor (`--mark-rest`), raised on phones, which are dimmer and
+rarely viewed in the dark — before this the mark was invisible on mobile between strikes.
+Scroll response is eased (`easeOutCubic`) so the first swipe produces obvious motion instead
+of the opening appearing to hold still.
 
 ---
 
