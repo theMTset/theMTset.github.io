@@ -28,6 +28,25 @@
   const random = (min, max) => min + Math.random() * (max - min);
   const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+  // Hold the viewport height still. The opening, the answer and the descent are scroll
+  // runways: their height is how much scrolling their animation gets, and together they come
+  // to 890vh. That made the document a nine-times lever on the viewport height — and on a
+  // phone the viewport height is not a constant, because the toolbar slides away as you
+  // scroll down and comes back as you scroll up. Roughly a hundred pixels of toolbar was
+  // moving the bottom of the document by nearly nine hundred, which is felt as the closing
+  // words leaping down the page at the moment you arrive at them.
+  //
+  // So the unit is taken once and only re-taken when the width changes, which is a real
+  // layout change — a rotation, or a desktop window being resized. A height-only change is
+  // the toolbar, and nothing should move for it.
+  let lockedWidth = window.innerWidth;
+
+  function lockViewportUnit() {
+    root.style.setProperty('--vh', `${(window.innerHeight / 100).toFixed(3)}px`);
+  }
+
+  lockViewportUnit();
+
   function stormIsAllowed() {
     const boundary = document.querySelector('.descent');
     return !boundary || boundary.getBoundingClientRect().top > 0;
@@ -508,7 +527,13 @@
     }
   }, { passive: true });
 
-  window.addEventListener('resize', updateScroll, { passive: true });
+  window.addEventListener('resize', () => {
+    if (window.innerWidth !== lockedWidth) {
+      lockedWidth = window.innerWidth;
+      lockViewportUnit();
+    }
+    updateScroll();
+  }, { passive: true });
   // The ∅'s resting spot is measured off the question's rendered box, which shifts when the
   // web fonts land. Without this it sits a few pixels out until the first scroll event.
   document.fonts?.ready.then(() => updateScroll());

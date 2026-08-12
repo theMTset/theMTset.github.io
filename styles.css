@@ -37,6 +37,16 @@
   /* What a hand on the screen adds (0–1.45, set by JS). It is allowed past 1 — past the
      lightning-struck state — so dragging while you hold reads as brighter than any strike. */
   --mark-touch: 0;
+
+  /* One viewport height, held still. The three scroll-driven sections below are runways —
+     their height is how much scrolling their animation gets — and together they are almost
+     nine viewports tall. In raw vh that made the whole page a nine-times lever on the
+     viewport height: a phone toolbar sliding in or out is about a hundred pixels, so the
+     bottom of the document jumped by nearly nine hundred, which is why the closing words
+     leapt down the screen for no visible reason. Script pins this to a pixel value and only
+     re-takes it when the width changes — a real layout change — so a toolbar coming and
+     going no longer moves anything. The 1vh default keeps it sane without script. */
+  --vh: 1vh;
 }
 
 * { box-sizing: border-box; }
@@ -156,7 +166,7 @@ button { font: inherit; }
   text-transform: uppercase;
 }
 
-.opening { height: 185vh; }
+.opening { height: calc(var(--vh) * 185); }
 
 /* Question and mark are one centred group. Without this the implicit rows stretch to
    fill the viewport and the two split to opposite halves of the screen. */
@@ -284,7 +294,7 @@ button { font: inherit; }
 .answer {
   position: relative;
   z-index: 2;
-  height: 205vh;
+  height: calc(var(--vh) * 205);
   background: radial-gradient(ellipse at 50% 50%, rgba(8, 14, 19, .8), #000 63%);
 }
 
@@ -342,7 +352,7 @@ button { font: inherit; }
 .descent {
   position: relative;
   z-index: 3;
-  min-height: 500vh;
+  min-height: calc(var(--vh) * 500);
   background: #000;
 }
 
@@ -668,7 +678,8 @@ button { font: inherit; }
      well past the text. */
   justify-items: center;
   gap: 2rem;
-  min-height: 60vh;
+  /* Locked too, so the closing words hold perfectly still when a toolbar slides. */
+  min-height: calc(var(--vh) * 60);
   text-align: center;
   background: #000;
   padding: 4rem 8vw 6rem;
