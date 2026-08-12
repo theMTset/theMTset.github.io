@@ -288,7 +288,7 @@
   // off the top with the rest of the answer. So it travels down the document without ever
   // travelling across the viewport. Math.min is the whole handoff: whichever position is
   // higher wins, which is the resting spot until "no." overtakes it.
-  const MARK_GAP_RATIO = .32;
+  const MARK_GAP_RATIO = .58;
   // How far out the ∅ starts brightening, in viewports of remaining approach. Sized so the
   // glow is coming up through the whole descent and is full exactly as it catches.
   const MARK_APPROACH = 1.7;
@@ -302,7 +302,7 @@
     const restCenter = slot.top - openingSticky.getBoundingClientRect().top + size / 2;
 
     const noLine = smallLine.getBoundingClientRect();
-    const gap = Math.max(20, size * MARK_GAP_RATIO);
+    const gap = Math.max(26, size * MARK_GAP_RATIO);
     const attachedCenter = noLine.top - gap - size / 2;
 
     const y = Math.min(restCenter, attachedCenter);
@@ -316,6 +316,91 @@
     const gone = y + size / 2 < 0;
     mark.style.pointerEvents = gone ? 'none' : 'auto';
     mark.style.visibility = gone ? 'hidden' : 'visible';
+  }
+
+  // The ∅ answers a hand on the screen. Holding anywhere brings its light up; dragging while
+  // you hold drives it past what a direct strike gives it, and it falls back off once you let
+  // go. Touch events rather than pointer events on purpose: a drag that scrolls the page fires
+  // pointercancel and stops sending moves, and a scrolling drag is exactly the gesture this is
+  // meant to answer. Mouse is wired separately, and ignored once a touch has been seen, so the
+  // synthetic mouse events a tap emits afterwards don't re-trigger the whole thing.
+  const PRESS_LEVEL = .8;
+  const DRAG_LEVEL = 1.45;
+  const PRESS_RISE = .16;
+  const PRESS_FALL = .055;
+  // A pixel of drag is worth this much of the way from press to full; motion bleeds off at
+  // MOTION_DECAY per frame, so the level tracks how fast you are moving, not how far.
+  const MOTION_PER_PX = .006;
+  const MOTION_DECAY = .9;
+
+  let pressing = false;
+  let pressGlow = 0;
+  let pressMotion = 0;
+  let pressPoint = null;
+  let pressFrame = 0;
+  let sawTouch = false;
+
+  function pressStep() {
+    const target = pressing ? PRESS_LEVEL + (DRAG_LEVEL - PRESS_LEVEL) * pressMotion : 0;
+    pressGlow += (target - pressGlow) * (target > pressGlow ? PRESS_RISE : PRESS_FALL);
+    pressMotion *= MOTION_DECAY;
+
+    if (!pressing && pressGlow < .002) {
+      pressGlow = 0;
+      pressFrame = 0;
+      root.style.setProperty('--mark-touch', '0');
+      return;
+    }
+
+    root.style.setProperty('--mark-touch', pressGlow.toFixed(3));
+    pressFrame = requestAnimationFrame(pressStep);
+  }
+
+  function runPressGlow() {
+    if (!pressFrame) pressFrame = requestAnimationFrame(pressStep);
+  }
+
+  function pressStart(x, y) {
+    pressing = true;
+    pressPoint = { x, y };
+    runPressGlow();
+  }
+
+  function pressMove(x, y) {
+    if (!pressing || !pressPoint) return;
+    pressMotion = clamp(pressMotion + Math.hypot(x - pressPoint.x, y - pressPoint.y) * MOTION_PER_PX);
+    pressPoint = { x, y };
+    runPressGlow();
+  }
+
+  function pressEnd() {
+    pressing = false;
+    pressPoint = null;
+    runPressGlow();
+  }
+
+  function bindPressGlow() {
+    window.addEventListener('touchstart', (event) => {
+      sawTouch = true;
+      const touch = event.touches[0];
+      if (touch) pressStart(touch.clientX, touch.clientY);
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (event) => {
+      const touch = event.touches[0];
+      if (touch) pressMove(touch.clientX, touch.clientY);
+    }, { passive: true });
+
+    window.addEventListener('touchend', pressEnd, { passive: true });
+    window.addEventListener('touchcancel', pressEnd, { passive: true });
+
+    window.addEventListener('mousedown', (event) => {
+      if (!sawTouch) pressStart(event.clientX, event.clientY);
+    });
+    window.addEventListener('mousemove', (event) => pressMove(event.clientX, event.clientY));
+    window.addEventListener('mouseup', pressEnd);
+    // A button released outside the window never reports its mouseup.
+    window.addEventListener('blur', pressEnd);
   }
 
   function syncGeometryProgress(progress) {
@@ -522,6 +607,7 @@
   }
 
   syncStormRegion();
+  if (!reducedMotion) bindPressGlow();
   if (reducedMotion) {
     setLight(.15);
   } else if (stormIsAllowed()) {

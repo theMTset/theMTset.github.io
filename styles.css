@@ -33,6 +33,10 @@
   /* Floor under the ∅'s glow so it is never fully invisible between strikes. Phones are
      dimmer and often held in daylight, so the mobile floor is higher. */
   --mark-rest: .12;
+
+  /* What a hand on the screen adds (0–1.45, set by JS). It is allowed past 1 — past the
+     lightning-struck state — so dragging while you hold reads as brighter than any strike. */
+  --mark-touch: 0;
 }
 
 * { box-sizing: border-box; }
@@ -221,16 +225,20 @@ button { font: inherit; }
 }
 
 /* The pool of light behind the mark. This is the only part that brightens.
-   Two things can light it: the storm, or the descent itself. --mark-travel rises with
-   scroll, so by the time the mark settles above "no." it holds the lightning-struck state
-   permanently instead of waiting for the next strike. */
+   Three things can light it: the storm, the descent itself, or a hand on the screen.
+   --mark-travel rises with scroll, so by the time the mark settles above "no." it holds the
+   lightning-struck state permanently instead of waiting for the next strike. Whichever
+   source is strongest wins, so touching never dims a mark the storm is already lighting. */
 .mark::before {
   content: "";
   position: absolute;
   inset: -60%;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(var(--cold), .62), rgba(var(--cold), .18) 44%, transparent 70%);
-  opacity: calc(max(var(--lit), var(--mark-travel), var(--mark-rest)) * var(--mark-glow));
+  opacity: calc(max(var(--lit), var(--mark-travel), var(--mark-rest), var(--mark-touch)) * var(--mark-glow));
+  /* The pool swells slightly under a hand, so the touch reads as light spreading rather
+     than a level being turned up. */
+  transform: scale(calc(1 + var(--mark-touch) * .11));
 }
 
 .mark svg {

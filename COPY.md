@@ -173,11 +173,11 @@ Source link: `visit maxcardpoints.com ↗`
 > the software work.
 >
 > Now the question points at getting a job. I've been a stay-at-home dad for the past few
-> years, still working part-time as an electrician. My son is getting older, so it's time to
-> think about full-time again. My boss would take me back tomorrow, but I've enjoyed working
-> with AI too much to go back to wiring. As my older brother put it: "You're the only one who
-> actually enjoys work." He's watched me at it constantly these past few months — building,
-> talking about it, losing whole days to it. The time just flies.
+> years, still working part-time as an electrician. My youngest is getting older, so it's time
+> to think about full-time again. My boss would put me on full-time tomorrow, but I've enjoyed
+> working with AI too much to make wiring the answer. As my older son put it: "You're the only
+> one who actually enjoys work." He's watched me at it constantly these past few months —
+> building, talking about it, losing whole days to it. The time just flies.
 >
 > So here I am. Portfolio site, updated resume, looking for full-time work where I can build
 > and understand the systems underneath.
