@@ -50,6 +50,14 @@ descent boundary so it never flashes over the portfolio below. Tuning knobs live
 The `look deeper` cue catches the same lightning at scroll zero and fades out once the
 visitor moves. Reduced-motion mode shows it statically at low opacity.
 
+**Decided 2026-08-12:** the ∅ now travels. It is a fixed element rather than part of either
+sticky frame, and scroll carries it from beneath the question to a rest just above the
+`no.` line in section 2, brightening the whole way until it holds the lightning-struck
+state permanently. Its glow also has a resting floor (`--mark-rest`) that is raised on
+phones, which are dimmer and rarely viewed in the dark — before this the mark was invisible
+on mobile between strikes. Scroll response is eased (`easeOutCubic`) so the first swipe
+produces obvious motion instead of the opening appearing to hold still.
+
 ---
 
 ## 2. The answer — **LIVE**
@@ -126,23 +134,64 @@ reduced-motion-aware React component, live demo, and integration instructions.
 
 ---
 
+### MaxCardPoints — product, full build
+
+> MaxCardPoints finds the best credit-card stack for your actual spending. The optimizer
+> runs entirely client-side — no calculation ever leaves the browser — while a Cloudflare
+> Worker and D1 database keep the card catalog current behind the scenes.
+>
+> Astro, Cloudflare Workers, D1, Alpine.js. Installable as an offline-first PWA.
+
+Source link: `visit maxcardpoints.com ↗`
+
+---
+
 ## 5. About — **LIVE on `designer-application`**
 
 > I've always been driven by curiosity.
 >
-> Before software: physics, then electrical work, then whatever the house needed next.
-> A bathroom. A deck. A furnace two HVAC technicians had already given up on. I found
-> what they missed.
+> Before software: high-energy particle physics, organic farming, CNC machining, then
+> electrical work — then whatever the house needed next. A bathroom. A deck. A furnace two
+> HVAC technicians had already given up on; I found what they missed. I've always been the
+> type to take apart what's broken, see how it works, then fix it.
+>
+> I'd played with web design before that — static sites, PWAs, drawing the logos and
+> graphics myself, always my favorite part. With AI I can do far more of it, and I've come a
+> long way in understanding not just how to use it but where its limits are. I'm still
+> learning — about AI, and about the development process itself — so I can make that
+> workflow correct, not just fast.
 >
 > Same question every time. How does this actually work?
 >
-> Now the question points at interfaces and motion instead of wiring. I design the surface
-> and build what runs underneath it — I've never been able to treat those as separate
-> disciplines. Learn, understand, simplify, improve, ship.
+> I design the surface and build what runs underneath it. As a solo dev I never really had
+> a choice — not that I'd have it any other way. I want to understand the systems that make
+> the software work.
+>
+> Now the question points at getting a job. I've been a stay-at-home dad for the past few
+> years, still working part-time as an electrician. My son is getting older, so it's time to
+> think about full-time again. My boss would take me back tomorrow, but I've enjoyed working
+> with AI too much to go back to wiring. As my older brother put it: "You're the only one who
+> actually enjoys work." He's watched me at it constantly these past few months — building,
+> talking about it, losing whole days to it. The time just flies.
+>
+> So here I am. Portfolio site, updated resume, looking for full-time work where I can build
+> and understand the systems underneath.
+>
+> I heard about turbopuffer on The Pragmatic Engineer — the team, the way you work — and
+> thought it might be a fit. Then I saw the logo animation. I liked it, but I caught myself
+> hovering over it wishing it responded to where my pointer actually was. So I built that.
+> AI made it quick, but not one-shot; you have to iterate to get it where you want it. Then I
+> packaged it as a React component and put it on GitHub, so it's yours if you want it.
+>
+> I'd like to build things with you.
 >
 > The work above is the evidence.
 >
-> Matt Titchenal — the MT set
+> MT
+
+The long personal middle is deliberate and stays first person and plain. It breaks the
+"short lines" rule on purpose: by this point the visitor has descended past the atmosphere
+and is owed the actual reason for the application, not more mood.
 
 ---
 

@@ -25,6 +25,14 @@
   /* How brightly the sky behind the ∅ flares. The mark itself never lights up —
      it is a void, and you only see it because the light is behind it. */
   --mark-glow: .5;
+
+  /* How far the ∅ has travelled from the opening to its rest above "no." (0–1, set by JS).
+     It doubles as the mark's light: at 1 the glow equals a direct lightning strike. */
+  --mark-travel: 0;
+
+  /* Floor under the ∅'s glow so it is never fully invisible between strikes. Phones are
+     dimmer and often held in daylight, so the mobile floor is higher. */
+  --mark-rest: .12;
 }
 
 * { box-sizing: border-box; }
@@ -170,40 +178,59 @@ button { font: inherit; }
   text-shadow:
     0 0 calc(12px * var(--lit)) rgba(var(--cold), calc(var(--lit) * .9)),
     0 0 calc(50px * var(--lit)) rgba(var(--cold), calc(var(--lit) * .5));
-  transform: translateY(calc(var(--progress) * -7vh));
+  /* --progress is eased so the first few pixels of scroll already move the question
+     noticeably; a linear ramp over the opening's 85vh of stick read as nothing happening. */
+  opacity: clamp(0, calc(1 - var(--progress) * 1.15), 1);
+  transform: translateY(calc(var(--progress) * -20vh));
   transition: color 80ms linear;
 }
 
 .storm-lit { user-select: none; }
 
-/* The empty set, below the question. Drawn rather than loaded so its geometry can be
-   tuned and its glow can be driven by the storm. Reference art: image.png (unused). */
+/* The empty set. Drawn rather than loaded so its geometry can be tuned and its glow can be
+   driven by the storm. Reference art: image.png (unused).
+
+   It is fixed rather than in flow: JS carries it from the opening down to a rest above the
+   "no." line, so it has to escape both sticky frames and their overflow clipping. The slot
+   below keeps its place in the opening's centred group. */
 .mark {
-  position: relative;
+  position: fixed;
+  z-index: 6;
+  top: 0;
+  left: 50%;
   display: grid;
   place-items: center;
-  width: clamp(3.6rem, 8vw, 6.5rem);
-  aspect-ratio: 1;
-  margin-top: clamp(2.5rem, 6vh, 5rem);
   color: inherit;
   text-decoration: none;
   border-radius: 50%;
-  transform: translateY(calc(var(--progress) * -5vh));
+  transform: translate3d(-50%, 50vh, 0);
+  will-change: transform;
 }
+
+.mark,
+.mark-slot {
+  width: clamp(3.6rem, 8vw, 6.5rem);
+  aspect-ratio: 1;
+}
+
+.mark-slot { margin-top: clamp(2.5rem, 6vh, 5rem); }
 
 .mark:focus-visible {
   outline: 1px solid rgba(var(--cold), .38);
   outline-offset: .65rem;
 }
 
-/* The pool of light behind the mark. This is the only part that brightens. */
+/* The pool of light behind the mark. This is the only part that brightens.
+   Two things can light it: the storm, or the descent itself. --mark-travel rises with
+   scroll, so by the time the mark settles above "no." it holds the lightning-struck state
+   permanently instead of waiting for the next strike. */
 .mark::before {
   content: "";
   position: absolute;
   inset: -60%;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(var(--cold), .55), rgba(var(--cold), .15) 44%, transparent 70%);
-  opacity: calc(var(--lit) * var(--mark-glow));
+  background: radial-gradient(circle, rgba(var(--cold), .62), rgba(var(--cold), .18) 44%, transparent 70%);
+  opacity: calc(max(var(--lit), var(--mark-travel), var(--mark-rest)) * var(--mark-glow));
 }
 
 .mark svg {
@@ -617,8 +644,9 @@ button { font: inherit; }
 @media (max-width: 650px) {
   .sound-label { display: none; }
   .sound-toggle { top: 1rem; right: 1rem; }
-  /* Keep the linked ∅ just visible after the lightning fades without turning it into a CTA. */
-  .mark::before { opacity: calc(.1 + var(--lit) * var(--mark-glow)); }
+  /* Phone screens are dimmer and rarely viewed in the dark, so the ∅ needs a higher floor
+     to read at all before the lightning or the scroll reveal reaches it. */
+  :root { --mark-rest: .42; }
   .small-line { transform: translateY(-6rem); }
   .answer-whisper { transform: translateY(7rem); }
   .shaft { background: radial-gradient(circle at 50% 31%, #0a1720 0, #03080d 17%, #000 42%); }
@@ -652,7 +680,7 @@ button { font: inherit; }
   .question { color: rgba(230, 238, 243, .8); }
   /* No storm here, so --lit is pinned low. Light the mark and cue statically instead,
      or they never become visible at all. */
-  .mark::before { opacity: .55; }
+  :root { --mark-rest: 1; }
   .scroll-cue { opacity: calc(.34 * clamp(0, calc(1 - var(--progress) * 4), 1)); }
   .drop-line { opacity: 1; transform: none; }
   .descent-copy { transform: none !important; }

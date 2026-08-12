@@ -238,6 +238,13 @@
   }
 
   const descent = document.querySelector('.descent');
+  const opening = document.querySelector('.opening');
+  const openingSticky = document.querySelector('.opening-sticky');
+  const answer = document.querySelector('.answer');
+  const answerSticky = document.querySelector('.answer-sticky');
+  const smallLine = document.querySelector('.small-line');
+  const mark = document.querySelector('.mark');
+  const markSlot = document.querySelector('.mark-slot');
   const rings = document.querySelectorAll('.ring');
   const dropLines = [...document.querySelectorAll('.drop-line')];
   const geometry = document.querySelector('.descent-geometry');
@@ -275,6 +282,38 @@
     });
   }
 
+  // The ∅ leaves the opening with the visitor and comes to rest just above "no.", brightening
+  // the whole way. Both endpoints are measured inside their own sticky frame rather than in
+  // the viewport, so they stay fixed while that frame scrolls past and stay correct at any
+  // breakpoint. It fades out with the answer so a fixed element never floats over the work.
+  const MARK_GAP_RATIO = .32;
+
+  function updateMark(viewport) {
+    if (!mark || !markSlot) return;
+
+    const slot = markSlot.getBoundingClientRect();
+    const size = slot.height || mark.offsetHeight;
+    const openCenter = slot.top - openingSticky.getBoundingClientRect().top + size / 2;
+
+    const noLine = smallLine.getBoundingClientRect();
+    const gap = Math.max(20, size * MARK_GAP_RATIO);
+    const settleCenter = noLine.top - answerSticky.getBoundingClientRect().top - gap - size / 2;
+
+    // Ease-out: most of the movement lands in the first stretch of scroll, so the opening
+    // answers the very first swipe instead of appearing to hold still.
+    const travel = easeOutCubic(clamp(window.scrollY / Math.max(opening.offsetHeight * .9, 1)));
+    root.style.setProperty('--mark-travel', travel.toFixed(3));
+
+    const y = openCenter + (settleCenter - openCenter) * travel;
+    mark.style.transform = `translate3d(-50%, ${(y - size / 2).toFixed(1)}px, 0)`;
+
+    const tail = answer.getBoundingClientRect().bottom - viewport;
+    const exit = clamp(1 - tail / (viewport * .6));
+    mark.style.opacity = (1 - exit).toFixed(3);
+    mark.style.pointerEvents = exit > .5 ? 'none' : 'auto';
+    mark.style.visibility = exit >= 1 ? 'hidden' : 'visible';
+  }
+
   function syncGeometryProgress(progress) {
     if (!geometryFrame?.contentWindow || Math.abs(progress - lastGeometryProgress) < .001) return;
     lastGeometryProgress = progress;
@@ -286,8 +325,9 @@
 
   function updateScroll() {
     const viewport = Math.max(window.innerHeight, 1);
-    const progress = Math.min(window.scrollY / (viewport * .85), 1);
+    const progress = easeOutCubic(clamp(window.scrollY / (viewport * .85)));
     root.style.setProperty('--progress', progress.toFixed(3));
+    updateMark(viewport);
 
     const rect = descent.getBoundingClientRect();
     const descentProgress = clamp(-rect.top / Math.max(descent.offsetHeight - viewport, 1));

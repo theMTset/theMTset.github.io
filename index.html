@@ -31,17 +31,22 @@
     <span class="sound-label">sound off</span>
   </button>
 
+  <!-- The empty set lives outside the sections so it can travel from the opening down to
+       the answer without being clipped by either sticky frame. JS drives its position. -->
+  <a class="mark" href="https://github.com/theMTset" target="_blank" rel="noreferrer" aria-label="View Matt Titchenal's GitHub repositories">
+    <svg viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="50" r="35" />
+      <line x1="8" y1="92" x2="92" y2="8" />
+    </svg>
+  </a>
+
   <main>
     <section class="opening" aria-labelledby="first-question">
       <div class="opening-sticky">
         <p id="first-question" class="question storm-lit">is it empty?</p>
 
-        <a class="mark" href="https://github.com/theMTset" target="_blank" rel="noreferrer" aria-label="View Matt Titchenal's GitHub repositories">
-          <svg viewBox="0 0 100 100" aria-hidden="true">
-            <circle cx="50" cy="50" r="35" />
-            <line x1="8" y1="92" x2="92" y2="8" />
-          </svg>
-        </a>
+        <!-- Holds the mark's place in the centred group now that the mark itself is fixed. -->
+        <div class="mark-slot" aria-hidden="true"></div>
 
         <div class="scroll-cue" aria-hidden="true">
           <span>look deeper</span>
@@ -136,6 +141,7 @@
           runs entirely client-side — no calculation ever leaves the browser — while a Cloudflare
           Worker and D1 database keep the card catalog current behind the scenes.</p>
           <p class="work-detail">Astro, Cloudflare Workers, D1, Alpine.js. Installable as an offline-first PWA.</p>
+          <a class="work-code-link" href="https://maxcardpoints.com" target="_blank" rel="noreferrer">visit maxcardpoints.com <span aria-hidden="true">↗</span></a>
         </div>
       </article>
     </section>
@@ -149,21 +155,39 @@
         had already given up on; I found what they missed. I've always been the type to take apart
         what's broken, see how it works, then fix it.</p>
 
-        <p>I'd also played around with web design before — static sites, PWAs, designing the logos and
-        graphics myself, always my favorite part. Now, with AI, I've found I can do a lot more, and I've
-        come a long way in understanding not just how to use it but where its limits are. I'm still
-        learning — about AI, and about the software development process itself — so I can make the AI
-        workflow more effective and correct, not just fast.</p>
+        <p>I'd played with web design before that — static sites, PWAs, drawing the logos and
+        graphics myself, always my favorite part. With AI I can do far more of it, and I've come a
+        long way in understanding not just how to use it but where its limits are. I'm still
+        learning — about AI, and about the development process itself — so I can make that workflow
+        correct, not just fast.</p>
 
         <p>Same question every time. How does this actually work?</p>
 
-        <p>Now the question points at interfaces and motion instead of wiring. I design the surface
-        and build what runs underneath it — I've never been able to treat those as separate
-        disciplines. Learn, understand, simplify, improve, ship.</p>
+        <p>I design the surface and build what runs underneath it. As a solo dev I never really had
+        a choice — not that I'd have it any other way. I want to understand the systems that make
+        the software work.</p>
+
+        <p>Now the question points at getting a job. I've been a stay-at-home dad for the past few
+        years, still working part-time as an electrician. My son is getting older, so it's time to
+        think about full-time again. My boss would take me back tomorrow, but I've enjoyed working
+        with AI too much to go back to wiring. As my older brother put it: "You're the only one who
+        actually enjoys work." He's watched me at it constantly these past few months — building,
+        talking about it, losing whole days to it. The time just flies.</p>
+
+        <p>So here I am. Portfolio site, updated resume, looking for full-time work where I can
+        build and understand the systems underneath.</p>
+
+        <p>I heard about turbopuffer on The Pragmatic Engineer — the team, the way you work — and
+        thought it might be a fit. Then I saw the logo animation. I liked it, but I caught myself
+        hovering over it wishing it responded to where my pointer actually was. So I built that.
+        AI made it quick, but not one-shot; you have to iterate to get it where you want it. Then I
+        packaged it as a React component and put it on GitHub, so it's yours if you want it.</p>
+
+        <p>I'd like to build things with you.</p>
 
         <p>The work above is the evidence.</p>
 
-        <p class="about-signature">Matt Titchenal — the MT set</p>
+        <p class="about-signature">MT</p>
       </div>
     </section>
 
