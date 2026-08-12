@@ -81,22 +81,25 @@ mobile displays.
 
 ## 3. The descent — **LIVE**
 
-The descent now states method and outcome instead of adding more atmosphere. The lines
-are unnumbered. They fall from above, settle into a bottom stack, and remain visible:
+The descent states method and outcome instead of adding more atmosphere. The passage sits
+centred directly beneath the geometry and stays visible once it has played:
 
-> I need to know how things are built.
+> knowing how things are built
 >
-> so I can make things
+> lets me build what I call an **IUI**
 >
-> intuitive
->
-> understandable
->
-> interactive
+> **I**ntuitive
+> **U**nderstandable
+> **I**nteractive
 
-The causal order is deliberate. “I need” is stronger than “I like,” and the three final
-qualities give the falling-word animation a repeatable rhythm. “interactive” lands last
-because the visitor can then directly manipulate the geometry above it.
+The acronym is the point, and it is a play on UI — the three qualities are the interface.
+So the payoff has to be earned rather than stated: the two lines fade up in turn, then the
+letters `I` `U` `I` arrive stacked and alone, meaning nothing yet, and only then does the
+rest of each word cross the screen from the right and slam into its letter. The letter is
+squashed against the arriving word and the row rocks with the hit.
+
+“interactive” lands last because the visitor can then directly manipulate the geometry
+above it.
 
 The lines begin automatically on first entry and play once per page load. The geometry's
 formation remains tied to scroll in both directions. When it finishes, the interaction

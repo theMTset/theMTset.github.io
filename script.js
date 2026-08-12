@@ -243,39 +243,89 @@
   const mark = document.querySelector('.mark');
   const markSlot = document.querySelector('.mark-slot');
   const rings = document.querySelectorAll('.ring');
-  const dropLines = [...document.querySelectorAll('.drop-line')];
+  const revealLines = [...document.querySelectorAll('.descent-copy [data-reveal-delay]')];
+  const iuiTails = [...document.querySelectorAll('.iui-tail')];
   const geometry = document.querySelector('.descent-geometry');
   const geometryFrame = geometry?.querySelector('iframe');
 
-  const DROP_DURATION_MS = 900;
+  // The descent's passage. Two lines fade up in turn, then the three letters of the acronym
+  // arrive on their own — meaning nothing yet — and the rest of each word crosses the screen
+  // from the right and stops dead against its letter. The letter takes the hit and the row
+  // rocks with it.
+  const REVEAL_MS = 760;
+  const SLAM_LEAD_MS = 2700;
+  const SLAM_GAP_MS = 440;
+  const SLAM_MS = 470;
   const GEOMETRY_START = .03;
   const GEOMETRY_END = .84;
-  let dropSequenceStarted = reducedMotion;
+  let descentSequenceStarted = reducedMotion;
   let lastGeometryProgress = -1;
 
   const clamp = (value, min = 0, max = 1) => Math.min(Math.max(value, min), max);
   const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
-  function startDropSequence() {
-    if (dropSequenceStarted) return;
-    dropSequenceStarted = true;
-    const viewport = Math.max(window.innerHeight, 1);
-    const fallDistances = dropLines.map(line => viewport + line.offsetTop + line.offsetHeight);
+  // Hand the finished state to inline styles and drop the animation, so nothing is left
+  // holding a fill on an element the rest of the page still has to lay out.
+  function settle(element, animation, onSettled) {
+    animation.addEventListener('finish', () => {
+      element.style.opacity = '1';
+      element.style.transform = 'none';
+      animation.cancel();
+      onSettled?.();
+    }, { once: true });
+  }
 
-    dropLines.forEach((line, index) => {
-      const animation = line.animate([
-        { opacity: 0, transform: `translate3d(0, ${-fallDistances[index]}px, 0)` },
+  // The impact, felt from the letter outwards: the letter is squashed against the arriving
+  // word, and the whole row is shoved left before it settles.
+  function slamImpact(letter, row) {
+    // Squashed from the right, which is the face the word hits, so the contact edge holds
+    // still and the letter gives behind it.
+    letter?.animate([
+      { transform: 'none' },
+      { transform: 'scaleX(.8)', offset: .3 },
+      { transform: 'scaleX(1.05)', offset: .62 },
+      { transform: 'none' }
+    ], { duration: 340, easing: 'ease-out' });
+
+    row?.animate([
+      { transform: 'none' },
+      { transform: 'translateX(-7px)', offset: .28 },
+      { transform: 'translateX(2px)', offset: .6 },
+      { transform: 'none' }
+    ], { duration: 320, easing: 'ease-out' });
+  }
+
+  function startDescentSequence() {
+    if (descentSequenceStarted) return;
+    descentSequenceStarted = true;
+
+    revealLines.forEach(line => {
+      settle(line, line.animate([
+        { opacity: 0, transform: 'translateY(.6rem)' },
+        { opacity: 1, transform: 'none' }
+      ], {
+        duration: REVEAL_MS,
+        delay: Number(line.dataset.revealDelay),
+        easing: 'cubic-bezier(.22, .61, .36, 1)',
+        fill: 'both'
+      }));
+    });
+
+    iuiTails.forEach((tail, index) => {
+      // Measured now, with the descent pinned and the tail already holding its final width,
+      // so each word starts just off the right edge whatever the screen is.
+      const start = window.innerWidth - tail.getBoundingClientRect().left + 48;
+      const animation = tail.animate([
+        { opacity: 0, transform: `translate3d(${start.toFixed(0)}px, 0, 0)` },
+        { opacity: 1, offset: .14 },
         { opacity: 1, transform: 'translate3d(0, 0, 0)' }
       ], {
-        duration: DROP_DURATION_MS,
-        delay: Number(line.dataset.dropDelay),
-        easing: 'cubic-bezier(.16, 1, .3, 1)',
+        duration: SLAM_MS,
+        delay: SLAM_LEAD_MS + index * SLAM_GAP_MS,
+        // Accelerating into the stop, so it arrives at speed rather than easing down.
+        easing: 'cubic-bezier(.62, 0, .9, .34)',
         fill: 'both'
       });
-      animation.addEventListener('finish', () => {
-        line.style.opacity = '1';
-        line.style.transform = 'translate3d(0, 0, 0)';
-        animation.cancel();
-      }, { once: true });
+      settle(tail, animation, () => slamImpact(tail.previousElementSibling, tail.parentElement));
     });
   }
 
@@ -421,7 +471,7 @@
     const rect = descent.getBoundingClientRect();
     const descentProgress = clamp(-rect.top / Math.max(descent.offsetHeight - viewport, 1));
     root.style.setProperty('--descent-progress', descentProgress.toFixed(3));
-    if (!dropSequenceStarted && rect.top <= 0 && rect.bottom > viewport) startDropSequence();
+    if (!descentSequenceStarted && rect.top <= 0 && rect.bottom > viewport) startDescentSequence();
 
     rings.forEach((ring, index) => {
       const scale = 1 + descentProgress * (2.3 + index * .55);
@@ -475,9 +525,9 @@
   });
 
   if (reducedMotion) {
-    dropLines.forEach(line => {
-      line.style.opacity = '1';
-      line.style.transform = 'none';
+    [...revealLines, ...iuiTails].forEach(element => {
+      element.style.opacity = '1';
+      element.style.transform = 'none';
     });
   }
 
