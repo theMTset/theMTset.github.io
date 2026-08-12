@@ -633,11 +633,16 @@ button { font: inherit; }
   font-style: normal;
 }
 
+/* The rows are a grouping for phones only. Here they dissolve, so braces and words are the
+   flex line's own children and the set stays a single row exactly as before. */
+.set-row { display: contents; }
+
 /* Everything holds its layout position while hidden, so the closing brace never jumps as
    the set fills — it is already waiting where the last word will end. Script drives the
    words and their letters; the braces are the only part CSS animates, because they arrive
-   first and alone. */
-.js .contact-set > * { opacity: 0; }
+   first and alone. Named rather than `> *`, because opacity does nothing to a row that is
+   display: contents and the words would sit visible until the reveal. */
+.js .contact-set :is(.brace, .key-word) { opacity: 0; }
 
 .contact.revealed .brace {
   animation: wordArrive .9s cubic-bezier(.22, .61, .36, 1) both;
@@ -726,6 +731,23 @@ button { font: inherit; }
   .ring-1 { width: 175vmax; height: 130vmax; }
   .ring-2 { width: 110vmax; height: 88vmax; }
 
+  /* Two deliberate rows of three rather than wherever the wrap happens to fall, so the two
+     halves can arrive from opposite sides and meet. The type comes down and the padding in
+     so a row of three words plus its brace fits on one line down to a 320px screen. */
+  .contact { padding: 4rem 5vw 6rem; }
+  .contact-set {
+    flex-direction: column;
+    align-items: center;
+    font-size: clamp(.9rem, 4.2vw, 1.3rem);
+  }
+  .set-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+    gap: .3em .42em;
+  }
+
   .work { padding: 4rem 6vw 6rem; gap: 3.5rem; }
   .work-piece,
   .work-piece-reverse { grid-template-columns: 1fr; gap: 1.5rem; }
@@ -744,8 +766,8 @@ button { font: inherit; }
   :root { --mark-rest: 1; }
   .scroll-cue { opacity: calc(.34 * clamp(0, calc(1 - var(--progress) * 4), 1)); }
   .drop-line { opacity: 1; transform: none; }
-  .js .contact-set > *,
-  .contact.revealed .contact-set > *,
+  .js .contact-set :is(.brace, .key-word),
+  .contact.revealed .contact-set :is(.brace, .key-word),
   .contact-set .ltr { opacity: 1; transform: none; animation: none; }
   .descent-copy { transform: none !important; }
   .geometry-hint { opacity: 1; transform: translate(-50%, 0); transition: none; }

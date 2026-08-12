@@ -481,14 +481,21 @@
     });
   }
 
-  // The closing set. The braces arrive empty, then the words slide in one at a time from
-  // alternating sides — slowly enough to read. The last one accelerates instead of easing
-  // down, and the impact knocks every letter in the set out of place and out of upright.
-  // They then hop back over each other, left to right, into the correct order.
+  // The closing set. The braces arrive empty, then the words slide in to fill them. The last
+  // word in accelerates instead of easing down, and the impact knocks every letter in the set
+  // out of place and out of upright. They then hop back over each other, left to right, into
+  // the correct order.
+  //
+  // Two arrangements, decided by what the layout is actually doing:
+  //   one line  — the words come in one at a time from alternating sides, and the final word
+  //               lands the impact on its own.
+  //   two rows  — phones, where the set is three words over three. The halves run side by side
+  //               from opposite edges and their last words meet head on, so the impact is a
+  //               collision rather than a single word arriving.
   //
   // The scramble is positional, not the glyph-cycling kind: each letter takes some other
   // letter's slot, measured against the whole set rather than its own word, which is what
-  // lets them cross word boundaries.
+  // lets them cross word boundaries — and, stacked, cross between rows too.
   const contact = document.querySelector('.contact');
   const contactSet = document.querySelector('.contact-set');
 
@@ -496,8 +503,11 @@
   const SET_WORD_GAP_MS = 220;
   const SET_SLIDE_MS = 470;
   const SET_CRASH_MS = 330;
-  const SET_LETTER_MS = 520;
-  const SET_LETTER_GAP_MS = 13;
+  // The reorder is the part worth watching, so it is paced to be followed: the debris holds
+  // still long enough to register as debris before the letters start hopping home.
+  const SET_SCATTER_HOLD_MS = 260;
+  const SET_LETTER_MS = 900;
+  const SET_LETTER_GAP_MS = 24;
 
   function splitLetters(word) {
     const text = word.textContent;
@@ -544,7 +554,9 @@
         { transform: 'none' }
       ], {
         duration: SET_LETTER_MS,
-        delay: index * SET_LETTER_GAP_MS,
+        // fill: 'both' holds the scattered first keyframe through the delay, so the hold
+        // costs nothing extra — the debris simply sits there until its letter's turn.
+        delay: SET_SCATTER_HOLD_MS + index * SET_LETTER_GAP_MS,
         easing: 'cubic-bezier(.3, .78, .32, 1)',
         fill: 'both'
       });
@@ -554,40 +566,60 @@
       }, { once: true });
     });
 
-    // The braces take the hit too, otherwise only the letters were struck.
+    // The braces take the hit too, otherwise only the letters were struck. impactFrom 0 is
+    // the head-on case, where the two rows cancel sideways and the set just thuds downward.
+    const drop = impactFrom ? 4 : 7;
     contactSet.animate([
       { transform: 'none' },
-      { transform: `translate(${impactFrom * -5}px, 4px)`, offset: .3 },
-      { transform: `translate(${impactFrom * 2}px, -1px)`, offset: .65 },
+      { transform: `translate(${impactFrom * -5}px, ${drop}px)`, offset: .3 },
+      { transform: `translate(${impactFrom * 2}px, ${(-drop * .35).toFixed(1)}px)`, offset: .65 },
       { transform: 'none' }
     ], { duration: 280, easing: 'ease-out' });
   }
 
   function revealContactSet() {
+    const rows = [...contactSet.querySelectorAll('.set-row')];
     const words = [...contactSet.querySelectorAll('.key-word')];
     const letters = words.flatMap(splitLetters);
     const travel = Math.max(window.innerWidth, 320) * .46;
 
-    words.forEach((word, index) => {
-      const last = index === words.length - 1;
-      const from = index % 2 ? 1 : -1;
-      const animation = word.animate([
-        { opacity: 0, transform: `translateX(${(from * travel).toFixed(0)}px)` },
-        { opacity: 1, offset: .3 },
-        { opacity: 1, transform: 'none' }
-      ], {
-        duration: last ? SET_CRASH_MS : SET_SLIDE_MS,
-        delay: SET_LEAD_MS + index * SET_WORD_GAP_MS,
-        easing: last ? 'cubic-bezier(.65, 0, .95, .35)' : 'cubic-bezier(.16, .9, .3, 1)',
-        fill: 'both'
+    // Ask the layout rather than re-deciding the breakpoint here: the rows only take a box
+    // when the stylesheet has stopped dissolving them, which is exactly when the set is two
+    // lines. So the choreography can never disagree with what is on screen.
+    const stacked = rows.length > 1 && getComputedStyle(rows[0]).display !== 'contents';
+    // Each group is one arriving line. Stacked, that is a row apiece, both running at once
+    // from opposite edges; otherwise it is the whole set as a single sequence.
+    const groups = stacked ? rows.map(row => [...row.querySelectorAll('.key-word')]) : [words];
+    let scattered = false;
+
+    groups.forEach((group, groupIndex) => {
+      group.forEach((word, step) => {
+        // Whatever closes a line is what lands the impact. Stacked, both lines close on the
+        // same beat and hit each other.
+        const crash = step === group.length - 1;
+        const from = stacked ? (groupIndex % 2 ? 1 : -1) : (step % 2 ? 1 : -1);
+        const animation = word.animate([
+          { opacity: 0, transform: `translateX(${(from * travel).toFixed(0)}px)` },
+          { opacity: 1, offset: .3 },
+          { opacity: 1, transform: 'none' }
+        ], {
+          duration: crash ? SET_CRASH_MS : SET_SLIDE_MS,
+          delay: SET_LEAD_MS + step * SET_WORD_GAP_MS,
+          easing: crash ? 'cubic-bezier(.65, 0, .95, .35)' : 'cubic-bezier(.16, .9, .3, 1)',
+          fill: 'both'
+        });
+        animation.addEventListener('finish', () => {
+          word.style.opacity = '1';
+          word.style.transform = 'none';
+          animation.cancel();
+          // Measure only now, with every word home. Two simultaneous crashes are still one
+          // impact, so the first to land runs it and the guard drops the other.
+          if (crash && !scattered) {
+            scattered = true;
+            scatterSet(letters, stacked ? 0 : from);
+          }
+        }, { once: true });
       });
-      animation.addEventListener('finish', () => {
-        word.style.opacity = '1';
-        word.style.transform = 'none';
-        animation.cancel();
-        // The last word landing is the impact. Measure only now, with every word home.
-        if (last) scatterSet(letters, from);
-      }, { once: true });
     });
   }
 

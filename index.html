@@ -198,16 +198,26 @@
       <!-- The closing beat of the site's own question. The braces arrive empty, the words
            crash in to fill them, and the set turns out not to be empty after all.
            Script splits these into single letters, so the plain copy below carries the
-           reading for assistive tech rather than a spelling-out of fragments. -->
+           reading for assistive tech rather than a spelling-out of fragments.
+
+           The two rows are a grouping for phones, where the set reads as two lines of three
+           that arrive from opposite sides and meet. Each row carries its own brace so the
+           halves stay balanced. Wider screens dissolve the rows with display: contents, and
+           the flattened order is exactly the one line this markup would have been without
+           them. -->
       <p class="contact-set" aria-hidden="true">
-        <i class="brace">{</i>
-        <span class="key-word">curious,</span>
-        <span class="key-word">adaptable,</span>
-        <span class="key-word">self-taught,</span>
-        <span class="key-word">hands-on,</span>
-        <span class="key-word">thorough,</span>
-        <span class="key-word">still learning</span>
-        <i class="brace">}</i>
+        <span class="set-row">
+          <i class="brace">{</i>
+          <span class="key-word">curious,</span>
+          <span class="key-word">adaptable,</span>
+          <span class="key-word">self-taught,</span>
+        </span>
+        <span class="set-row">
+          <span class="key-word">hands-on,</span>
+          <span class="key-word">thorough,</span>
+          <span class="key-word">still learning</span>
+          <i class="brace">}</i>
+        </span>
       </p>
       <p class="sr-only">curious, adaptable, self-taught, hands-on, thorough, still learning</p>
       <a href="mailto:theMTrepo@gmail.com">theMTrepo@gmail.com</a>
