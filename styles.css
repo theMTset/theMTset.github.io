@@ -646,7 +646,10 @@ button { font: inherit; }
   position: relative;
   z-index: 5;
   background: #000;
-  padding: 2rem 8vw 8rem;
+  /* The signature is the end of the reading; the closing set below is a separate beat, not a
+     continuation. It needs a break, not a void — this used to be 8rem, which combined with the
+     contact's own padding put nearly 200px of pure emptiness between them. */
+  padding: 2rem 8vw 4rem;
 }
 
 .about-inner {
@@ -672,17 +675,27 @@ button { font: inherit; }
 .contact {
   position: relative;
   z-index: 5;
+  /* The words arrive from off the side of the screen, and until they land the document is
+     wider than the viewport — measured at 501px across a 390px phone. The viewport's own
+     overflow-x: hidden stops that becoming a scrollbar, but it does not stop the document
+     being that wide, and a document wider than the viewport is exactly what makes a mobile
+     browser reflow or rescale to fit. Clipped here, the entry never leaves the section.
+     `clip` rather than `hidden` so this does not become a scroll container. */
+  overflow-x: clip;
   display: grid;
   place-content: center;
   /* Without this the address stretches to the column width and its underline runs on
      well past the text. */
   justify-items: center;
   gap: 2rem;
-  /* Locked too, so the closing words hold perfectly still when a toolbar slides. */
-  min-height: calc(var(--vh) * 60);
+  /* Enough room for the set to land in and be the closing beat, but no more. At 60vh the
+     content — about 100px of it — floated in the middle of a half-empty screen, and the
+     centring turned the surplus into 120px of slack above the words as well as below.
+     Locked to the held viewport unit, so the words hold still when a toolbar slides. */
+  min-height: calc(var(--vh) * 32);
   text-align: center;
   background: #000;
-  padding: 4rem 8vw 6rem;
+  padding: 3.5rem 8vw 6rem;
   /* Belt and braces for the same jump. If anything in here does change size, the browser's
      scroll anchoring would otherwise "helpfully" scroll the page to compensate, which is felt
      as the whole view lurching rather than as one element resizing. */
@@ -825,7 +838,7 @@ button { font: inherit; }
   /* Two deliberate rows of three rather than wherever the wrap happens to fall, so the two
      halves can arrive from opposite sides and meet. The type comes down and the padding in
      so a row of three words plus its brace fits on one line down to a 320px screen. */
-  .contact { padding: 4rem 5vw 6rem; }
+  .contact { padding: 3.5rem 5vw 6rem; }
   .contact-set {
     flex-direction: column;
     align-items: center;
