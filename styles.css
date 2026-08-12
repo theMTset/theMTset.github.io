@@ -612,7 +612,7 @@ button { font: inherit; }
   align-items: baseline;
   justify-content: center;
   gap: .3em .5em;
-  max-width: 58rem;
+  max-width: 64rem;
   margin: 0 auto;
   color: rgba(230, 238, 243, .82);
   font-size: clamp(1.15rem, 3.2vw, 1.75rem);
@@ -626,12 +626,32 @@ button { font: inherit; }
 }
 
 /* Everything holds its layout position while hidden, so the closing brace never jumps as
-   the set fills — it is already waiting where the last word will end. */
+   the set fills — it is already waiting where the last word will end. Script drives the
+   words and their letters; the braces are the only part CSS animates, because they arrive
+   first and alone. */
 .js .contact-set > * { opacity: 0; }
 
-.contact.revealed .contact-set > * {
+.contact.revealed .brace {
   animation: wordArrive .9s cubic-bezier(.22, .61, .36, 1) both;
-  animation-delay: calc(var(--d) * 135ms);
+}
+
+/* Transforms on inline text do nothing, and the letters have to be able to turn and cross
+   each other without disturbing the layout they will return to. */
+.contact-set .ltr {
+  display: inline-block;
+  backface-visibility: hidden;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  white-space: nowrap;
+  clip-path: inset(50%);
 }
 
 .contact a {
@@ -717,7 +737,8 @@ button { font: inherit; }
   .scroll-cue { opacity: calc(.34 * clamp(0, calc(1 - var(--progress) * 4), 1)); }
   .drop-line { opacity: 1; transform: none; }
   .js .contact-set > *,
-  .contact.revealed .contact-set > * { opacity: 1; transform: none; animation: none; }
+  .contact.revealed .contact-set > *,
+  .contact-set .ltr { opacity: 1; transform: none; animation: none; }
   .descent-copy { transform: none !important; }
   .geometry-hint { opacity: 1; transform: translate(-50%, 0); transition: none; }
 }

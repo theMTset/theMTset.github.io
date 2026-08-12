@@ -389,8 +389,117 @@
     });
   }
 
-  // The closing set fills itself once, when the visitor actually reaches it.
+  // The closing set. The braces arrive empty, then the words slide in one at a time from
+  // alternating sides — slowly enough to read. The last one accelerates instead of easing
+  // down, and the impact knocks every letter in the set out of place and out of upright.
+  // They then hop back over each other, left to right, into the correct order.
+  //
+  // The scramble is positional, not the glyph-cycling kind: each letter takes some other
+  // letter's slot, measured against the whole set rather than its own word, which is what
+  // lets them cross word boundaries.
   const contact = document.querySelector('.contact');
+  const contactSet = document.querySelector('.contact-set');
+
+  const SET_LEAD_MS = 260;
+  const SET_WORD_GAP_MS = 220;
+  const SET_SLIDE_MS = 470;
+  const SET_CRASH_MS = 330;
+  const SET_LETTER_MS = 520;
+  const SET_LETTER_GAP_MS = 13;
+
+  function splitLetters(word) {
+    const text = word.textContent;
+    word.textContent = '';
+    return [...text].map(character => {
+      const letter = document.createElement('span');
+      letter.className = 'ltr';
+      letter.textContent = character === ' ' ? ' ' : character;
+      word.appendChild(letter);
+      return letter;
+    });
+  }
+
+  function shuffledOrder(length) {
+    const order = [...Array(length).keys()];
+    for (let i = length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+    return order;
+  }
+
+  function scatterSet(letters, impactFrom) {
+    const size = parseFloat(getComputedStyle(contactSet).fontSize) || 20;
+    const boxes = letters.map(letter => letter.getBoundingClientRect());
+    const order = shuffledOrder(letters.length);
+    // Mostly turned over or onto their side; a few stay upright so it reads as debris
+    // rather than a uniform effect.
+    const turns = [90, -90, 180, 180, -90, 90, 0];
+
+    letters.forEach((letter, index) => {
+      const box = boxes[index];
+      const target = boxes[order[index]];
+      const dx = target.left - box.left;
+      const dy = target.top - box.top + random(-.22, .22) * size;
+      const turn = turns[Math.floor(Math.random() * turns.length)];
+      const scattered = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px) rotate(${turn}deg)`;
+      const apex = random(.7, 1.3) * size;
+
+      letter.style.transform = scattered;
+      const animation = letter.animate([
+        { transform: scattered },
+        { transform: `translate(${(dx * .45).toFixed(1)}px, ${(dy * .45 - apex).toFixed(1)}px) rotate(${(turn * .35).toFixed(1)}deg)`, offset: .5 },
+        { transform: 'none' }
+      ], {
+        duration: SET_LETTER_MS,
+        delay: index * SET_LETTER_GAP_MS,
+        easing: 'cubic-bezier(.3, .78, .32, 1)',
+        fill: 'both'
+      });
+      animation.addEventListener('finish', () => {
+        letter.style.transform = 'none';
+        animation.cancel();
+      }, { once: true });
+    });
+
+    // The braces take the hit too, otherwise only the letters were struck.
+    contactSet.animate([
+      { transform: 'none' },
+      { transform: `translate(${impactFrom * -5}px, 4px)`, offset: .3 },
+      { transform: `translate(${impactFrom * 2}px, -1px)`, offset: .65 },
+      { transform: 'none' }
+    ], { duration: 280, easing: 'ease-out' });
+  }
+
+  function revealContactSet() {
+    const words = [...contactSet.querySelectorAll('.key-word')];
+    const letters = words.flatMap(splitLetters);
+    const travel = Math.max(window.innerWidth, 320) * .46;
+
+    words.forEach((word, index) => {
+      const last = index === words.length - 1;
+      const from = index % 2 ? 1 : -1;
+      const animation = word.animate([
+        { opacity: 0, transform: `translateX(${(from * travel).toFixed(0)}px)` },
+        { opacity: 1, offset: .3 },
+        { opacity: 1, transform: 'none' }
+      ], {
+        duration: last ? SET_CRASH_MS : SET_SLIDE_MS,
+        delay: SET_LEAD_MS + index * SET_WORD_GAP_MS,
+        easing: last ? 'cubic-bezier(.65, 0, .95, .35)' : 'cubic-bezier(.16, .9, .3, 1)',
+        fill: 'both'
+      });
+      animation.addEventListener('finish', () => {
+        word.style.opacity = '1';
+        word.style.transform = 'none';
+        animation.cancel();
+        // The last word landing is the impact. Measure only now, with every word home.
+        if (last) scatterSet(letters, from);
+      }, { once: true });
+    });
+  }
+
+  // The set fills itself once, when the visitor actually reaches it.
   if (contact) {
     if (reducedMotion || !('IntersectionObserver' in window)) {
       contact.classList.add('revealed');
@@ -398,6 +507,7 @@
       const contactObserver = new IntersectionObserver((entries) => {
         if (!entries.some(entry => entry.isIntersecting)) return;
         contact.classList.add('revealed');
+        revealContactSet();
         contactObserver.disconnect();
       }, { threshold: .4 });
       contactObserver.observe(contact);

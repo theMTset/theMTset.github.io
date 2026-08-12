@@ -214,22 +214,42 @@ and it's honest about the tools.
 
 ## 7. Contact — **LIVE on `designer-application`**
 
-> { curious, literal, relentless, self-taught, hands-on, thorough }
+> { curious, adaptable, self-taught, hands-on, thorough, still learning }
 >
 > theMTrepo@gmail.com
 
 **Decided 2026-08-12:** replaced the "Built something you want taken apart?" prompt with the
-closing beat of the site's own question. The braces arrive first and empty; the words then
-fill them one at a time, so the page ends by proving the set is not empty after all.
+closing beat of the site's own question. The page ends by proving the set is not empty.
 
 The words describe the person, not the biography — the About section directly above already
-tells the physics/farming/machining story, and repeating it here would only echo. Each word
-rises into place and blooms once on arrival, the same move the storm makes on the opening
-question. The stagger is the inline `--d` on each span; the braces both sit at 0.
+tells the physics/farming/machining story, and repeating it here would only echo. Each one
+is something the page above it has already earned: "adaptable" by the run from physics to
+farming to CNC to wiring to software, "thorough" by the furnace two technicians gave up on,
+"still learning" by the admission that AI made the scramble component quick but not
+one-shot. "honest" and "trustworthy" were considered and cut — they are the kind of word a
+reader discounts on sight, and "still learning" already carries that note with evidence
+behind it.
 
-The set reveals once, on first entry, via IntersectionObserver. Reduced-motion mode shows it
-complete and static. `<html class="js">` is set inline in the head so the words are never
-left invisible if the script fails to run.
+**The animation.** The braces arrive first and empty. The words then slide in one at a time
+from alternating sides, slowly enough to read. The last one accelerates into the set instead
+of easing down onto it, and that impact knocks every letter loose: all 62 scatter across the
+whole set — each taking some other letter's slot, most turned onto their side or fully over
+— and then hop back over each other, left to right, into the correct order.
+
+Two things make it work. The reader has already read all six words before the set comes
+apart, so the jumble hides nothing; and the resolve runs left to right rather than all at
+once, so it reads as a reveal instead of noise. Total: about three seconds.
+
+The scramble is **positional**, not the glyph-cycling kind turbopuffer's logo uses. Each
+letter physically travels to another letter's place. Letters are measured against the whole
+set rather than their own word, which is what lets them cross word boundaries. Tuning knobs
+are the `SET_*` constants in [script.js](script.js).
+
+The set reveals once, on first entry, via IntersectionObserver. Reduced-motion mode never
+splits the words at all and shows the set complete and static. `<html class="js">` is set
+inline in the head so the words are never left invisible if the script fails to run, and a
+visually hidden copy of the line carries the reading for assistive technology, which would
+otherwise spell out 62 separate fragments.
 
 One set, one address. No form.
 

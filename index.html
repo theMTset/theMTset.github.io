@@ -195,19 +195,21 @@
     </section>
 
     <section class="contact" aria-label="Contact">
-      <!-- The closing beat of the site's own question. The braces arrive empty, then the
-           words fill them: the set turns out not to be empty after all. --d is the stagger
-           position — both braces sit at 0 so the empty set lands first. -->
-      <p class="contact-set">
-        <i class="brace" style="--d: 0" aria-hidden="true">{</i>
-        <span style="--d: 1">curious,</span>
-        <span style="--d: 2">literal,</span>
-        <span style="--d: 3">relentless,</span>
-        <span style="--d: 4">self-taught,</span>
-        <span style="--d: 5">hands-on,</span>
-        <span style="--d: 6">thorough</span>
-        <i class="brace" style="--d: 0" aria-hidden="true">}</i>
+      <!-- The closing beat of the site's own question. The braces arrive empty, the words
+           crash in to fill them, and the set turns out not to be empty after all.
+           Script splits these into single letters, so the plain copy below carries the
+           reading for assistive tech rather than a spelling-out of fragments. -->
+      <p class="contact-set" aria-hidden="true">
+        <i class="brace">{</i>
+        <span class="key-word">curious,</span>
+        <span class="key-word">adaptable,</span>
+        <span class="key-word">self-taught,</span>
+        <span class="key-word">hands-on,</span>
+        <span class="key-word">thorough,</span>
+        <span class="key-word">still learning</span>
+        <i class="brace">}</i>
       </p>
+      <p class="sr-only">curious, adaptable, self-taught, hands-on, thorough, still learning</p>
       <a href="mailto:theMTrepo@gmail.com">theMTrepo@gmail.com</a>
     </section>
   </main>
