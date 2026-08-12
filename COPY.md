@@ -103,7 +103,7 @@ above it.
 
 The lines begin automatically on first entry and play once per page load. The geometry's
 formation remains tied to scroll in both directions. When it finishes, the interaction
-hint `drag to explore` rises beneath it.
+hint `drag to spin` rises beneath it.
 
 ---
 
