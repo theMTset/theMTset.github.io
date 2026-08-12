@@ -160,8 +160,8 @@ Source link: `visit maxcardpoints.com ↗`
 > HVAC technicians had already given up on; I found what they missed. I've always been the
 > type to take apart what's broken, see how it works, then fix it.
 >
-> I'd played with web design before that — static sites, PWAs, drawing the logos and
-> graphics myself, always my favorite part. With AI I can do far more of it, and I've come a
+> I'd been playing with web design that whole time — static sites, PWAs, drawing the
+> logos and graphics myself, always my favorite part. With AI I can do far more of it, and I've come a
 > long way in understanding not just how to use it but where its limits are. I'm still
 > learning — about AI, and about the development process itself — so I can make that
 > workflow correct, not just fast.
