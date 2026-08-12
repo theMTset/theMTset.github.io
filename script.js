@@ -549,15 +549,24 @@
   const contact = document.querySelector('.contact');
   const contactSet = document.querySelector('.contact-set');
 
-  const SET_LEAD_MS = 260;
-  const SET_WORD_GAP_MS = 220;
-  const SET_SLIDE_MS = 470;
+  const SET_LEAD_MS = 380;
+  const SET_WORD_GAP_MS = 300;
+  const SET_SLIDE_MS = 560;
+  // The crash keeps its old speed. It is the one beat that is supposed to be too fast to
+  // follow — slowing an impact is what turns it back into an arrival.
   const SET_CRASH_MS = 330;
-  // The reorder is the part worth watching, so it is paced to be followed: the debris holds
-  // still long enough to register as debris before the letters start hopping home.
-  const SET_SCATTER_HOLD_MS = 260;
-  const SET_LETTER_MS = 900;
-  const SET_LETTER_GAP_MS = 24;
+
+  // The reorder is the part worth watching, and what made it unreadable was overlap, not
+  // speed. The gap between letters used to be a fortieth of how long a letter took to travel,
+  // which put 38 of the set's 62 letters in the air at the same time: nothing to track, just
+  // a general shimmer. The gap is what fixes that. At these values about 18 are moving at
+  // once, so the wave is a third of the set wide and you can see it cross.
+  //
+  // The debris also has to register as debris before it starts sorting itself out, which is
+  // what the hold buys — the scatter itself is instant, being an impact.
+  const SET_SCATTER_HOLD_MS = 700;
+  const SET_LETTER_MS = 1000;
+  const SET_LETTER_GAP_MS = 55;
 
   function splitLetters(word) {
     const text = word.textContent;
@@ -584,7 +593,7 @@
   // away from wherever you are, leave and they drift back into their words. The same gesture
   // that put them there in the first place, now under the visitor's hand.
   //
-  // Positions are cached rather than measured per frame — 55 letters is too many to ask the
+  // Positions are cached rather than measured per frame — sixty-odd letters is too many to ask the
   // browser about sixty times a second. They are cached in page coordinates, so scrolling does
   // not invalidate them; only a resize does, and that resets and re-measures.
   const REPEL_RADIUS = 132;
@@ -625,7 +634,7 @@
   function repelStep() {
     const pointerX = repelPointer ? repelPointer.x + window.scrollX : 0;
     const pointerY = repelPointer ? repelPointer.y + window.scrollY : 0;
-    // One box test before fifty-five distance tests. The pointer spends almost all of its life
+    // One box test before sixty-odd distance tests. The pointer spends almost all of its life
     // nowhere near the set, and every mousemove on the page reaches this loop.
     const near = repelPointer
       && pointerX > repelBounds.left && pointerX < repelBounds.right
