@@ -26,7 +26,7 @@
      it is a void, and you only see it because the light is behind it. */
   --mark-glow: .5;
 
-  /* How far the ∅ has travelled from the opening to its rest above "no." (0–1, set by JS).
+  /* How far the ∅ has travelled from the opening to its rest above "no" (0–1, set by JS).
      It doubles as the mark's light: at 1 the glow equals a direct lightning strike. */
   --mark-travel: 0;
 
@@ -195,7 +195,7 @@ button { font: inherit; }
    driven by the storm. Reference art: image.png (unused).
 
    It is fixed rather than in flow: JS carries it from the opening down to a rest above the
-   "no." line, so it has to escape both sticky frames and their overflow clipping. The slot
+   "no" line, so it has to escape both sticky frames and their overflow clipping. The slot
    below keeps its place in the opening's centred group. */
 .mark {
   position: fixed;
@@ -226,7 +226,7 @@ button { font: inherit; }
 
 /* The pool of light behind the mark. This is the only part that brightens.
    Three things can light it: the storm, the descent itself, or a hand on the screen.
-   --mark-travel rises with scroll, so by the time the mark settles above "no." it holds the
+   --mark-travel rises with scroll, so by the time the mark settles above "no" it holds the
    lightning-struck state permanently instead of waiting for the next strike. Whichever
    source is strongest wins, so touching never dims a mark the storm is already lighting. */
 .mark::before {
@@ -288,14 +288,26 @@ button { font: inherit; }
   background: radial-gradient(ellipse at 50% 50%, rgba(8, 14, 19, .8), #000 63%);
 }
 
-.answer-sticky { align-content: center; }
+/* Drops the whole answer group down the screen. The ∅ hangs at a spot measured off the
+   opening, so lowering the text here does not lower the ∅ with it — it opens the gap the ∅
+   hangs above, which is the point. Padding rather than a transform because the group is
+   centred in the content box: the text moves down by half of this. */
+.answer-sticky {
+  align-content: center;
+  padding-top: clamp(3rem, 7vh, 5.5rem);
+}
 
 .small-line,
 .answer-title,
 .answer-whisper { grid-area: 1 / 1; margin: 0; }
 
+/* letter-spacing is applied after the last glyph too, so a tracked word carries a trailing
+   gap its box counts but the eye does not. Centring the box therefore parks the letters left
+   of centre — visible here, because the ∅ hangs directly above and gives the eye an axis to
+   measure against. Pulling the trailing space back off the box re-centres the glyphs. */
 .small-line {
   align-self: center;
+  margin-right: -.55em;
   color: rgba(215, 229, 238, .65);
   font: 300 clamp(.82rem, 1.2vw, 1rem)/1 "Inter", sans-serif;
   letter-spacing: .55em;
@@ -316,8 +328,10 @@ button { font: inherit; }
   text-shadow: 0 0 35px rgba(160, 211, 255, .25);
 }
 
+/* Same trailing-space correction, on the same centre line. */
 .answer-whisper {
   align-self: center;
+  margin-right: -.35em;
   color: rgba(215, 229, 238, .48);
   font: 300 .65rem/1 "Inter", sans-serif;
   letter-spacing: .35em;

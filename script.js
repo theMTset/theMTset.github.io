@@ -329,16 +329,16 @@
     });
   }
 
-  // The ∅ leaves the opening with the visitor and comes to rest just above "no.", brightening
+  // The ∅ leaves the opening with the visitor and comes to rest just above "no", brightening
   // the whole way.
   //
   // On screen the ∅ does not move at all: it holds the spot it occupies in the opening
-  // while the page descends past it. Only once the "no." line has risen far enough to sit
-  // directly beneath it does it catch, and from that moment it rides with "no." — up and
+  // while the page descends past it. Only once the "no" line has risen far enough to sit
+  // directly beneath it does it catch, and from that moment it rides with "no" — up and
   // off the top with the rest of the answer. So it travels down the document without ever
   // travelling across the viewport. Math.min is the whole handoff: whichever position is
-  // higher wins, which is the resting spot until "no." overtakes it.
-  const MARK_GAP_RATIO = .58;
+  // higher wins, which is the resting spot until "no" overtakes it.
+  const MARK_GAP_RATIO = .72;
   // How far out the ∅ starts brightening, in viewports of remaining approach. Sized so the
   // glow is coming up through the whole descent and is full exactly as it catches.
   const MARK_APPROACH = 1.7;
@@ -352,7 +352,7 @@
     const restCenter = slot.top - openingSticky.getBoundingClientRect().top + size / 2;
 
     const noLine = smallLine.getBoundingClientRect();
-    const gap = Math.max(26, size * MARK_GAP_RATIO);
+    const gap = Math.max(30, size * MARK_GAP_RATIO);
     const attachedCenter = noLine.top - gap - size / 2;
 
     const y = Math.min(restCenter, attachedCenter);
@@ -580,6 +580,146 @@
     return order;
   }
 
+  // Once the set has assembled it stays alive to the pointer: come near and the letters shove
+  // away from wherever you are, leave and they drift back into their words. The same gesture
+  // that put them there in the first place, now under the visitor's hand.
+  //
+  // Positions are cached rather than measured per frame — 55 letters is too many to ask the
+  // browser about sixty times a second. They are cached in page coordinates, so scrolling does
+  // not invalidate them; only a resize does, and that resets and re-measures.
+  const REPEL_RADIUS = 132;
+  const REPEL_PUSH = 44;
+  const REPEL_TURN = 26;
+  const REPEL_EASE = .16;
+  const REPEL_REST = .05;
+
+  let repelLetters = null;
+  let repelBounds = null;
+  let repelPointer = null;
+  let repelFrame = 0;
+
+  function measureRepel(elements) {
+    const set = contactSet.getBoundingClientRect();
+    repelBounds = {
+      left: set.left + window.scrollX - REPEL_RADIUS,
+      right: set.right + window.scrollX + REPEL_RADIUS,
+      top: set.top + window.scrollY - REPEL_RADIUS,
+      bottom: set.bottom + window.scrollY + REPEL_RADIUS
+    };
+
+    return elements.map(element => {
+      const box = element.getBoundingClientRect();
+      return {
+        element,
+        // Where the letter sits in the document, independent of how far down the page is.
+        cx: box.left + window.scrollX + box.width / 2,
+        cy: box.top + window.scrollY + box.height / 2,
+        spin: random(-1, 1),
+        x: 0,
+        y: 0,
+        turn: 0
+      };
+    });
+  }
+
+  function repelStep() {
+    const pointerX = repelPointer ? repelPointer.x + window.scrollX : 0;
+    const pointerY = repelPointer ? repelPointer.y + window.scrollY : 0;
+    // One box test before fifty-five distance tests. The pointer spends almost all of its life
+    // nowhere near the set, and every mousemove on the page reaches this loop.
+    const near = repelPointer
+      && pointerX > repelBounds.left && pointerX < repelBounds.right
+      && pointerY > repelBounds.top && pointerY < repelBounds.bottom;
+    let active = false;
+
+    for (const letter of repelLetters) {
+      let targetX = 0;
+      let targetY = 0;
+      let targetTurn = 0;
+
+      if (near) {
+        const dx = letter.cx - pointerX;
+        const dy = letter.cy - pointerY;
+        const distance = Math.hypot(dx, dy) || .001;
+        if (distance < REPEL_RADIUS) {
+          // Squared falloff, so the shove is concentrated right under the pointer instead of
+          // nudging the whole set evenly.
+          const force = 1 - distance / REPEL_RADIUS;
+          const push = force * force * REPEL_PUSH;
+          targetX = (dx / distance) * push;
+          targetY = (dy / distance) * push;
+          targetTurn = force * force * REPEL_TURN * letter.spin;
+          active = true;
+        }
+      }
+
+      letter.x += (targetX - letter.x) * REPEL_EASE;
+      letter.y += (targetY - letter.y) * REPEL_EASE;
+      letter.turn += (targetTurn - letter.turn) * REPEL_EASE;
+
+      if (Math.abs(letter.x) > REPEL_REST || Math.abs(letter.y) > REPEL_REST || Math.abs(letter.turn) > REPEL_REST) {
+        active = true;
+        letter.element.style.transform = `translate3d(${letter.x.toFixed(2)}px, ${letter.y.toFixed(2)}px, 0) rotate(${letter.turn.toFixed(2)}deg)`;
+      } else {
+        letter.x = letter.y = letter.turn = 0;
+        letter.element.style.transform = 'none';
+      }
+    }
+
+    // Nothing displaced and nothing in range: the pointer may still be on the page, but there
+    // is no reason to keep a frame loop running for it.
+    repelFrame = active ? requestAnimationFrame(repelStep) : 0;
+  }
+
+  function runRepel() {
+    if (repelLetters && !repelFrame) repelFrame = requestAnimationFrame(repelStep);
+  }
+
+  function enableRepel(letters) {
+    repelLetters = measureRepel(letters);
+
+    const track = (x, y) => {
+      repelPointer = { x, y };
+      runRepel();
+    };
+    const release = () => {
+      repelPointer = null;
+      runRepel();
+    };
+
+    window.addEventListener('mousemove', (event) => track(event.clientX, event.clientY), { passive: true });
+    document.addEventListener('mouseleave', release);
+    window.addEventListener('blur', release);
+    window.addEventListener('touchstart', (event) => {
+      const touch = event.touches[0];
+      if (touch) track(touch.clientX, touch.clientY);
+    }, { passive: true });
+    window.addEventListener('touchmove', (event) => {
+      const touch = event.touches[0];
+      if (touch) track(touch.clientX, touch.clientY);
+    }, { passive: true });
+    window.addEventListener('touchend', release, { passive: true });
+    window.addEventListener('touchcancel', release, { passive: true });
+
+    // The cursor can sit still while the page moves under it, which is just as much a change
+    // in what it is near.
+    window.addEventListener('scroll', () => { if (repelPointer) runRepel(); }, { passive: true });
+
+    window.addEventListener('resize', () => {
+      // Stop the loop before the reset, or an in-flight frame writes displacements straight
+      // back onto letters that are about to be measured.
+      if (repelFrame) cancelAnimationFrame(repelFrame);
+      repelFrame = 0;
+      repelPointer = null;
+      repelLetters.forEach(letter => { letter.element.style.transform = 'none'; });
+      // Re-measured only once the reset has been laid out, or every letter records the
+      // position it was displaced to.
+      requestAnimationFrame(() => {
+        repelLetters = measureRepel(repelLetters.map(letter => letter.element));
+      });
+    }, { passive: true });
+  }
+
   function scatterSet(letters, impactFrom) {
     const size = parseFloat(getComputedStyle(contactSet).fontSize) || 20;
     const boxes = letters.map(letter => letter.getBoundingClientRect());
@@ -613,6 +753,9 @@
       animation.addEventListener('finish', () => {
         letter.style.transform = 'none';
         animation.cancel();
+        // Longest delay, so this is the set finally at rest — the only moment its letters can
+        // be measured, and the earliest the pointer can be allowed to disturb them.
+        if (index === letters.length - 1) enableRepel(letters);
       }, { once: true });
     });
 
