@@ -672,6 +672,10 @@ button { font: inherit; }
   text-align: center;
   background: #000;
   padding: 4rem 8vw 6rem;
+  /* Belt and braces for the same jump. If anything in here does change size, the browser's
+     scroll anchoring would otherwise "helpfully" scroll the page to compensate, which is felt
+     as the whole view lurching rather than as one element resizing. */
+  overflow-anchor: none;
 }
 
 /* Flex rather than inline text so the words are individually animatable and the whitespace
@@ -709,6 +713,15 @@ button { font: inherit; }
 .contact.revealed .brace {
   animation: wordArrive .9s cubic-bezier(.22, .61, .36, 1) both;
 }
+
+/* A word is one unbreakable run of text right up until the script splits it into letters —
+   and then it is not, because every inline-block is a place the browser may break a line. So
+   at the instant the set was revealed, rows that had been sitting on one line could suddenly
+   break mid-word onto two, the set grew by a whole line, and a centred group in the page's
+   last section moved to absorb it. That is the jump: not the animation, the reflow underneath
+   it. Holding each word together keeps the split invisible to layout — rows still wrap
+   between whole words, which is the flex container's job and unaffected by this. */
+.key-word { white-space: nowrap; }
 
 /* Transforms on inline text do nothing, and the letters have to be able to turn and cross
    each other without disturbing the layout they will return to. */
