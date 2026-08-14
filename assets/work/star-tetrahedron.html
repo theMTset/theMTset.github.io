@@ -805,7 +805,11 @@
               introCounter = 0;
               if (animDirection === -1) {
                 hasStarted = false;
+                // Reset the signed scroll clock with its derived direction. Leaving the
+                // velocity/rest heading at -1 makes the next frame cancel the restart.
                 animDirection = 1;
+                animVelocity = 1;
+                restSign = 1;
                 angle = 0;
                 xOffset = maxXOffset;
                 preSpinCounter = 0;
