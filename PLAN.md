@@ -138,6 +138,8 @@ scripted phase machine with a portfolio-specific ambient mode:
 
 - the parent page advances the original intro, pre-spin, and merge phases on a smooth automatic
   playhead; scroll changes its speed and direction rather than setting its position directly;
+- wheel or trackpad input over the forming geometry stays with the animation, releasing back to
+  the page at the reverse starting boundary or permanently once formation completes;
 - the geometry grows with that formation and is brighter and larger on mobile;
 - after formation, the completed 3D star rotates slowly;
 - mouse or one-finger drag turns it about the screen axes;

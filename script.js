@@ -281,6 +281,7 @@
   const GEOMETRY_SETTLE = .06;
   let descentSequenceStarted = reducedMotion;
   let geometryPlaybackStarted = reducedMotion;
+  let geometryScrollControlFinished = reducedMotion;
   let geometryProgress = reducedMotion ? 1 : 0;
   let geometryVelocity = 1;
   let geometryRestDirection = 1;
@@ -523,6 +524,7 @@
     const size = 72 + (maxSize - 72) * growth;
     geometry.style.width = `${Math.max(size, 72).toFixed(1)}px`;
     const ready = progress >= 1;
+    if (ready) geometryScrollControlFinished = true;
     geometry.classList.toggle('geometry-ready', ready);
     if (geometryFrame) geometryFrame.style.pointerEvents = ready ? 'auto' : 'none';
     syncGeometryProgress(Number(progress.toFixed(5)));
@@ -584,12 +586,13 @@
   function startGeometryPlayback() {
     if (geometryPlaybackStarted) return;
     geometryPlaybackStarted = true;
+    geometry?.classList.add('geometry-playing');
     geometryPreviousScrollY = window.scrollY;
     ensureGeometryPlaybackFrame();
   }
 
   function influenceGeometryPlayback(scrollDelta) {
-    if (!geometryPlaybackStarted || reducedMotion || scrollDelta === 0) return;
+    if (!geometryPlaybackStarted || geometryScrollControlFinished || reducedMotion || scrollDelta === 0) return;
     geometryScrollImpulse += clamp(
       scrollDelta * GEOMETRY_SCROLL_GAIN,
       -GEOMETRY_MAX_SPEED,
@@ -597,6 +600,26 @@
     );
     ensureGeometryPlaybackFrame();
   }
+
+  // While the pointer is over the forming object, the wheel belongs to the animation rather
+  // than the page. This matches the Simply Curious interaction without trapping anyone: an
+  // upward wheel at the untouched beginning goes back to the page, and all wheel input is
+  // released as soon as the formation completes. The page remains scrollable everywhere
+  // outside the geometry throughout.
+  geometry?.addEventListener('wheel', (event) => {
+    if (!geometryPlaybackStarted || geometryScrollControlFinished || reducedMotion) return;
+
+    const unit = event.deltaMode === WheelEvent.DOM_DELTA_LINE
+      ? 16
+      : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
+        ? window.innerHeight
+        : 1;
+    const scrollDelta = event.deltaY * unit;
+    if (geometryProgress <= 0 && scrollDelta < 0) return;
+
+    event.preventDefault();
+    influenceGeometryPlayback(scrollDelta);
+  }, { passive: false });
 
   function updateScroll() {
     const viewport = Math.max(window.innerHeight, 1);

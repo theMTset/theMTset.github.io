@@ -442,6 +442,10 @@ button { font: inherit; }
   transform: translate(-50%, 0);
 }
 
+/* Before direct manipulation becomes available, a vertical-resize cursor names the wheel's
+   temporary job: it changes playback speed and direction while the pointer is over the form. */
+.descent-geometry.geometry-playing:not(.geometry-ready) { cursor: ns-resize; }
+
 /* Centred under the geometry rather than off in a corner. The top has to clear two things,
    not one: the geometry itself — centred at 37%, capped at 58vh tall, so its bottom edge
    reaches 66% at worst — and then `drag to spin`, which hangs below that and lands near 68%.

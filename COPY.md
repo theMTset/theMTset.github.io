@@ -108,8 +108,10 @@ above it.
 
 The lines and geometry begin automatically on first entry. The geometry advances smoothly
 on its own; scrolling down speeds it up, while scrolling up slows it through a stop and into
-reverse. When input ends, it eases back to normal speed in its current direction. When the
-formation finishes, the interaction hint `drag to spin` rises beneath it.
+reverse. While the pointer is over the forming geometry, that scroll stays with the animation
+instead of moving the page. The lock releases at the beginning when scrolling backward and
+permanently once formation completes. When input ends, playback eases back to normal speed in
+its current direction. At completion, the interaction hint `drag to spin` rises beneath it.
 
 ---
 

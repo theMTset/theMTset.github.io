@@ -1210,10 +1210,6 @@
       const AMBIENT_SPIN_SPEED = 35e-4;
       const AMBIENT_RETURN_DELAY_MS = 2e3;
       let formationComplete = false;
-      // If the completed star has ambient-spun before scroll sends the playhead backward,
-      // preserve that visible orientation and blend the extra turn away over the reverse
-      // formation. Otherwise the first reverse frame would snap back to the scripted angle.
-      let portfolioAngleOffset = 0;
       let angle = 0;
       let previewSpinAngle = 0;
       const maxXOffset = 100;
@@ -1381,13 +1377,6 @@
         const sequenceFrame = progress * (introMax + preSpinMax + movingFrames);
 
         formationComplete = progress >= 1;
-        if (wasComplete && !formationComplete) {
-          const endAngle = startAngle + Math.PI * 2;
-          const difference = angle - endAngle;
-          // Equivalent orientations can differ by whole revolutions. Keep the shortest offset
-          // so a long ambient rest does not add several unnecessary turns to the reverse path.
-          portfolioAngleOffset = Math.atan2(Math.sin(difference), Math.cos(difference));
-        }
         hasStarted = true;
         isPaused = true;
         animDirection = 1;
@@ -1439,18 +1428,11 @@
           preSpinCounter = preSpinMax;
           xOffset = 0;
           if (!wasComplete) {
-            angle = startAngle + Math.PI * 2 + portfolioAngleOffset;
+            angle = startAngle + Math.PI * 2;
             connectionPulseCounter = connectionPulseFrames;
             logoPulseCounter = logoPulseFrames;
             logoPulseReverse = false;
           }
-        }
-
-        if (!formationComplete && portfolioAngleOffset !== 0) {
-          const t = Math.min(1, progress / 0.8);
-          const blend = t * t * (3 - 2 * t);
-          angle += portfolioAngleOffset * blend;
-          if (progress <= 0) portfolioAngleOffset = 0;
         }
       };
 
