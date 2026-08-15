@@ -861,6 +861,39 @@ button { font: inherit; }
   to { opacity: 1; transform: none; text-shadow: 0 0 0 rgba(var(--cold), 0); }
 }
 
+/* A wide screen has room to make the geometry and its explanation peers instead of forcing
+   the explanation into the shallow strip beneath it. The whole passage stays together on
+   the right, preserving its reading order and the tails' right-to-left run at the letters.
+   Narrow screens keep the vertical composition below. */
+@media (min-width: 760px) {
+  .shaft { background: radial-gradient(circle at 30% 50%, #071019 0, #020406 12%, #000 34%); }
+
+  .ring,
+  .descent-geometry {
+    top: 50%;
+    left: 30%;
+  }
+
+  .descent-copy {
+    top: 0;
+    right: 4vw;
+    bottom: 0;
+    left: auto;
+    align-content: center;
+    width: 46vw;
+    margin: 0;
+  }
+
+  /* Desktop is the flattened form of the set: every word and both braces are one flex line.
+     Scale against width so the complete expression still fits on compact laptop screens. */
+  .contact-set {
+    flex-wrap: nowrap;
+    max-width: none;
+    font-size: clamp(1.05rem, 1.85vw, 1.75rem);
+    white-space: nowrap;
+  }
+}
+
 @media (max-width: 650px) {
   .sound-label { display: none; }
   .sound-toggle { top: 1rem; right: 1rem; }

@@ -505,9 +505,13 @@
         : clamp((descentProgress - GEOMETRY_START) / (GEOMETRY_END - GEOMETRY_START));
       const growth = reducedMotion ? 1 : easeOutCubic(formation);
       const mobile = window.innerWidth <= 650;
+      // At the same breakpoint as the CSS two-column composition, keep the geometry inside
+      // its left half. Shorter desktops still hit the height cap first, so they retain the
+      // same visual scale without crowding the copy on the right.
+      const splitLayout = window.innerWidth >= 760;
       const maxSize = mobile
         ? Math.min(window.innerWidth * .86, viewport * .56)
-        : Math.min(window.innerWidth * .56, viewport * .58);
+        : Math.min(window.innerWidth * (splitLayout ? .43 : .56), viewport * .58);
       const size = 72 + (maxSize - 72) * growth;
       geometry.style.width = `${Math.max(size, 72).toFixed(1)}px`;
       const ready = formation >= 1;

@@ -81,8 +81,10 @@ mobile displays.
 
 ## 3. The descent — **LIVE**
 
-The descent states method and outcome instead of adding more atmosphere. The passage sits
-centred directly beneath the geometry and stays visible once it has played:
+The descent states method and outcome instead of adding more atmosphere. On desktop, the
+geometry occupies the left side and the complete passage is centred beside it on the right.
+On narrow screens, the passage sits directly beneath the geometry. It stays visible once it
+has played:
 
 > I like to build an **IUI**
 >
@@ -240,6 +242,9 @@ and it's honest about the tools.
 > { curious, adaptable, self-taught, hands-on, thorough, still learning }
 >
 > theMTrepo@gmail.com
+
+The complete set, including both braces, stays on one line on desktop. Phones use two
+deliberate rows of three qualities so the type remains legible and the two halves can collide.
 
 **Decided 2026-08-12:** replaced the "Built something you want taken apart?" prompt with the
 closing beat of the site's own question. The page ends by proving the set is not empty.
