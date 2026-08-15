@@ -43,10 +43,10 @@ same brand and should not look like each other.
 
 The portfolio uses the same star-tetrahedron geometry but gives it a different expression.
 Here it is found in the dark: white rather than gold, forming as the visitor descends.
-The original opening sequence scrubs forward and backward with scroll; once assembled,
-the shape turns on its ambient track and can be dragged directly. This preserves the
-"same person built both" connection without making the portfolio hero an offcut of the
-product hero.
+The opening sequence starts automatically; scroll changes its speed and can carry it smoothly
+into reverse without setting its frame directly. Once assembled, the shape turns on its ambient
+track and can be dragged directly. This preserves the "same person built both" connection
+without making the portfolio hero an offcut of the product hero.
 
 ---
 
@@ -136,15 +136,17 @@ in `simply-curious/website`, component commit
 perspective projection, and hidden-line occlusion work while replacing the product's
 scripted phase machine with a portfolio-specific ambient mode:
 
-- the parent page scrubs the original intro, pre-spin, and merge phases with scroll;
+- the parent page advances the original intro, pre-spin, and merge phases on a smooth automatic
+  playhead; scroll changes its speed and direction rather than setting its position directly;
 - the geometry grows with that formation and is brighter and larger on mobile;
 - after formation, the completed 3D star rotates slowly;
 - mouse or one-finger drag turns it about the screen axes;
 - release holds the chosen orientation for two seconds so another drag can continue from
   it; after that idle delay, the shortest eased path returns to the ambient track;
 - grabbing it during the hold or return cancels the reset immediately;
-- scrolling upward reverses the formation sequence; clicks do not pause it;
-- a `drag to explore` hint rises beneath the completed geometry;
+- scrolling down accelerates the formation; scrolling upward slows it through zero and reverses it;
+  clicks do not pause it;
+- a `drag to spin` hint rises beneath the completed geometry;
 - before the final part of the descent, the iframe ignores pointer input so it cannot
   trap a mobile scroll gesture;
 - reduced-motion mode keeps the star static but still permits direct inspection.

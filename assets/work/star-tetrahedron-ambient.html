@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Interactive star tetrahedron</title>
   <!-- Generated from simply-curious/website 24f95c0314782f69706d2ec114fcafd67c1b9cfe. The source renderer and
-       hidden-line implementation are preserved; this portfolio mode lets the parent page scrub
-       the opening formation, then hands the completed shape to ambient spin and direct orbit. -->
+       hidden-line implementation are preserved; this portfolio mode receives a smooth, automatic
+       playhead whose speed and direction respond to page scroll, then hands the completed shape
+       to ambient spin and direct orbit. -->
   <style>
     :root { color-scheme: dark; }
     html, body {
@@ -224,7 +225,7 @@
 <body>
   <div class="star-tetra-container">
     <div class="star-tetra-stage">
-      <canvas id="c" width="500" height="500" aria-label="A star tetrahedron forming with scroll. Drag to turn it once complete."></canvas>
+      <canvas id="c" width="500" height="500" aria-label="A star tetrahedron forming automatically. Scroll changes its speed and direction; drag turns it once complete."></canvas>
       <!-- The drag target. Sized every frame to the geometry's own projected radius, so the
            only place that answers a pointer is the shape itself. -->
       <div class="tetra-grab" id="grab" aria-hidden="true"></div>
@@ -1209,6 +1210,10 @@
       const AMBIENT_SPIN_SPEED = 35e-4;
       const AMBIENT_RETURN_DELAY_MS = 2e3;
       let formationComplete = false;
+      // If the completed star has ambient-spun before scroll sends the playhead backward,
+      // preserve that visible orientation and blend the extra turn away over the reverse
+      // formation. Otherwise the first reverse frame would snap back to the scripted angle.
+      let portfolioAngleOffset = 0;
       let angle = 0;
       let previewSpinAngle = 0;
       const maxXOffset = 100;
@@ -1365,8 +1370,9 @@
         }
       }
 
-      // The portfolio page owns the formation timeline. Map its normalized scroll
-      // progress onto the original intro, pre-spin, and merge phases. At the end,
+      // The portfolio page owns a frame-driven formation timeline. Map its normalized
+      // playhead onto the original intro, pre-spin, and merge phases. Page scroll changes
+      // that playhead's velocity rather than writing its position directly; at the end,
       // release the completed geometry into its ambient spin and drag behavior.
       const applyPortfolioProgress = (value) => {
         const progress = Math.min(1, Math.max(0, Number(value) || 0));
@@ -1375,6 +1381,13 @@
         const sequenceFrame = progress * (introMax + preSpinMax + movingFrames);
 
         formationComplete = progress >= 1;
+        if (wasComplete && !formationComplete) {
+          const endAngle = startAngle + Math.PI * 2;
+          const difference = angle - endAngle;
+          // Equivalent orientations can differ by whole revolutions. Keep the shortest offset
+          // so a long ambient rest does not add several unnecessary turns to the reverse path.
+          portfolioAngleOffset = Math.atan2(Math.sin(difference), Math.cos(difference));
+        }
         hasStarted = true;
         isPaused = true;
         animDirection = 1;
@@ -1426,11 +1439,18 @@
           preSpinCounter = preSpinMax;
           xOffset = 0;
           if (!wasComplete) {
-            angle = startAngle + Math.PI * 2;
+            angle = startAngle + Math.PI * 2 + portfolioAngleOffset;
             connectionPulseCounter = connectionPulseFrames;
             logoPulseCounter = logoPulseFrames;
             logoPulseReverse = false;
           }
+        }
+
+        if (!formationComplete && portfolioAngleOffset !== 0) {
+          const t = Math.min(1, progress / 0.8);
+          const blend = t * t * (3 - 2 * t);
+          angle += portfolioAngleOffset * blend;
+          if (progress <= 0) portfolioAngleOffset = 0;
         }
       };
 

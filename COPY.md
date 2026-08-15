@@ -106,9 +106,10 @@ against the arriving word and the row rocks with the hit.
 “interactive” lands last because the visitor can then directly manipulate the geometry
 above it.
 
-The lines begin automatically on first entry and play once per page load. The geometry's
-formation remains tied to scroll in both directions. When it finishes, the interaction
-hint `drag to spin` rises beneath it.
+The lines and geometry begin automatically on first entry. The geometry advances smoothly
+on its own; scrolling down speeds it up, while scrolling up slows it through a stop and into
+reverse. When input ends, it eases back to normal speed in its current direction. When the
+formation finishes, the interaction hint `drag to spin` rises beneath it.
 
 ---
 

@@ -275,9 +275,19 @@
   const SLAM_LEAD_MS = 2700;
   const SLAM_GAP_MS = 440;
   const SLAM_MS = 470;
-  const GEOMETRY_START = .03;
-  const GEOMETRY_END = .84;
+  const GEOMETRY_DURATION_MS = 13000;
+  const GEOMETRY_SCROLL_GAIN = .008;
+  const GEOMETRY_MAX_SPEED = 3.5;
+  const GEOMETRY_SETTLE = .06;
   let descentSequenceStarted = reducedMotion;
+  let geometryPlaybackStarted = reducedMotion;
+  let geometryProgress = reducedMotion ? 1 : 0;
+  let geometryVelocity = 1;
+  let geometryRestDirection = 1;
+  let geometryScrollImpulse = 0;
+  let geometryPlaybackFrameId = 0;
+  let geometryPreviousFrameTime = 0;
+  let geometryPreviousScrollY = window.scrollY;
   let lastGeometryProgress = -1;
 
   const clamp = (value, min = 0, max = 1) => Math.min(Math.max(value, min), max);
@@ -473,12 +483,119 @@
   }
 
   function syncGeometryProgress(progress) {
-    if (!geometryFrame?.contentWindow || Math.abs(progress - lastGeometryProgress) < .001) return;
+    // Keep low-speed and high-refresh-rate playback fluid too; at normal speed the playhead
+    // advances only about .0013 per 60 Hz frame, and much less while scroll is slowing it.
+    if (!geometryFrame?.contentWindow || Math.abs(progress - lastGeometryProgress) < .00005) return;
     lastGeometryProgress = progress;
     geometryFrame.contentWindow.postMessage({
       type: 'mtset:geometry-progress',
       progress
     }, '*');
+  }
+
+  // Unlike direct scroll scrubbing, this playhead advances on every animation frame. Wheel
+  // and touch scrolling change its signed velocity rather than its position, so coarse mouse
+  // wheel events cannot turn the renderer into a sequence of visible jumps. Positive scroll
+  // speeds it up; negative scroll slows it through zero and into reverse. Once input stops it
+  // eases back to ordinary speed in whichever direction it was last clearly travelling.
+  function renderGeometry(progress) {
+    root.style.setProperty('--descent-progress', progress.toFixed(3));
+
+    rings.forEach((ring, index) => {
+      const scale = 1 + progress * (2.3 + index * .55);
+      const rotation = progress * (index % 2 ? -28 : 24);
+      ring.style.translate = '-50% -50%';
+      ring.style.transform = `rotate(${rotation + (index * 11)}deg) scale(${scale})`;
+    });
+
+    if (!geometry) return;
+
+    const viewport = Math.max(window.innerHeight, 1);
+    const growth = reducedMotion ? 1 : easeOutCubic(progress);
+    const mobile = window.innerWidth <= 650;
+    // At the same breakpoint as the CSS two-column composition, keep the geometry inside
+    // its left half. Shorter desktops still hit the height cap first, so they retain the
+    // same visual scale without crowding the copy on the right.
+    const splitLayout = window.innerWidth >= 760;
+    const maxSize = mobile
+      ? Math.min(window.innerWidth * .86, viewport * .56)
+      : Math.min(window.innerWidth * (splitLayout ? .43 : .56), viewport * .58);
+    const size = 72 + (maxSize - 72) * growth;
+    geometry.style.width = `${Math.max(size, 72).toFixed(1)}px`;
+    const ready = progress >= 1;
+    geometry.classList.toggle('geometry-ready', ready);
+    if (geometryFrame) geometryFrame.style.pointerEvents = ready ? 'auto' : 'none';
+    syncGeometryProgress(Number(progress.toFixed(5)));
+  }
+
+  function runGeometryPlayback(now) {
+    geometryPlaybackFrameId = 0;
+    if (!geometryPlaybackStarted || reducedMotion) return;
+
+    const elapsed = geometryPreviousFrameTime
+      // Keep ordinary dropped frames on the real-time clock; only cap long background-tab
+      // gaps, which should not skip a large part of the sequence when the visitor returns.
+      ? Math.min(now - geometryPreviousFrameTime, 100)
+      : 1000 / 60;
+    geometryPreviousFrameTime = now;
+
+    if (geometryScrollImpulse !== 0) {
+      geometryVelocity = clamp(
+        geometryVelocity + geometryScrollImpulse,
+        -GEOMETRY_MAX_SPEED,
+        GEOMETRY_MAX_SPEED
+      );
+      geometryScrollImpulse = 0;
+      if (Math.abs(geometryVelocity) > .05) {
+        geometryRestDirection = geometryVelocity < 0 ? -1 : 1;
+      }
+    } else {
+      // Preserve the same feel at different refresh rates: .06 is the intended 60 Hz ease.
+      const settle = 1 - Math.pow(1 - GEOMETRY_SETTLE, elapsed / (1000 / 60));
+      geometryVelocity += (geometryRestDirection - geometryVelocity) * settle;
+      if (Math.abs(geometryVelocity - geometryRestDirection) < .01) {
+        geometryVelocity = geometryRestDirection;
+      }
+    }
+
+    geometryProgress = clamp(
+      geometryProgress + geometryVelocity * elapsed / GEOMETRY_DURATION_MS
+    );
+    renderGeometry(geometryProgress);
+
+    const restingAtStart = geometryProgress <= 0
+      && geometryRestDirection < 0
+      && geometryVelocity <= -.99;
+    const restingAtEnd = geometryProgress >= 1
+      && geometryRestDirection > 0
+      && geometryVelocity >= .99;
+    if (!restingAtStart && !restingAtEnd) {
+      geometryPlaybackFrameId = requestAnimationFrame(runGeometryPlayback);
+    }
+  }
+
+  function ensureGeometryPlaybackFrame() {
+    if (!geometryPlaybackFrameId && geometryPlaybackStarted && !reducedMotion) {
+      geometryPreviousFrameTime = 0;
+      geometryPlaybackFrameId = requestAnimationFrame(runGeometryPlayback);
+    }
+  }
+
+  function startGeometryPlayback() {
+    if (geometryPlaybackStarted) return;
+    geometryPlaybackStarted = true;
+    geometryPreviousScrollY = window.scrollY;
+    ensureGeometryPlaybackFrame();
+  }
+
+  function influenceGeometryPlayback(scrollDelta) {
+    if (!geometryPlaybackStarted || reducedMotion || scrollDelta === 0) return;
+    geometryScrollImpulse += clamp(
+      scrollDelta * GEOMETRY_SCROLL_GAIN,
+      -GEOMETRY_MAX_SPEED,
+      GEOMETRY_MAX_SPEED
+    );
+    ensureGeometryPlaybackFrame();
   }
 
   function updateScroll() {
@@ -488,37 +605,19 @@
     updateMark(viewport);
 
     const rect = descent.getBoundingClientRect();
-    const descentProgress = clamp(-rect.top / Math.max(descent.offsetHeight - viewport, 1));
-    root.style.setProperty('--descent-progress', descentProgress.toFixed(3));
-    if (!descentSequenceStarted && rect.top <= 0 && rect.bottom > viewport) startDescentSequence();
+    const pinnedInDescent = rect.top <= 0 && rect.bottom > viewport;
+    const pageScrollDelta = window.scrollY - geometryPreviousScrollY;
+    geometryPreviousScrollY = window.scrollY;
 
-    rings.forEach((ring, index) => {
-      const scale = 1 + descentProgress * (2.3 + index * .55);
-      const rotation = descentProgress * (index % 2 ? -28 : 24);
-      ring.style.translate = '-50% -50%';
-      ring.style.transform = `rotate(${rotation + (index * 11)}deg) scale(${scale})`;
-    });
-
-    if (geometry) {
-      const formation = reducedMotion
-        ? 1
-        : clamp((descentProgress - GEOMETRY_START) / (GEOMETRY_END - GEOMETRY_START));
-      const growth = reducedMotion ? 1 : easeOutCubic(formation);
-      const mobile = window.innerWidth <= 650;
-      // At the same breakpoint as the CSS two-column composition, keep the geometry inside
-      // its left half. Shorter desktops still hit the height cap first, so they retain the
-      // same visual scale without crowding the copy on the right.
-      const splitLayout = window.innerWidth >= 760;
-      const maxSize = mobile
-        ? Math.min(window.innerWidth * .86, viewport * .56)
-        : Math.min(window.innerWidth * (splitLayout ? .43 : .56), viewport * .58);
-      const size = 72 + (maxSize - 72) * growth;
-      geometry.style.width = `${Math.max(size, 72).toFixed(1)}px`;
-      const ready = formation >= 1;
-      geometry.classList.toggle('geometry-ready', ready);
-      if (geometryFrame) geometryFrame.style.pointerEvents = ready ? 'auto' : 'none';
-      syncGeometryProgress(Number(formation.toFixed(4)));
+    if (pinnedInDescent) {
+      if (!descentSequenceStarted) startDescentSequence();
+      if (!geometryPlaybackStarted) startGeometryPlayback();
+      else influenceGeometryPlayback(pageScrollDelta);
     }
+
+    // Reapply the current frame on resize and before playback begins. During playback the
+    // dedicated frame loop owns this value; this call changes no timeline state.
+    renderGeometry(geometryProgress);
 
     scrollTicking = false;
   }
@@ -550,7 +649,7 @@
   soundButton.addEventListener('click', toggleSound);
   geometryFrame?.addEventListener('load', () => {
     lastGeometryProgress = -1;
-    updateScroll();
+    renderGeometry(geometryProgress);
   });
 
   if (reducedMotion) {
