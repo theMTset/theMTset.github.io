@@ -157,6 +157,18 @@ Source link: `visit maxcardpoints.com ↗`
 
 ---
 
+### Nature's Answers for You — client site, full build
+
+> Nature's Answers for You gives a local wellness practitioner a calm, approachable
+> home online. I translated her printed card into a warm, responsive one-page site that
+> explains her services clearly and makes the next step simple.
+>
+> Visual direction and responsive front-end build in HTML, CSS, and JavaScript.
+
+Source link: `visit naturesanswers4u.org ↗`
+
+---
+
 ## 5. About — **LIVE on `designer-application`**
 
 > I've always been driven by curiosity.
