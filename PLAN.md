@@ -61,12 +61,13 @@ without making the portfolio hero an offcut of the product hero.
 | `.descent` | 500vh | Built | The fall. Copy collides into a persistent stack while the interactive geometry grows. |
 | `.work` | Content height | Built | Follows the descent directly with three interaction, motion, and brand/build examples. |
 | `.about` | Content height | Built | Plain-language account of method and range. |
-| `.contact` | 60vh | Built | One direct email route. |
+| `.contact` | 60vh | Built | Direct email and public resume routes. |
 
 ### Public resume
 
 [`resume.html`](resume.html) is the responsive, privacy-safe public resume reached through
-the persistent `resume` utility link. Its print styles produce the one-page
+the `resume` link beside the email address in the closing contact section. Its print styles
+produce the one-page
 [`assets/Matt_Titchenal_Resume.pdf`](assets/Matt_Titchenal_Resume.pdf) download. Both public
 versions omit the phone number; the private application resume remains in the ignored root
 `Resume_2026.*` files.

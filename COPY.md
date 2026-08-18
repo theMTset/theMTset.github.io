@@ -27,16 +27,6 @@ not more mood.
 - Never explain the joke. The site is called the MT set. If someone gets it, that's
   their moment, not ours.
 
-## Persistent utility — **LIVE**
-
-Link label: `resume`
-
-The upper-left link stays available throughout the portfolio and opens the public resume.
-That page uses `← Portfolio`, `Download PDF`, and `Print` as its utility labels. Its public
-HTML and PDF omit the private application phone number.
-
----
-
 ## 1. Opening — **LIVE**
 
 > **is it empty?**
@@ -254,6 +244,8 @@ and it's honest about the tools.
 > { curious, adaptable, self-taught, hands-on, thorough, still learning }
 >
 > theMTrepo@gmail.com
+>
+> resume
 
 The complete set, including both braces, stays on one line on desktop. Phones use two
 deliberate rows of three qualities so the type remains legible and the two halves can collide.
@@ -291,7 +283,9 @@ inline in the head so the words are never left invisible if the script fails to 
 visually hidden copy of the line carries the reading for assistive technology, which would
 otherwise spell out 62 separate fragments.
 
-One set, one address. No form.
+One set, one address. No form. The `resume` link sits beside the address and opens the
+privacy-safe public resume. That page uses `← Portfolio`, `Download PDF`, and `Print` as its
+utility labels; its HTML and PDF omit the private application phone number.
 
 ---
 

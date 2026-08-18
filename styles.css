@@ -166,24 +166,6 @@ button { font: inherit; }
   text-transform: uppercase;
 }
 
-.resume-link {
-  position: fixed;
-  z-index: 30;
-  top: 1.5rem;
-  left: 1.5rem;
-  padding: .6rem;
-  color: rgba(230, 238, 244, .42);
-  font: 400 .58rem/1 "Inter", sans-serif;
-  letter-spacing: .18em;
-  text-decoration: none;
-  text-transform: uppercase;
-  transition: color .3s ease;
-}
-
-.resume-link:hover,
-.resume-link:focus-visible { color: rgba(240, 247, 252, .9); }
-.resume-link:focus-visible { outline: 1px solid rgba(210, 230, 245, .45); outline-offset: 4px; }
-
 .opening { height: calc(var(--vh) * 185); }
 
 /* Question and mark are one centred group. Without this the implicit rows stretch to
@@ -843,6 +825,14 @@ button { font: inherit; }
   clip-path: inset(50%);
 }
 
+.contact-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: .75rem 1.5rem;
+}
+
 .contact a {
   color: var(--paper);
   font-size: 1.1rem;
@@ -919,7 +909,6 @@ button { font: inherit; }
 @media (max-width: 650px) {
   .sound-label { display: none; }
   .sound-toggle { top: 1rem; right: 1rem; }
-  .resume-link { top: 1rem; left: 1rem; }
   /* Phone screens are dimmer and rarely viewed in the dark, so the ∅ needs a higher floor
      to read at all before the lightning or the scroll reveal reaches it. */
   :root { --mark-rest: .42; }
