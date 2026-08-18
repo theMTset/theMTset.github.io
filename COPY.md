@@ -1,9 +1,10 @@
 # the MT set — Copy Deck
 
-Every word that appears on the site, in order. Live copy is marked **LIVE**; everything
-else is draft and should be argued with.
+Every word in the main portfolio experience, in order. Live copy is marked **LIVE**;
+everything else is draft and should be argued with. The standalone public resume owns its
+copy in [resume.html](resume.html).
 
-**Last updated:** 2026-08-11
+**Last updated:** 2026-08-18
 
 ---
 
@@ -25,6 +26,14 @@ not more mood.
   "strong troubleshooting skills."
 - Never explain the joke. The site is called the MT set. If someone gets it, that's
   their moment, not ours.
+
+## Persistent utility — **LIVE**
+
+Link label: `resume`
+
+The upper-left link stays available throughout the portfolio and opens the public resume.
+That page uses `← Portfolio`, `Download PDF`, and `Print` as its utility labels. Its public
+HTML and PDF omit the private application phone number.
 
 ---
 
