@@ -136,6 +136,11 @@ nav .nav-cta:focus-visible {
   text-transform: uppercase;
 }
 
+.hero .eyebrow {
+  font-size: 0.9rem;
+  letter-spacing: 0.19em;
+}
+
 h1,
 h2,
 h3,
@@ -420,8 +425,8 @@ h3 {
   --night-opacity: 0;
   --sun-y: 0px;
   --moon-y: 1000px;
-  --rainbow-opacity: 0.46;
-  --rainbow-saturation: 0.78;
+  --rainbow-opacity: 0.72;
+  --rainbow-saturation: 1.1;
   position: sticky;
   top: 0;
   height: 100vh;
@@ -435,7 +440,7 @@ h3 {
 .island-art::after {
   content: "";
   position: absolute;
-  z-index: 3;
+  z-index: 1;
   inset: 0;
   background: linear-gradient(to bottom, rgba(20, 29, 64, 0.9), rgba(40, 42, 72, 0.42));
   opacity: var(--night-opacity);
@@ -477,7 +482,7 @@ h3 {
 
 .rainbow {
   position: absolute;
-  z-index: 2;
+  z-index: 5;
   inset: 0 auto 0 -2%;
   width: 162%;
   height: 100%;
@@ -530,7 +535,7 @@ h3 {
 
 .water-line {
   position: absolute;
-  z-index: 5;
+  z-index: 6;
   right: -5%;
   width: 70%;
   height: 1px;
@@ -922,8 +927,8 @@ footer a {
     --night-opacity: 0 !important;
     --sun-y: 0px !important;
     --moon-y: 1000px !important;
-    --rainbow-opacity: 0.46 !important;
-    --rainbow-saturation: 0.78 !important;
+    --rainbow-opacity: 0.72 !important;
+    --rainbow-saturation: 1.1 !important;
   }
 
   .hawaii-section,

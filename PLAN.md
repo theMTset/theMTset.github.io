@@ -20,6 +20,8 @@ room for work examples and context than the profile allows.
 - Matt will travel alone.
 - Matt is open to placements on any Hawaiian island. He already knows Kauai and the Big
   Island and would also welcome the chance to experience an island that is new to him.
+- The landing eyebrow says only "Workaway." Island openness belongs in the At a Glance
+  card rather than the opening label.
 - Hawaii is not new to him: he lived there, spent six months in farm work trades on
   Kauai, spent most of his Hawaii time on the Big Island, and one of his sons was born there.
 - His broader farm background includes two years of work trade in Hawaii and two partial
@@ -63,8 +65,10 @@ scrolling pins the artwork long enough to show the full sequence, then releases 
 The sun holds above the mountains before setting. A large asymmetric rainbow begins at the
 water and crosses the artwork before continuing beyond its right edge. It is present from the
 start, fades with the setting sun, then returns more faintly and with less color as the moon
-rises. The page does not explain the moonbow reference. Without JavaScript or when reduced
-motion is requested, the stable state is daylight with the sun and rainbow, not night.
+rises. It remains in front of the mountain silhouettes rather than breaking behind them.
+The moon stays at constant brightness while the sky itself darkens. The page does not explain
+the moonbow reference. Without JavaScript or when reduced motion is requested, the stable
+state is daylight with the sun and rainbow, not night.
 
 The At a Glance card has no large background accent. Its yellow offset layer remains fixed
 while the green card tilts in the opposite direction on mouse hover or touch. On narrower

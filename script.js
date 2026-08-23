@@ -30,8 +30,8 @@ if (islandArt && islandStage && !reduceMotion.matches) {
 
     islandArt.style.setProperty("--sun-y", `${sunY}px`);
     islandArt.style.setProperty("--moon-y", `${moonY}px`);
-    islandArt.style.setProperty("--rainbow-opacity", (daylightRainbow * 0.46 + moonbow * 0.13).toFixed(3));
-    islandArt.style.setProperty("--rainbow-saturation", (0.78 - moonbow * 0.5).toFixed(3));
+    islandArt.style.setProperty("--rainbow-opacity", (daylightRainbow * 0.72 + moonbow * 0.38).toFixed(3));
+    islandArt.style.setProperty("--rainbow-saturation", (1.1 - moonbow * 0.38).toFixed(3));
     islandArt.style.setProperty("--night-opacity", phase(0.38, 0.92).toFixed(3));
     frameRequested = false;
   };
