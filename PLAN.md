@@ -48,6 +48,14 @@ The first draft deliberately uses a graphic island panel rather than generic sto
 Real photos of Matt and his physical projects should replace or supplement it after suitable
 images are selected.
 
+The Hawaii panel is island-neutral rather than labeled Kauai. As it crosses the viewport,
+the sun sets behind the ridges, the moon rises, and the sky moves toward night. Reduced-motion
+mode holds a static twilight composition.
+
+The At a Glance card has no large background accent. Its yellow offset layer remains fixed
+while the green card tilts in the opposite direction on mouse hover or touch. On narrower
+screens the complete card assembly is centered.
+
 ## Deployment
 
 The existing Pages workflow assembles branch archives into one artifact:
