@@ -96,7 +96,9 @@ water, strengthens as it approaches the horizon, and fades after it sets. Both m
 layers terminate on the same horizon. The reflection combines a pale-gold central path with
 orange, coral, and muted-red bands plus a broader warm wash across the surrounding water.
 The celestial clipping edge matches that horizon exactly, and the broad wash uses the same
-horizontal tracking value as the central reflection so the two remain aligned.
+horizontal tracking value as the central reflection. The sun, reflection, and wash all anchor
+to one shared centerline rather than aligning independent left edges, keeping them centered
+at every responsive size.
 
 The At a Glance card has no large background accent. Its yellow offset layer remains fixed
 while the green card tilts in the opposite direction on mouse hover or touch. On narrower
