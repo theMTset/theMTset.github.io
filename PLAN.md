@@ -32,11 +32,9 @@ room for work examples and context than the profile allows.
 - Follow with construction and home-project experience: decks, bathroom remodels,
   flooring, repairs, and maintenance.
 - Present web development and practical AI workflow work as a second substantial skill set.
-- Keep prior farming and comfort in a family household as useful supporting experience.
-- Do not make the divorce public. Describe the move as a considered life transition and
-  make clear that building stability for time with his children is part of the goal.
-- Do not imply that children or other guests would stay with a host. Any visit would be a
-  private, advance discussion with a host.
+- Keep prior farming and comfort in a shared household as useful supporting experience.
+- Keep family circumstances out of the public Workaway microsite. They do not affect what
+  Matt offers as a solo Workawayer and can be discussed privately if they become relevant.
 - Be precise about electrical work: professional experience does not override Hawaii's
   licensing, permitting, insurance, or safety requirements.
 - The concise statement of Matt's work ethic is: "Be honest and do good work."
