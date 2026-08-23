@@ -562,7 +562,17 @@ h3 {
   justify-content: center;
   max-width: 650px;
   margin-inline: auto;
-  padding: clamp(4rem, 8vw, 8rem);
+  padding-block: clamp(2rem, 7vh, 6rem);
+  padding-inline: clamp(2rem, 8vw, 8rem);
+}
+
+.hawaii-copy h2 {
+  font-size: clamp(2.35rem, min(4.5vw, 7vh), 4.4rem);
+}
+
+.hawaii-copy p:not(.eyebrow) {
+  font-size: clamp(0.84rem, 1.8vh, 1rem);
+  line-height: 1.5;
 }
 
 .hawaii-copy .eyebrow {
@@ -802,6 +812,17 @@ footer a {
     min-height: 0;
     display: block;
     max-width: none;
+    padding-block: 4.5rem;
+    font-size: inherit;
+  }
+
+  .hawaii-copy h2 {
+    font-size: clamp(2.5rem, 4.5vw, 4.4rem);
+  }
+
+  .hawaii-copy p:not(.eyebrow) {
+    font-size: inherit;
+    line-height: 1.6;
   }
 
   .work-card-featured {

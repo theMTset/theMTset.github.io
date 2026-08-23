@@ -64,7 +64,8 @@ The scene uses a tall sticky stage rather than intercepting wheel or touch input
 scrolling pins the artwork long enough to show the full sequence, then releases it naturally.
 On wide layouts the adjacent copy has its own equal-height track and a full-viewport sticky
 inner panel; it remains stationary for the complete animation rather than leaving early due
-to a translated sticky boundary.
+to a translated sticky boundary. Its heading, body copy, and vertical padding also respond to
+viewport height, keeping the complete text visible on short desktop windows without overflow.
 The sun moves continuously into the scene from the upper left and arcs slightly inward as it
 sets behind the mountains. The moon rises from the lower right, arcs inward, and exits above
 before the sticky scene releases. Vertical movement remains dominant so neither path looks
