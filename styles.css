@@ -504,18 +504,38 @@ h3 {
 }
 
 .rainbow-red {
-  stroke: #c66c5a;
-  stroke-width: 34;
+  stroke: #e24a4a;
+  stroke-width: 12;
+}
+
+.rainbow-orange {
+  stroke: #f08a32;
+  stroke-width: 12;
 }
 
 .rainbow-gold {
-  stroke: #e2b75c;
-  stroke-width: 22;
+  stroke: #f1cf3f;
+  stroke-width: 12;
 }
 
 .rainbow-green {
-  stroke: #79a989;
-  stroke-width: 10;
+  stroke: #58a95c;
+  stroke-width: 12;
+}
+
+.rainbow-blue {
+  stroke: #4383cf;
+  stroke-width: 12;
+}
+
+.rainbow-indigo {
+  stroke: #4d55a5;
+  stroke-width: 12;
+}
+
+.rainbow-violet {
+  stroke: #814fa8;
+  stroke-width: 12;
 }
 
 .ridge {

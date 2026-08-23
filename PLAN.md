@@ -77,6 +77,8 @@ than stretching with the viewport. It is present from the start, fades with the 
 then returns more faintly and with less color as the moon rises. It remains in front of the
 mountain silhouettes rather than breaking behind them and remains visible at the end after
 the moon exits.
+The arc uses seven nested bands in correct outside-to-inside ROYGBIV order: red, orange,
+yellow, green, blue, indigo, and violet.
 The moon stays at constant brightness while the sky itself darkens. The page does not explain
 the moonbow reference. Without JavaScript or when reduced motion is requested, the stable
 state is daylight with the sun and rainbow, not night.
