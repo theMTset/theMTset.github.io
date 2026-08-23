@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - designer-application
+      - workaway
   workflow_dispatch:
 
 permissions:
@@ -34,12 +35,14 @@ jobs:
           set -euo pipefail
           git fetch --no-tags origin \
             +refs/heads/main:refs/remotes/origin/main \
-            +refs/heads/designer-application:refs/remotes/origin/designer-application
+            +refs/heads/designer-application:refs/remotes/origin/designer-application \
+            +refs/heads/workaway:refs/remotes/origin/workaway
 
           rm -rf _site
-          mkdir -p _site/da
+          mkdir -p _site/da _site/workaway
           git archive origin/main | tar -x -C _site
           git archive origin/designer-application | tar -x -C _site/da
+          git archive origin/workaway | tar -x -C _site/workaway
           touch _site/.nojekyll
 
       - name: Configure Pages
