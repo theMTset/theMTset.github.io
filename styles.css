@@ -411,14 +411,14 @@ h3 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   align-items: start;
-  min-height: 165vh;
+  min-height: 210vh;
   padding: 0;
   color: white;
   background: var(--ink-deep);
 }
 
 .island-stage {
-  min-height: 165vh;
+  min-height: 210vh;
 }
 
 .island-art {
@@ -483,8 +483,8 @@ h3 {
 .rainbow {
   position: absolute;
   z-index: 5;
-  inset: 0 auto 0 -2%;
-  width: 162%;
+  inset: 0 auto 0 0;
+  width: auto;
   height: 100%;
   opacity: var(--rainbow-opacity);
   filter: saturate(var(--rainbow-saturation));
@@ -775,7 +775,7 @@ footer a {
   }
 
   .island-stage {
-    min-height: 150vh;
+    min-height: 190vh;
   }
 
   .island-art {

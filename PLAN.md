@@ -62,10 +62,13 @@ the sky layer is clipped above the water so neither body can appear in the ocean
 
 The scene uses a tall sticky stage rather than intercepting wheel or touch input. Normal page
 scrolling pins the artwork long enough to show the full sequence, then releases it naturally.
-The sun holds above the mountains before setting. A large asymmetric rainbow begins at the
-water and crosses the artwork before continuing beyond its right edge. It is present from the
-start, fades with the setting sun, then returns more faintly and with less color as the moon
-rises. It remains in front of the mountain silhouettes rather than breaking behind them.
+The sun moves continuously into the scene from above and down behind the mountains. The moon
+then moves continuously from below the mountains and exits above before the sticky scene
+releases. A large asymmetric rainbow begins exactly at the bottom edge of the water and crosses
+the artwork before continuing beyond its right edge. Its SVG keeps a fixed aspect ratio rather
+than stretching with the viewport. It is present from the start, fades with the setting sun,
+then returns more faintly and with less color as the moon rises. It remains in front of the
+mountain silhouettes rather than breaking behind them, then fades as the moon exits.
 The moon stays at constant brightness while the sky itself darkens. The page does not explain
 the moonbow reference. Without JavaScript or when reduced motion is requested, the stable
 state is daylight with the sun and rainbow, not night.
