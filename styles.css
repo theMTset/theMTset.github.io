@@ -493,7 +493,7 @@ h3 {
   width: auto;
   height: 100%;
   opacity: var(--rainbow-opacity);
-  filter: saturate(var(--rainbow-saturation));
+  filter: saturate(var(--rainbow-saturation)) blur(0.8px);
   pointer-events: none;
 }
 
@@ -568,6 +568,26 @@ h3 {
   height: 55%;
   background: #183f38;
   clip-path: polygon(0 100%, 56% 100%, 64% 63%, 72% 75%, 82% 37%, 91% 67%, 100% 51%, 100% 100%);
+}
+
+.ocean {
+  position: absolute;
+  z-index: 2;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 13%;
+  overflow: hidden;
+  background: #285965;
+  border-top: 1px solid rgba(244, 211, 142, 0.52);
+}
+
+.ocean::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #172f46;
+  opacity: var(--night-opacity);
 }
 
 .water-line {

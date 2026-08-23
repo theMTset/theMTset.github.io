@@ -78,7 +78,8 @@ then returns more faintly and with less color as the moon rises. It remains in f
 mountain silhouettes rather than breaking behind them and remains visible at the end after
 the moon exits.
 The arc uses seven nested bands in correct outside-to-inside ROYGBIV order: red, orange,
-yellow, green, blue, indigo, and violet.
+yellow, green, blue, indigo, and violet. A subtle blur blends adjacent edges without losing
+the seven-band order.
 The moon stays at constant brightness while the sky itself darkens. The page does not explain
 the moonbow reference. Without JavaScript or when reduced motion is requested, the stable
 state is daylight with the sun and rainbow, not night.
@@ -97,6 +98,8 @@ mountains. A tapered reflection made from broken horizontal bands tracks the sun
 water, strengthens as it approaches the horizon, and fades after it sets. Both mountain
 layers terminate on the same horizon. The reflection combines a pale-gold central path with
 orange, coral, and muted-red bands plus a broader warm wash across the surrounding water.
+The ocean is an explicit darker, cooler layer rather than sharing the sky color. A fine line
+marks the horizon, and an independent overlay eases the water into its night color.
 The celestial clipping edge matches that horizon exactly, and the broad wash uses the same
 horizontal tracking value as the central reflection. The sun, reflection, and wash all anchor
 to one shared centerline rather than aligning independent left edges, keeping them centered
