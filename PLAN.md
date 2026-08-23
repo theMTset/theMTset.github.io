@@ -58,6 +58,12 @@ The sky timeline uses the graphic's rendered height and the current viewport hei
 than fixed travel distances. The sun and moon pause above the ridgeline before moving, and
 the sky layer is clipped above the water so neither body can appear in the ocean.
 
+The scene uses a tall sticky stage rather than intercepting wheel or touch input. Normal page
+scrolling pins the artwork long enough to show the full sequence, then releases it naturally.
+The sun holds above the mountains before setting; a restrained rainbow appears during the
+daylight transition, followed by the moonrise. Without JavaScript or when reduced motion is
+requested, the stable state is daylight with the sun, not night.
+
 The At a Glance card has no large background accent. Its yellow offset layer remains fixed
 while the green card tilts in the opposite direction on mouse hover or touch. On narrower
 screens the complete card assembly is centered.

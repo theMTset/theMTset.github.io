@@ -1,5 +1,6 @@
 const snapshotWrap = document.querySelector(".snapshot-wrap");
 const islandArt = document.querySelector(".island-art");
+const islandStage = document.querySelector(".island-stage");
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 if (snapshotWrap) {
@@ -10,24 +11,27 @@ if (snapshotWrap) {
   });
 }
 
-if (islandArt && !reduceMotion.matches) {
+if (islandArt && islandStage && !reduceMotion.matches) {
   let frameRequested = false;
 
   const updateSky = () => {
-    const rect = islandArt.getBoundingClientRect();
-    const viewportHeight = window.innerHeight;
-    const travel = rect.height + viewportHeight * 0.64;
-    const progress = Math.min(1, Math.max(0, (viewportHeight * 0.82 - rect.top) / travel));
+    const artRect = islandArt.getBoundingClientRect();
+    const stageRect = islandStage.getBoundingClientRect();
+    const travel = Math.max(1, stageRect.height - artRect.height);
+    const progress = Math.min(1, Math.max(0, -stageRect.top / travel));
     const smoothstep = (value) => value * value * (3 - 2 * value);
     const phase = (start, end) => smoothstep(Math.min(1, Math.max(0, (progress - start) / (end - start))));
-    const sunPhase = phase(0.12, 0.55);
-    const moonPhase = phase(0.35, 0.7);
-    const sunY = rect.height * (-0.04 + sunPhase * 0.68);
-    const moonY = rect.height * (0.64 - moonPhase * 0.68);
+    const sunPhase = phase(0.24, 0.68);
+    const moonPhase = phase(0.5, 0.86);
+    const rainbowIn = phase(0.16, 0.3);
+    const rainbowOut = 1 - phase(0.58, 0.74);
+    const sunY = artRect.height * (-0.04 + sunPhase * 0.68);
+    const moonY = artRect.height * (0.64 - moonPhase * 0.68);
 
     islandArt.style.setProperty("--sun-y", `${sunY}px`);
     islandArt.style.setProperty("--moon-y", `${moonY}px`);
-    islandArt.style.setProperty("--night-opacity", phase(0.3, 0.88).toFixed(3));
+    islandArt.style.setProperty("--rainbow-opacity", (Math.min(rainbowIn, rainbowOut) * 0.58).toFixed(3));
+    islandArt.style.setProperty("--night-opacity", phase(0.38, 0.92).toFixed(3));
     frameRequested = false;
   };
 
