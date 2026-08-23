@@ -455,7 +455,7 @@ h3 {
 .sky-bodies {
   position: absolute;
   z-index: 3;
-  inset: 0 0 18%;
+  inset: 0 0 13%;
   overflow: hidden;
 }
 
@@ -560,7 +560,7 @@ h3 {
   position: absolute;
   z-index: 2;
   bottom: 0;
-  left: -9%;
+  left: 0;
   width: 62%;
   height: 13%;
   background: radial-gradient(
@@ -572,7 +572,7 @@ h3 {
     transparent 100%
   );
   opacity: var(--wash-opacity);
-  transform: translateX(calc(var(--reflection-x) * 0.55));
+  transform: translateX(var(--reflection-x));
   -webkit-mask-image: linear-gradient(to right, transparent, #000 18%, #000 76%, transparent);
   mask-image: linear-gradient(to right, transparent, #000 18%, #000 76%, transparent);
   filter: blur(1px);

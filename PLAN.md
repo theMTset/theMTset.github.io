@@ -95,6 +95,8 @@ mountains. A tapered reflection made from broken horizontal bands tracks the sun
 water, strengthens as it approaches the horizon, and fades after it sets. Both mountain
 layers terminate on the same horizon. The reflection combines a pale-gold central path with
 orange, coral, and muted-red bands plus a broader warm wash across the surrounding water.
+The celestial clipping edge matches that horizon exactly, and the broad wash uses the same
+horizontal tracking value as the central reflection so the two remain aligned.
 
 The At a Glance card has no large background accent. Its yellow offset layer remains fixed
 while the green card tilts in the opposite direction on mouse hover or touch. On narrower
