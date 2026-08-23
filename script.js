@@ -23,14 +23,15 @@ if (islandArt && islandStage && !reduceMotion.matches) {
     const phase = (start, end) => smoothstep(Math.min(1, Math.max(0, (progress - start) / (end - start))));
     const sunPhase = phase(0.24, 0.68);
     const moonPhase = phase(0.5, 0.86);
-    const rainbowIn = phase(0.16, 0.3);
-    const rainbowOut = 1 - phase(0.58, 0.74);
+    const daylightRainbow = 1 - phase(0.34, 0.68);
+    const moonbow = phase(0.7, 0.92);
     const sunY = artRect.height * (-0.04 + sunPhase * 0.68);
     const moonY = artRect.height * (0.64 - moonPhase * 0.68);
 
     islandArt.style.setProperty("--sun-y", `${sunY}px`);
     islandArt.style.setProperty("--moon-y", `${moonY}px`);
-    islandArt.style.setProperty("--rainbow-opacity", (Math.min(rainbowIn, rainbowOut) * 0.58).toFixed(3));
+    islandArt.style.setProperty("--rainbow-opacity", (daylightRainbow * 0.46 + moonbow * 0.13).toFixed(3));
+    islandArt.style.setProperty("--rainbow-saturation", (0.78 - moonbow * 0.5).toFixed(3));
     islandArt.style.setProperty("--night-opacity", phase(0.38, 0.92).toFixed(3));
     frameRequested = false;
   };

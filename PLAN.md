@@ -60,9 +60,11 @@ the sky layer is clipped above the water so neither body can appear in the ocean
 
 The scene uses a tall sticky stage rather than intercepting wheel or touch input. Normal page
 scrolling pins the artwork long enough to show the full sequence, then releases it naturally.
-The sun holds above the mountains before setting; a restrained rainbow appears during the
-daylight transition, followed by the moonrise. Without JavaScript or when reduced motion is
-requested, the stable state is daylight with the sun, not night.
+The sun holds above the mountains before setting. A large asymmetric rainbow begins at the
+water and crosses the artwork before continuing beyond its right edge. It is present from the
+start, fades with the setting sun, then returns more faintly and with less color as the moon
+rises. The page does not explain the moonbow reference. Without JavaScript or when reduced
+motion is requested, the stable state is daylight with the sun and rainbow, not night.
 
 The At a Glance card has no large background accent. Its yellow offset layer remains fixed
 while the green card tilts in the opposite direction on mouse hover or touch. On narrower
