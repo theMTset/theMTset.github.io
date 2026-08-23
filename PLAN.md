@@ -53,6 +53,10 @@ The Hawaii panel is island-neutral rather than labeled Kauai. As it crosses the 
 the sun sets behind the ridges, the moon rises, and the sky moves toward night. Reduced-motion
 mode holds a static twilight composition.
 
+The sky timeline uses the graphic's rendered height and the current viewport height rather
+than fixed travel distances. The sun and moon pause above the ridgeline before moving, and
+the sky layer is clipped above the water so neither body can appear in the ocean.
+
 The At a Glance card has no large background accent. Its yellow offset layer remains fixed
 while the green card tilts in the opposite direction on mouse hover or touch. On narrower
 screens the complete card assembly is centered.

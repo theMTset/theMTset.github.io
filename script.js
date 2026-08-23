@@ -15,12 +15,19 @@ if (islandArt && !reduceMotion.matches) {
 
   const updateSky = () => {
     const rect = islandArt.getBoundingClientRect();
-    const travel = window.innerHeight + rect.height;
-    const progress = Math.min(1, Math.max(0, (window.innerHeight - rect.top) / travel));
+    const viewportHeight = window.innerHeight;
+    const travel = rect.height + viewportHeight * 0.64;
+    const progress = Math.min(1, Math.max(0, (viewportHeight * 0.82 - rect.top) / travel));
+    const smoothstep = (value) => value * value * (3 - 2 * value);
+    const phase = (start, end) => smoothstep(Math.min(1, Math.max(0, (progress - start) / (end - start))));
+    const sunPhase = phase(0.12, 0.55);
+    const moonPhase = phase(0.35, 0.7);
+    const sunY = rect.height * (-0.04 + sunPhase * 0.68);
+    const moonY = rect.height * (0.64 - moonPhase * 0.68);
 
-    islandArt.style.setProperty("--sun-y", `${progress * 520}px`);
-    islandArt.style.setProperty("--moon-y", `${(1 - progress) * 520}px`);
-    islandArt.style.setProperty("--night-opacity", Math.max(0, (progress - 0.28) / 0.72).toFixed(3));
+    islandArt.style.setProperty("--sun-y", `${sunY}px`);
+    islandArt.style.setProperty("--moon-y", `${moonY}px`);
+    islandArt.style.setProperty("--night-opacity", phase(0.3, 0.88).toFixed(3));
     frameRequested = false;
   };
 

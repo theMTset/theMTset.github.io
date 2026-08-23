@@ -437,11 +437,18 @@ h3 {
 .island-art::after {
   content: "";
   position: absolute;
-  z-index: 1;
+  z-index: 3;
   inset: 0;
   background: linear-gradient(to bottom, rgba(20, 29, 64, 0.9), rgba(40, 42, 72, 0.42));
   opacity: var(--night-opacity);
   pointer-events: none;
+}
+
+.sky-bodies {
+  position: absolute;
+  z-index: 2;
+  inset: 0 0 18%;
+  overflow: hidden;
 }
 
 .sun {
@@ -459,7 +466,6 @@ h3 {
 
 .moon {
   position: absolute;
-  z-index: 2;
   top: 16%;
   right: 18%;
   width: 7rem;
@@ -473,7 +479,7 @@ h3 {
 
 .ridge {
   position: absolute;
-  z-index: 3;
+  z-index: 4;
   left: -10%;
   width: 120%;
   clip-path: polygon(0 70%, 12% 58%, 22% 63%, 35% 35%, 43% 49%, 53% 21%, 61% 48%, 72% 42%, 84% 63%, 100% 52%, 100% 100%, 0 100%);
@@ -494,7 +500,7 @@ h3 {
 
 .water-line {
   position: absolute;
-  z-index: 4;
+  z-index: 5;
   right: -5%;
   width: 70%;
   height: 1px;
@@ -875,7 +881,7 @@ footer a {
 
   .island-art {
     --night-opacity: 0.34 !important;
-    --sun-y: 180px !important;
-    --moon-y: 180px !important;
+    --sun-y: 40px !important;
+    --moon-y: 0px !important;
   }
 }
