@@ -25,7 +25,7 @@ if (islandArt && islandStage && !reduceMotion.matches) {
     const sunPhase = linearPhase(0, 0.82);
     const moonPhase = linearPhase(0.42, 1);
     const daylightRainbow = 1 - phase(0.34, 0.68);
-    const moonbow = phase(0.7, 0.84) * (1 - phase(0.9, 1));
+    const moonbow = phase(0.7, 0.84);
     const sunY = artRect.height * (-0.4 + sunPhase * 1.15);
     const moonY = artRect.height * (0.7 - moonPhase * 1.05);
 

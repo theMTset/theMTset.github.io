@@ -71,7 +71,8 @@ releases. A large asymmetric rainbow begins exactly at the bottom edge of the wa
 the artwork before continuing beyond its right edge. Its SVG keeps a fixed aspect ratio rather
 than stretching with the viewport. It is present from the start, fades with the setting sun,
 then returns more faintly and with less color as the moon rises. It remains in front of the
-mountain silhouettes rather than breaking behind them, then fades as the moon exits.
+mountain silhouettes rather than breaking behind them and remains visible at the end after
+the moon exits.
 The moon stays at constant brightness while the sky itself darkens. The page does not explain
 the moonbow reference. Without JavaScript or when reduced motion is requested, the stable
 state is daylight with the sun and rainbow, not night.
