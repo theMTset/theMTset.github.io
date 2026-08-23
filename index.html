@@ -3,258 +3,255 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#000000" />
-  <meta name="description" content="Matt Titchenal — design, interaction, and the systems underneath. Portfolio for the turbopuffer designer role." />
-  <title>Matt Titchenal — the MT set</title>
-  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" sizes="any" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet" />
+  <meta name="theme-color" content="#173c3a" />
+  <meta
+    name="description"
+    content="Matt Titchenal is an electrician, builder, web developer, father, and former Hawaii farm-trade volunteer looking for a Workaway exchange."
+  />
+  <title>Matt Titchenal — Workaway in Hawaii</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="styles.css" />
-  <!-- Guards the styles that start hidden and are revealed by script, so they stay
-       readable if the script never runs. Inline and in head to avoid a flash. -->
-  <script>document.documentElement.classList.add('js');</script>
 </head>
 <body>
-  <div class="noise" aria-hidden="true"></div>
-  <div class="flash" aria-hidden="true"></div>
-  <svg class="storm" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
-    <defs>
-      <filter id="lightning-glow" x="-100%" y="-20%" width="300%" height="140%">
-        <feGaussianBlur stdDeviation="8" result="blur" />
-        <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-      </filter>
-    </defs>
-    <path class="bolt bolt-glow" d="" />
-    <path class="bolt bolt-core" d="" />
-    <path class="bolt bolt-branch" d="" />
-  </svg>
+  <a class="skip-link" href="#main">Skip to the main content</a>
 
-  <button class="sound-toggle" type="button" aria-label="Turn thunder sound on" aria-pressed="false">
-    <span class="sound-icon" aria-hidden="true"></span>
-    <span class="sound-label">sound off</span>
-  </button>
+  <header class="site-header">
+    <a class="wordmark" href="#top" aria-label="Matt Titchenal, back to top">
+      <span class="wordmark-mark" aria-hidden="true">MT</span>
+      <span>Matt Titchenal</span>
+    </a>
+    <nav aria-label="Main navigation">
+      <a href="#skills">How I can help</a>
+      <a href="#hawaii">Why Hawaii</a>
+      <a href="#work">My work</a>
+      <a class="nav-cta" href="#contact">Get in touch</a>
+    </nav>
+  </header>
 
-  <!-- The empty set lives outside the sections so it can travel from the opening down to
-       the answer without being clipped by either sticky frame. JS drives its position. -->
-  <a class="mark" href="https://github.com/theMTset" target="_blank" rel="noreferrer" aria-label="View Matt Titchenal's GitHub repositories">
-    <svg viewBox="0 0 100 100" aria-hidden="true">
-      <circle cx="50" cy="50" r="35" />
-      <line x1="8" y1="92" x2="92" y2="8" />
-    </svg>
-  </a>
-
-  <main>
-    <section class="opening" aria-labelledby="first-question">
-      <div class="opening-sticky">
-        <p id="first-question" class="question storm-lit">is it empty?</p>
-
-        <!-- Holds the mark's place in the centred group now that the mark itself is fixed. -->
-        <div class="mark-slot" aria-hidden="true"></div>
-
-        <div class="scroll-cue" aria-hidden="true">
-          <span>look deeper</span>
-          <i></i>
+  <main id="main">
+    <section class="hero" id="top">
+      <div class="hero-copy">
+        <p class="eyebrow">Workaway · Kauai or the Big Island</p>
+        <h1>I know how to build things—and how to figure out what’s not working.</h1>
+        <p class="lede">
+          I’m an electrician, hands-on builder, web developer, father, and former Hawaii
+          farm-trade volunteer. I’m returning on my own and looking for a thoughtful exchange
+          where useful work and clear expectations go both ways.
+        </p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#skills">See how I can help</a>
+          <a class="button button-secondary" href="#about">A little about me</a>
         </div>
       </div>
-    </section>
 
-    <section class="answer" aria-labelledby="answer-title">
-      <div class="answer-sticky">
-        <p class="small-line">no</p>
-        <h1 id="answer-title" class="answer-title storm-lit">it is <strong>MT</strong></h1>
-        <p class="answer-whisper">keep going</p>
-      </div>
-    </section>
-
-    <section id="descent" class="descent" aria-label="A descent into the MT set">
-      <div class="shaft">
-        <div class="shaft-rings" aria-hidden="true">
-          <div class="ring ring-1"></div>
-          <div class="ring ring-2"></div>
-          <div class="ring ring-3"></div>
-          <div class="ring ring-4"></div>
-        </div>
-
-        <div class="descent-geometry">
-          <iframe
-            src="assets/work/star-tetrahedron-ambient.html"
-            title="A star tetrahedron forming automatically; scroll changes its speed and direction, and drag turns it once complete"
-          ></iframe>
-          <p class="geometry-hint">drag to spin</p>
-        </div>
-
-        <!-- The acronym is the point: the three letters land alone and mean nothing yet, then
-             the rest of each word crosses the screen and slams into them. Letter and tail are
-             adjacent with no whitespace between the tags, so each row is still the single word
-             "Intuitive" / "Understandable" / "Interactive" to a screen reader and to selection. -->
-        <div class="descent-copy">
-          <p class="descent-lead" data-reveal-delay="0">I like to build an <b class="iui-name">IUI</b></p>
-          <p class="descent-claim" data-reveal-delay="900">rather than just a <b class="iui-name">UI</b></p>
-          <ul class="iui">
-            <li class="iui-row"><span class="iui-letter" data-reveal-delay="1950">I</span><span class="iui-tail">ntuitive</span></li>
-            <li class="iui-row"><span class="iui-letter" data-reveal-delay="2100">U</span><span class="iui-tail">nderstandable</span></li>
-            <li class="iui-row"><span class="iui-letter" data-reveal-delay="2250">I</span><span class="iui-tail">nteractive</span></li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
-    <section class="work" aria-label="Selected work">
-      <h2 class="work-heading">selected work</h2>
-
-      <article class="work-piece">
-        <div class="work-embed work-embed-dark">
-          <iframe src="assets/work/scramble-text.html" title="Interactive rebuild of turbopuffer's logo animation — hover or drag across the word" loading="lazy"></iframe>
-        </div>
-        <div class="work-copy">
-          <span class="work-label">interaction design</span>
-          <p>turbopuffer's logo scrambles into place on hover or touch. I reverse-engineered it from their
-          production bundle, then rebuilt it with Claude Code: the word now converges onto wherever
-          your pointer lands and trails precisely along its path as you move.</p>
-          <p class="work-detail">Three rounds of iteration on the interaction model. Shipped as a typed,
-          working component — not a mockup.</p>
-          <a class="work-code-link" href="https://github.com/theMTset/scramble-text-interaction" target="_blank" rel="noreferrer">view the React component repository <span aria-hidden="true">↗</span></a>
-        </div>
-      </article>
-
-      <article class="work-piece work-piece-reverse">
-        <div class="work-embed work-embed-simply-animation">
-          <iframe src="assets/work/star-tetrahedron.html" title="Complete Simply Curious star tetrahedron animation — click the gold geometry to begin" loading="lazy"></iframe>
-        </div>
-        <div class="work-copy">
-          <span class="work-label">motion, from scratch</span>
-          <p>The hero geometry from Simply Curious. Two tetrahedra merge, resolve into a star, and
-          spin.</p>
-          <p class="work-detail">Hidden-line occlusion and direct manipulation, drawn by hand in canvas. No 3D libraries.</p>
-          <a class="work-code-link" href="https://iamsimplycurious.com" target="_blank" rel="noreferrer">visit Simply Curious <span aria-hidden="true">↗</span></a>
-        </div>
-      </article>
-
-      <article class="work-piece">
-        <div class="work-embed work-embed-dark work-embed-logo work-embed-logo-black">
-          <img src="assets/work/sc-logo.svg" alt="Simply Curious logo mark" loading="lazy" />
-        </div>
-        <div class="work-copy">
-          <span class="work-label">brand + full build</span>
-          <p>Brand mark for Simply Curious, a product I designed and built end to end.</p>
-          <p class="work-detail">Astro, Cloudflare Workers, D1 — logo to backend, one person.</p>
-          <a class="work-code-link" href="https://iamsimplycurious.com" target="_blank" rel="noreferrer">visit Simply Curious <span aria-hidden="true">↗</span></a>
-        </div>
-      </article>
-
-      <article class="work-piece work-piece-reverse">
-        <div class="work-embed work-embed-light work-embed-logo">
-          <img src="assets/work/maxcardpoints-logo.svg" alt="MaxCardPoints logo mark" loading="lazy" />
-        </div>
-        <div class="work-copy">
-          <span class="work-label">product, full build</span>
-          <p>MaxCardPoints finds the best credit-card stack for your actual spending. The optimizer
-          runs entirely client-side — no calculation ever leaves the browser — while a Cloudflare
-          Worker and D1 database keep the card catalog current behind the scenes.</p>
-          <p class="work-detail">Astro, Cloudflare Workers, D1, Alpine.js. Installable as an offline-first PWA.</p>
-          <a class="work-code-link" href="https://maxcardpoints.com" target="_blank" rel="noreferrer">visit maxcardpoints.com <span aria-hidden="true">↗</span></a>
-        </div>
-      </article>
-
-      <article class="work-piece">
-        <div class="work-embed work-embed-natures">
-          <div class="natures-preview-copy">
-            <span>Nature's Answers for You</span>
-            <strong>Releasing imbalances<br />to allow you to discover<br /><em>your true self</em></strong>
+      <aside class="snapshot" aria-label="At a glance">
+        <p class="snapshot-label">At a glance</p>
+        <dl>
+          <div>
+            <dt>Traveling</dt>
+            <dd>Solo</dd>
           </div>
-          <img src="assets/work/natures-answers-hand.webp" alt="" loading="lazy" />
-        </div>
-        <div class="work-copy">
-          <span class="work-label">client site, full build</span>
-          <p>Nature's Answers for You gives a local wellness practitioner a calm, approachable
-          home online. I translated her printed card into a warm, responsive one-page site that
-          explains her services clearly and makes the next step simple.</p>
-          <p class="work-detail">Visual direction and responsive front-end build in HTML, CSS, and JavaScript.</p>
-          <a class="work-code-link" href="http://naturesanswers4u.org" target="_blank" rel="noreferrer">visit naturesanswers4u.org <span aria-hidden="true">↗</span></a>
-        </div>
-      </article>
+          <div>
+            <dt>First choice</dt>
+            <dd>Kauai</dd>
+          </div>
+          <div>
+            <dt>Professional trade</dt>
+            <dd>6 years electrical</dd>
+          </div>
+          <div>
+            <dt>Hawaii experience</dt>
+            <dd>Lived + worked there</dd>
+          </div>
+        </dl>
+        <p class="snapshot-note">Also open to the Big Island, where I spent most of my previous time in Hawaii.</p>
+      </aside>
     </section>
 
-    <section class="about" aria-label="About">
-      <div class="about-inner">
-        <p>I've always been driven by curiosity.</p>
+    <section class="proof-strip" aria-label="Relevant experience">
+      <p><strong>6 years</strong><span>working as an electrician</span></p>
+      <p><strong>6 months</strong><span>farm work trade on Kauai</span></p>
+      <p><strong>Several</strong><span>live websites built solo</span></p>
+      <p><strong>One rule</strong><span>be honest about what I can do</span></p>
+    </section>
 
-        <p>Before software: high-energy particle physics, organic farming, CNC machining, then electrical
-        work — then whatever the house needed next. A bathroom. A deck. A furnace two HVAC technicians
-        had already given up on; I found what they missed. I've always been the type to take apart
-        what's broken, see how it works, then fix it.</p>
+    <section class="section skills-section" id="skills">
+      <div class="section-heading">
+        <p class="eyebrow">How I can help</p>
+        <h2>More than an extra pair of hands.</h2>
+        <p>
+          My background crosses the job site, the house, the farm, and the computer. I’m at my
+          best when there is a real problem to understand and a useful result to leave behind.
+        </p>
+      </div>
 
-        <p>I'd been playing with web design that whole time — static sites, PWAs, drawing the
-        logos and graphics myself, always my favorite part. With AI I can do far more of it, and
-        I've come a long way in understanding not just how to use it but where its limits are. I'm still
-        learning — about AI, and about the development process itself — so I can make that workflow
-        correct, not just fast.</p>
+      <div class="skill-grid">
+        <article class="skill-card trade-card">
+          <span class="skill-number">01</span>
+          <h3>Electrical</h3>
+          <p>
+            I currently work as an electrician and have six years in the trade: tools, safety,
+            troubleshooting, planning, and careful execution.
+          </p>
+          <p class="fine-print">
+            Any electrical help must stay within Hawaii’s licensing, permitting, and safety requirements.
+          </p>
+        </article>
 
-        <p>Same question every time. How does this actually work?</p>
+        <article class="skill-card build-card">
+          <span class="skill-number">02</span>
+          <h3>Construction + repairs</h3>
+          <p>
+            Deck building, bathroom remodels, flooring installation, home repairs, maintenance,
+            and the practical problem-solving that comes with older houses and working properties.
+          </p>
+        </article>
 
-        <p>I design the surface and build what runs underneath it. As a solo dev I never really had
-        a choice — not that I'd have it any other way. I want to understand the systems that make
-        the software work.</p>
+        <article class="skill-card digital-card">
+          <span class="skill-number">03</span>
+          <h3>Web + technology</h3>
+          <p>
+            I design and build websites and web applications as a solo developer. I can help with
+            a site, content, technical troubleshooting, or a practical AI-assisted workflow.
+          </p>
+        </article>
 
-        <p>Now the question points at getting a job. I've been a stay-at-home dad for the past few
-        years, still working part-time as an electrician. My youngest is getting older, so it's time to
-        think about full-time again. My boss would put me on full-time tomorrow, but I've enjoyed
-        working with AI too much to make wiring the answer. As my older son put it: "You're the
-        only one who actually enjoys work." He's watched me at it constantly these past few
-        months — building, talking about it, losing whole days to it. The time just flies.</p>
-
-        <p>So here I am. Portfolio site, updated resume, looking for full-time work where I can
-        build and understand the systems underneath.</p>
-
-        <p>I heard about turbopuffer on The Pragmatic Engineer — the team, the way you work — and
-        thought it might be a fit. Then I saw the logo animation. I liked it, but I caught myself
-        hovering over it wishing it responded to where my pointer actually was. So I built that.
-        AI made it quick, but not one-shot; you have to iterate to get it where you want it. Then I
-        packaged it as a React component and put it on GitHub, so it's yours if you want it.</p>
-
-        <p>I'd like to build things with you.</p>
-
-        <p>The work above is the evidence.</p>
-
-        <p class="about-signature">MT</p>
+        <article class="skill-card land-card">
+          <span class="skill-number">04</span>
+          <h3>Farm + household</h3>
+          <p>
+            I’ve done extended farm work trades through WWOOF and understand that daily upkeep is
+            part of the exchange. As a father, I’m also comfortable helping around a family home.
+          </p>
+        </article>
       </div>
     </section>
 
-    <section class="contact" aria-label="Contact">
-      <!-- The closing beat of the site's own question. The braces arrive empty, the words
-           crash in to fill them, and the set turns out not to be empty after all.
-           Script splits these into single letters, so the plain copy below carries the
-           reading for assistive tech rather than a spelling-out of fragments.
+    <section class="section hawaii-section" id="hawaii">
+      <div class="island-art" aria-hidden="true">
+        <span class="sun"></span>
+        <span class="ridge ridge-back"></span>
+        <span class="ridge ridge-front"></span>
+        <span class="water-line water-one"></span>
+        <span class="water-line water-two"></span>
+        <span class="water-line water-three"></span>
+      </div>
 
-           The two rows are a grouping for phones, where the set reads as two lines of three
-           that arrive from opposite sides and meet. Each row carries its own brace so the
-           halves stay balanced. Wider screens dissolve the rows with display: contents, and
-           the flattened order is exactly the one line this markup would have been without
-           them. -->
-      <p class="contact-set" aria-hidden="true">
-        <span class="set-row">
-          <i class="brace">{</i>
-          <span class="key-word">curious,</span>
-          <span class="key-word">adaptable,</span>
-          <span class="key-word">self-taught,</span>
-        </span>
-        <span class="set-row">
-          <span class="key-word">hands-on,</span>
-          <span class="key-word">thorough,</span>
-          <span class="key-word">still learning</span>
-          <i class="brace">}</i>
-        </span>
+      <div class="hawaii-copy">
+        <p class="eyebrow">Why Hawaii</p>
+        <h2>This isn’t a place I chose from a map.</h2>
+        <p>
+          I’ve lived in Hawaii before. I spent six months doing farm work trades on Kauai and
+          most of my time in the islands on the Big Island. One of my sons was born there.
+        </p>
+        <p>
+          I know island life asks for adaptability, respect for the land and local community,
+          and a willingness to contribute. I’m looking at Kauai first because I already have a
+          history there, but I’m open to the Big Island as well.
+        </p>
+        <p>
+          This return is part of a considered life transition. I hope to contribute somewhere
+          worthwhile while I work toward a stable long-term home where my children can spend
+          meaningful time with me.
+        </p>
+      </div>
+    </section>
+
+    <section class="section work-section" id="work">
+      <div class="section-heading">
+        <p class="eyebrow">Some of my work</p>
+        <h2>I build in both worlds.</h2>
+        <p>
+          My physical work includes decks, bathroom remodels, flooring, electrical work, and
+          repairs around my own home. These live projects show the digital side.
+        </p>
+      </div>
+
+      <div class="work-grid">
+        <a class="work-card work-card-featured" href="https://naturesanswers4u.org" target="_blank" rel="noreferrer">
+          <span class="work-type">Client website</span>
+          <h3>Nature’s Answers for You</h3>
+          <p>
+            A warm, responsive one-page site for a local energy-healing practitioner, translated
+            from her printed card into a clear online home.
+          </p>
+          <span class="work-link">Visit the live site <span aria-hidden="true">↗</span></span>
+        </a>
+
+        <a class="work-card" href="https://maxcardpoints.com" target="_blank" rel="noreferrer">
+          <span class="work-type">Web application</span>
+          <h3>MaxCardPoints</h3>
+          <p>A privacy-first tool that finds the best credit-card combination for a person’s actual spending.</p>
+          <span class="work-link">Visit the live site <span aria-hidden="true">↗</span></span>
+        </a>
+
+        <a class="work-card" href="https://iamsimplycurious.com" target="_blank" rel="noreferrer">
+          <span class="work-type">Full product build</span>
+          <h3>Simply Curious</h3>
+          <p>A product I designed and built end to end, from identity and interaction through its backend.</p>
+          <span class="work-link">Visit the live site <span aria-hidden="true">↗</span></span>
+        </a>
+      </div>
+
+      <p class="portfolio-link">
+        Want the deeper technical version?
+        <a href="https://themtset.github.io" target="_blank" rel="noreferrer">View my full portfolio <span aria-hidden="true">↗</span></a>
       </p>
-      <p class="sr-only">curious, adaptable, self-taught, hands-on, thorough, still learning</p>
-      <div class="contact-links">
-        <a href="mailto:theMTrepo@gmail.com">theMTrepo@gmail.com</a>
-        <a href="resume.html">resume</a>
+    </section>
+
+    <section class="section about-section" id="about">
+      <div class="about-intro">
+        <p class="eyebrow">Living + working together</p>
+        <h2>Clear, capable, and easy to work beside.</h2>
       </div>
+
+      <div class="about-body">
+        <p>
+          I’m used to being responsible for my own work, but I don’t disappear into a project and
+          make assumptions. I ask questions up front, communicate when something changes, and say
+          plainly when a task is outside my experience.
+        </p>
+        <p>
+          I take care of tools and shared spaces. I’m comfortable working independently or with
+          other people, and I don’t need to be entertained during my time off. Curiosity has taken
+          me through physics, organic farming, CNC machining, electrical work, construction, and
+          software. I enjoy learning how a system works and leaving it better than I found it.
+        </p>
+        <p>
+          I’m a father and will be traveling alone. Family is a central part of the stable future
+          I’m working toward, not something I’m leaving behind.
+        </p>
+      </div>
+    </section>
+
+    <section class="section fit-section">
+      <div>
+        <p class="eyebrow">A good fit</p>
+        <h2>What I’m looking for</h2>
+      </div>
+      <ul class="fit-list">
+        <li><span>01</span>Clear expectations about hours, projects, accommodation, and meals</li>
+        <li><span>02</span>Work where my skills solve an actual need</li>
+        <li><span>03</span>Respect for local culture, neighbors, land, and resources</li>
+        <li><span>04</span>Enough time to get to know the area and community</li>
+      </ul>
+    </section>
+
+    <section class="contact-section" id="contact">
+      <p class="eyebrow">Start a conversation</p>
+      <h2>Have a project that might fit?</h2>
+      <p>
+        If you found this page through Workaway, please message me there. Tell me what you’re
+        building, fixing, growing, or trying to get organized, and I’ll be direct about whether
+        I’m the right person to help.
+      </p>
+      <a class="button button-light" href="https://www.workaway.info/" target="_blank" rel="noreferrer">Return to Workaway <span aria-hidden="true">↗</span></a>
     </section>
   </main>
 
-  <noscript><p class="no-script">This experience needs JavaScript to make the storm.</p></noscript>
-  <script src="script.js"></script>
+  <footer>
+    <p>Matt Titchenal · Workaway introduction</p>
+    <a href="#top">Back to top ↑</a>
+  </footer>
 </body>
 </html>

@@ -1,243 +1,65 @@
-# the MT set — Site Plan
+# Workaway introduction — site plan
 
-**Status:** designer-role branch built through selected work, About, and Contact; shared foundation comes from `main`.
-**Last updated:** 2026-08-18
+**Status:** First draft on the `workaway` branch
+**Target URL:** `https://themtset.github.io/workaway/`
 
----
+## Purpose
 
-## What this site is
+Give a potential Hawaii Workaway host a quick, grounded answer to four questions:
 
-A portfolio. Not organized by job title — organized by outcomes, per the master plan
-in [aiconvo.md](aiconvo.md).
+1. Who is Matt?
+2. What useful work can he do?
+3. Does he understand Hawaii and work-trade living?
+4. What will he be like to live and work with?
 
-The name does the work. **MT set** reads aloud as *empty set* — ∅ — and MT is also
-Matt Titchenal. The site opens on what appears to be nothing, and the whole experience
-is the act of discovering it isn't.
+This is not a replacement for the Workaway profile. It is supporting evidence with more
+room for work examples and context than the profile allows.
 
-That's not a gimmick layered on top of a portfolio. It *is* the thesis:
+## Accepted direction
 
-> Understand the system. Learn how it works. Improve it. Leave it better than you found it.
+- Matt will travel alone.
+- Kauai is the first choice, with the Big Island also under consideration.
+- Hawaii is not new to him: he lived there, spent six months in farm work trades on
+  Kauai, spent most of his Hawaii time on the Big Island, and one of his sons was born there.
+- Lead with six years of professional electrical experience.
+- Follow with construction and home-project experience: decks, bathroom remodels,
+  flooring, repairs, and maintenance.
+- Present web development and practical AI workflow work as a second substantial skill set.
+- Keep prior farming and comfort in a family household as useful supporting experience.
+- Do not make the divorce public. Describe the move as a considered life transition and
+  make clear that building stability for time with his children is part of the goal.
+- Do not imply that children or other guests would stay with a host. Any visit would be a
+  private, advance discussion with a host.
+- Be precise about electrical work: professional experience does not override Hawaii's
+  licensing, permitting, insurance, or safety requirements.
 
-The site performs that thesis before it ever explains it. A visitor who scrolls to the
-bottom has already done the thing the portfolio is about — looked closer at something
-that seemed empty and found structure.
+## Design direction
 
-### The one-sentence version
+The main portfolio is dark, atmospheric, and aimed at technical employers. This page is
+warmer and more direct: deep green, ocean blue, sand, clay, and sun yellow. It shares Matt's
+systems-minded identity but prioritizes trust, legibility, and relevant facts over spectacle.
 
-*Looks empty. Isn't.*
+The first draft deliberately uses a graphic island panel rather than generic stock imagery.
+Real photos of Matt and his physical projects should replace or supplement it after suitable
+images are selected.
 
----
+## Deployment
 
-## Relationship to Simply Curious
+The existing Pages workflow assembles branch archives into one artifact:
 
-Both sites share a root idea — **curiosity reveals deeper structure**. They are not the
-same brand and should not look like each other.
+- `main` → `/`
+- `designer-application` → `/da`
+- `workaway` → `/workaway`
 
-| | Simply Curious | the MT set |
-|---|---|---|
-| Tone | Meditative, warm, inviting | Cold, still, a little unnerving |
-| Palette | Gold / teal, light + dark | Near-black, storm blue, paper white |
-| Motion | Breathing, tidal, patient | Sudden, electrical, then falling |
-| Ask of visitor | Observe or engage, both fine | Keep going. Descend. |
-| Subject | The product | The person who built it |
+The workflow change currently lives on this branch. Before treating `/workaway` as permanent,
+the same workflow update should be merged to `main`; otherwise a later deployment from the old
+`main` workflow would omit the Workaway branch.
 
-The portfolio uses the same star-tetrahedron geometry but gives it a different expression.
-Here it is found in the dark: white rather than gold, forming as the visitor descends.
-The opening sequence starts automatically; scroll changes its speed and can carry it smoothly
-into reverse without setting its frame directly. Once assembled, the shape turns on its ambient
-track and can be dragged directly. This preserves the "same person built both" connection
-without making the portfolio hero an offcut of the product hero.
+## Open items after first review
 
----
-
-## Structure
-
-### Live now
-
-| Section | Height | State | Purpose |
-|---|---|---|---|
-| `.opening` | 185vh | Built | "is it empty?" — invisible until lightning |
-| `.answer` | 205vh | Built | "no. it is **MT**" |
-| `.descent` | 500vh | Built | The fall. Copy collides into a persistent stack while the interactive geometry grows. |
-| `.work` | Content height | Built | Follows the descent directly with three interaction, motion, and brand/build examples. |
-| `.about` | Content height | Built | Plain-language account of method and range. |
-| `.contact` | 60vh | Built | Direct email and public resume routes. |
-
-### Public resume
-
-[`resume.html`](resume.html) is the responsive, privacy-safe public resume reached through
-the `resume` link beside the email address in the closing contact section. Its print styles
-produce the one-page
-[`assets/Matt_Titchenal_Resume.pdf`](assets/Matt_Titchenal_Resume.pdf) download. Both public
-versions omit the phone number; the private application resume remains in the ignored root
-`Resume_2026.*` files.
-
-### Role-specific continuation
-
-The generic `main` branch intentionally stops at its placeholder threshold. This
-`designer-application` branch omits that pause and continues directly from the descent
-into selected work, About, and Contact.
-
-| Section | Purpose |
-|---|---|
-| **The four bodies of work** | The actual portfolio. See below. |
-| **Case studies** | One page per project. The real substance. |
-| **About** | Who's building this, in plain language. |
-| **Contact** | One way to reach out. Not a form with six fields. |
-
-### The four bodies of work
-
-Straight from the master plan, unchanged — the categorization is the strongest part of it:
-
-1. **Building Digital Products** — software, architecture, AI, applications
-2. **Designing Experiences** — UI, UX, graphics, branding, animation
-3. **Solving Complex Problems** — case studies, technical challenges, decisions, lessons
-4. **Building Things** — selected physical projects, as evidence of method
-
-**Structural idea worth testing:** the descent shaft currently has four rings you fall
-past. Make them the four categories. You don't read a nav — you fall through the work.
-Each ring gets a label that becomes legible as you approach it and passes out of frame
-as you continue. At the bottom, a conventional index for anyone who wants to navigate
-rather than fall.
-
-This is elegant but risky: an experience with no escape hatch is hostile to a recruiter
-with ninety seconds. **Requirement: a skip link and a plain index must exist from the
-first screen.** Curiosity is rewarded, not required.
-
-### The DIY section is the differentiator — don't bury it
-
-Every developer portfolio has projects. Almost none can say *two HVAC techs couldn't
-find it, I did.* That paragraph does more to establish systems thinking than any
-architecture diagram. Frame it as evidence of method, not as a hobby log. The master
-plan already says this and it's right.
-
----
-
-## The descent animation
-
-The star tetrahedron sits above the copy stack, small at the top of the fall, and grows
-with `descentProgress` until it reaches its final size near the bottom. The hole's visual
-center is raised to keep the accumulated words clear.
-
-The copy is a causal sequence:
-
-> I need to know how things are built.
->
-> so I can make things
->
-> intuitive
->
-> understandable
->
-> interactive
-
-Each line falls from above, decelerates into place without rebounding, and remains. The
-browser composites each transform independently so active scrolling does not compete
-with a JavaScript animation loop. The timed sequence starts automatically on the
-visitor's first entry into the descent and plays only once per page load. Reduced-motion
-mode shows the completed stack without falling.
-
-### Geometry source and behavior
-
-`assets/work/star-tetrahedron-ambient.html` is generated from the latest pushed renderer
-in `simply-curious/website`, component commit
-`24f95c0314782f69706d2ec114fcafd67c1b9cfe`. It preserves the quaternion transform,
-perspective projection, and hidden-line occlusion work while replacing the product's
-scripted phase machine with a portfolio-specific ambient mode:
-
-- the parent page advances the original intro, pre-spin, and merge phases on a smooth automatic
-  playhead; scroll changes its speed and direction rather than setting its position directly;
-- wheel or trackpad input over the forming geometry stays with the animation, releasing back to
-  the page at the reverse starting boundary or permanently once formation completes;
-- the geometry grows with that formation and is brighter and larger on mobile;
-- after formation, the completed 3D star rotates slowly;
-- mouse or one-finger drag turns it about the screen axes;
-- release holds the chosen orientation for two seconds so another drag can continue from
-  it; after that idle delay, the shortest eased path returns to the ambient track;
-- grabbing it during the hold or return cancels the reset immediately;
-- scrolling down accelerates the formation; scrolling upward slows it through zero and reverses it;
-  clicks do not pause it;
-- a `drag to spin` hint rises beneath the completed geometry;
-- before the final part of the descent, the iframe ignores pointer input so it cannot
-  trap a mobile scroll gesture;
-- reduced-motion mode keeps the star static but still permits direct inspection.
-
-The portfolio remains plain HTML, CSS, and JavaScript. The renderer is isolated in an
-iframe so its canvas styles and pointer handling do not leak into the surrounding page.
-
-### Turbopuffer React deliverable
-
-The portfolio itself remains vanilla, but the Turbopuffer case study links the dedicated
-public repository at `theMTset/scramble-text-interaction`. That repository owns the tested
-React + TypeScript component, live Vite demo, integration instructions, accessibility
-behavior, reduced-motion handling, and 0BSD license. Keeping the reusable artifact in its
-own repository avoids two competing source copies.
-
-### Simply Curious selected-work preview
-
-`assets/work/star-tetrahedron.html` is a standalone build of the complete latest pushed
-Simply Curious hero component at commit `24f95c0314782f69706d2ec114fcafd67c1b9cfe`.
-Unlike the simplified blue descent adaptation, this preview preserves the full
-click-to-start sequence and product interactions, with its original gold treatment on a
-black ground. `assets/work/sc-logo-mark-thin.svg` supplies the animation's background-logo
-bloom. The separate Simply Curious logo tile also uses true black so both work samples
-share the product presentation.
-
----
-
-## The scroll cue
-
-The cue now catches the same lightning as the question at scroll zero and fades out as
-soon as `--progress` rises. It is not permanently visible in the dark, so the opening
-keeps its atmosphere, but every readable strike also reveals the instruction to “look
-deeper.” After the two choreographed opening strikes, sparse lightning continues while
-the visitor remains in the opening or answer. Crossing into the descent clears the storm
-and cancels its timer; returning above that boundary resumes it. Reduced-motion mode
-supplies a static low-opacity fallback because no strike will occur.
-
-The ∅ mark is a restrained link to `https://github.com/theMTset`. On small screens its
-backlight keeps a low resting opacity so the link remains discoverable after the storm
-without reading as a conventional call to action. The descent also uses a slightly
-brighter mobile-only shaft gradient and ring edge so the hole remains legible on a small,
-dark display; the desktop treatment is unchanged.
-
----
-
-## Branching and role-specific portfolios
-
-`main` is the generic, role-neutral portfolio foundation. Shared improvements belong on
-`main` first: storm behavior, the opening and descent, accessibility, generic About or
-contact content, shared components, and bug fixes.
-
-Role-specific applications branch from `main`, for example:
-
-- `designer-application` — interaction design, motion, brand, and Turbopuffer-specific copy;
-- a future data-center branch — systems, operations, electrical work, troubleshooting,
-  and infrastructure-specific selected work.
-
-Do not merge job-targeted headlines, project ordering, employer references, or metadata
-back into `main`. To make a new application, branch from current `main`, then tailor only
-the role-specific layer. When a shared improvement is discovered on an application
-branch, implement or cherry-pick it onto `main` and merge `main` back into every active
-application branch that needs it. Never use an application branch as the base for an
-unrelated role.
-
-### Application URLs
-
-`.github/workflows/deploy-pages.yml` assembles one Pages artifact from the portfolio
-branches. Generic `main` is published at `https://themtset.github.io/`, while
-`designer-application` is published at the shorter application URL
-`https://themtset.github.io/da/`. Both sites keep their assets self-contained through
-relative paths. A future application needs an explicit branch-to-directory entry in the
-workflow so every shared URL stays intentional and stable.
-
-The repository's Pages source must use **GitHub Actions**, not the legacy single-branch
-source, for this combined artifact to deploy.
-
-## Open questions
-
-- [ ] Does the generic portfolio eventually include a conventional work index, or remain
-      only the shared entrance used by role-specific branches?
-- [ ] Is this the primary portfolio URL, or an entrance that hands off to a plainer site?
-- [ ] Static site or Astro once generic case-study pages justify shared templates?
-- [ ] Real name and contact surfaced on generic `main`, or only on application branches?
+- Add a current, friendly portrait.
+- Add two to four photos of electrical, construction, remodeling, flooring, or farm work.
+- Replace the general Workaway link with Matt's actual profile URL when available.
+- Confirm exact travel dates and preferred minimum/maximum stay.
+- Decide whether childcare should be stated explicitly after listing ages and relevant duties.
+- Confirm whether any electrical credential should be named publicly.

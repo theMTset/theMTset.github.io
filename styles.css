@@ -1,978 +1,826 @@
 :root {
-  color-scheme: dark;
-  --light: 0;
-  --progress: 0;
-  --descent-progress: 0;
-  --cold: 192, 220, 255;
-  --paper: #e9eef2;
-
-  /* "is it empty?" visibility.
-     --question-rest: alpha with no lightning. 0 = unreadable in the dark. Original value: .025
-     --question-lit:  alpha the lightning adds on top. Original value: .96 */
-  --question-rest: 0;
-  --question-lit: .96;
-
-  /* Lingering text glow after the big second strike. Driven by JS, decays to 0.
-     Separate from --light so the sky goes dark while the words stay lit. */
-  --afterglow: 0;
-
-  /* What the text is lit by: the storm itself, or its afterglow. */
-  --lit: max(var(--light), var(--afterglow));
-
-  /* Resting opacity of the "look deeper" cue. 0 = it only exists in the lightning. */
-  --cue-rest: 0;
-
-  /* How brightly the sky behind the ∅ flares. The mark itself never lights up —
-     it is a void, and you only see it because the light is behind it. */
-  --mark-glow: .5;
-
-  /* How far the ∅ has travelled from the opening to its rest above "no" (0–1, set by JS).
-     It doubles as the mark's light: at 1 the glow equals a direct lightning strike. */
-  --mark-travel: 0;
-
-  /* Floor under the ∅'s glow so it is never fully invisible between strikes. Phones are
-     dimmer and often held in daylight, so the mobile floor is higher. */
-  --mark-rest: .12;
-
-  /* What a hand on the screen adds (0–1.45, set by JS). It is allowed past 1 — past the
-     lightning-struck state — so dragging while you hold reads as brighter than any strike. */
-  --mark-touch: 0;
-
-  /* One viewport height, held still. The three scroll-driven sections below are runways —
-     their height is how much scrolling their animation gets — and together they are almost
-     nine viewports tall. In raw vh that made the whole page a nine-times lever on the
-     viewport height: a phone toolbar sliding in or out is about a hundred pixels, so the
-     bottom of the document jumped by nearly nine hundred, which is why the closing words
-     leapt down the screen for no visible reason. Script pins this to a pixel value and only
-     re-takes it when the width changes — a real layout change — so a toolbar coming and
-     going no longer moves anything. The 1vh default keeps it sane without script. */
-  --vh: 1vh;
+  --ink: #163330;
+  --ink-deep: #0c2827;
+  --fern: #436b52;
+  --fern-light: #dbe5d4;
+  --ocean: #2b6970;
+  --sand: #f3eddf;
+  --paper: #fffdf7;
+  --sun: #efb84a;
+  --clay: #bf654a;
+  --line: rgba(22, 51, 48, 0.17);
+  --muted: #5a6863;
+  --radius: 1.3rem;
+  --shadow: 0 24px 60px rgba(12, 40, 39, 0.12);
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 html {
-  background: #000;
-  color: var(--paper);
-  font-family: "Space Grotesk", "Inter", sans-serif;
   scroll-behavior: smooth;
-  scrollbar-color: #30343a #000;
 }
 
 body {
   margin: 0;
-  min-width: 320px;
-  overflow-x: hidden;
-  background: #000;
+  color: var(--ink);
+  background: var(--paper);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.6;
 }
 
-button { font: inherit; }
-
-.noise,
-.flash,
-.storm {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-.noise {
-  z-index: 20;
-  opacity: calc(.025 + var(--light) * .07);
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E");
-  mix-blend-mode: screen;
-}
-
-.flash {
-  z-index: 18;
-  opacity: var(--light);
-  background:
-    radial-gradient(circle at var(--strike-x, 52%) -10%, rgba(225, 240, 255, .95), transparent 48%),
-    linear-gradient(rgba(112, 151, 183, .22), rgba(8, 16, 24, .1));
-  mix-blend-mode: screen;
-}
-
-.storm {
-  z-index: 19;
-  opacity: calc(var(--light) * 1.3);
-  overflow: visible;
-}
-
-/* Lightning is confined to the opening and answer; scroll logic applies this at descent. */
-.storm-paused .flash,
-.storm-paused .storm { opacity: 0; }
-.storm-paused .noise { opacity: .025; }
-
-.bolt {
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
-}
-
-.bolt-glow {
-  stroke: rgba(140, 195, 255, .62);
-  stroke-width: 8;
-  filter: url(#lightning-glow);
-}
-
-.bolt-core { stroke: #f5fbff; stroke-width: 1.2; }
-.bolt-branch { stroke: rgba(225, 242, 255, .86); stroke-width: .8; }
-
-/* The second strike is physically heavier as well as brighter. */
-.big-strike .bolt-glow { stroke-width: 12; }
-.big-strike .bolt-core { stroke-width: 1.8; }
-.big-strike .bolt-branch { stroke-width: 1.15; }
-.big-strike .storm { opacity: calc(var(--light) * 1.55); }
-
-.sound-toggle {
-  position: fixed;
-  z-index: 30;
-  top: 1.5rem;
-  right: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: .65rem;
-  padding: .6rem;
-  border: 0;
-  color: rgba(230, 238, 244, .42);
-  background: transparent;
-  cursor: pointer;
-  transition: color .3s ease;
-}
-
-.sound-toggle:hover,
-.sound-toggle:focus-visible { color: rgba(240, 247, 252, .9); }
-.sound-toggle:focus-visible { outline: 1px solid rgba(210, 230, 245, .45); outline-offset: 4px; }
-
-.sound-icon {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  border: 1px solid currentColor;
-  box-shadow: 0 0 10px currentColor;
-}
-
-.sound-toggle[aria-pressed="true"] .sound-icon {
-  background: currentColor;
-  animation: soundPulse 2.4s ease-in-out infinite;
-}
-
-.sound-label {
-  font: 400 .58rem/1 "Inter", sans-serif;
-  letter-spacing: .18em;
-  text-transform: uppercase;
-}
-
-.opening { height: calc(var(--vh) * 185); }
-
-/* Question and mark are one centred group. Without this the implicit rows stretch to
-   fill the viewport and the two split to opposite halves of the screen. */
-.opening-sticky { align-content: center; }
-
-.opening-sticky,
-.answer-sticky {
-  position: sticky;
-  top: 0;
-  display: grid;
-  place-items: center;
-  height: 100vh;
-  height: 100svh;
-  overflow: hidden;
-}
-
-.question {
-  margin: 0;
-  color: rgba(224, 234, 241, calc(var(--question-rest) + var(--lit) * var(--question-lit)));
-  font-size: clamp(2.1rem, 6.5vw, 6.8rem);
-  font-weight: 300;
-  letter-spacing: -.045em;
-  text-shadow:
-    0 0 calc(12px * var(--lit)) rgba(var(--cold), calc(var(--lit) * .9)),
-    0 0 calc(50px * var(--lit)) rgba(var(--cold), calc(var(--lit) * .5));
-  /* --progress is eased so the first few pixels of scroll already move the question
-     noticeably; a linear ramp over the opening's 85vh of stick read as nothing happening. */
-  opacity: clamp(0, calc(1 - var(--progress) * 1.15), 1);
-  transform: translateY(calc(var(--progress) * -20vh));
-  transition: color 80ms linear;
-}
-
-.storm-lit { user-select: none; }
-
-/* The empty set. Drawn rather than loaded so its geometry can be tuned and its glow can be
-   driven by the storm. Reference art: image.png (unused).
-
-   It is fixed rather than in flow: JS carries it from the opening down to a rest above the
-   "no" line, so it has to escape both sticky frames and their overflow clipping. The slot
-   below keeps its place in the opening's centred group. */
-.mark {
-  position: fixed;
-  z-index: 6;
-  top: 0;
-  left: 50%;
-  display: grid;
-  place-items: center;
+a {
   color: inherit;
-  text-decoration: none;
-  border-radius: 50%;
-  transform: translate3d(-50%, 50vh, 0);
-  will-change: transform;
 }
 
-.mark,
-.mark-slot {
-  width: clamp(3.6rem, 8vw, 6.5rem);
-  aspect-ratio: 1;
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 100;
+  padding: 0.7rem 1rem;
+  color: white;
+  background: var(--ink-deep);
+  transform: translateY(-150%);
 }
 
-.mark-slot { margin-top: clamp(2.5rem, 6vh, 5rem); }
-
-.mark:focus-visible {
-  outline: 1px solid rgba(var(--cold), .38);
-  outline-offset: .65rem;
+.skip-link:focus {
+  transform: translateY(0);
 }
 
-/* The pool of light behind the mark. This is the only part that brightens.
-   Three things can light it: the storm, the descent itself, or a hand on the screen.
-   --mark-travel rises with scroll, so by the time the mark settles above "no" it holds the
-   lightning-struck state permanently instead of waiting for the next strike. Whichever
-   source is strongest wins, so touching never dims a mark the storm is already lighting. */
-.mark::before {
-  content: "";
-  position: absolute;
-  inset: -60%;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(var(--cold), .62), rgba(var(--cold), .18) 44%, transparent 70%);
-  opacity: calc(max(var(--lit), var(--mark-travel), var(--mark-rest), var(--mark-touch)) * var(--mark-glow));
-  /* The pool swells slightly under a hand, so the touch reads as light spreading rather
-     than a level being turned up. */
-  transform: scale(calc(1 + var(--mark-touch) * .11));
-}
-
-.mark svg {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-.mark :is(circle, line) {
-  fill: none;
-  stroke: #04070a;
-  stroke-width: 5.8;
-}
-
-.scroll-cue {
-  position: absolute;
-  bottom: 2rem;
-  left: 50%;
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  gap: .75rem;
-  /* Lit by the storm like everything else, then fades out once you start scrolling.
-     Original (faded IN as you scrolled): clamp(0, calc((var(--progress) - .03) * 8), .42) */
-  opacity: calc((var(--cue-rest) + var(--lit) * .45) * clamp(0, calc(1 - var(--progress) * 4), 1));
-  transform: translateX(-50%);
-}
-
-.scroll-cue span {
-  font: 400 .57rem/1 "Inter", sans-serif;
-  letter-spacing: .22em;
-  text-transform: uppercase;
-}
-
-.scroll-cue i {
-  display: block;
-  width: 1px;
-  height: 38px;
-  background: linear-gradient(var(--paper), transparent);
-  animation: drift 2.2s ease-in-out infinite;
-}
-
-.answer {
-  position: relative;
-  z-index: 2;
-  height: calc(var(--vh) * 205);
-  background: radial-gradient(ellipse at 50% 50%, rgba(8, 14, 19, .8), #000 63%);
-}
-
-/* Drops the whole answer group down the screen. The ∅ hangs at a spot measured off the
-   opening, so lowering the text here does not lower the ∅ with it — it opens the gap the ∅
-   hangs above, which is the point. Padding rather than a transform because the group is
-   centred in the content box: the text moves down by half of this. */
-.answer-sticky {
-  align-content: center;
-  padding-top: clamp(3rem, 7vh, 5.5rem);
-}
-
-.small-line,
-.answer-title,
-.answer-whisper { grid-area: 1 / 1; margin: 0; }
-
-/* letter-spacing is applied after the last glyph too, so a tracked word carries a trailing
-   gap its box counts but the eye does not. Centring the box therefore parks the letters left
-   of centre — visible here, because the ∅ hangs directly above and gives the eye an axis to
-   measure against. Pulling the trailing space back off the box re-centres the glyphs. */
-.small-line {
-  align-self: center;
-  margin-right: -.55em;
-  color: rgba(215, 229, 238, .65);
-  font: 300 clamp(.82rem, 1.2vw, 1rem)/1 "Inter", sans-serif;
-  letter-spacing: .55em;
-  transform: translateY(-8rem);
-}
-
-.answer-title {
-  color: rgba(230, 238, 243, .92);
-  font-size: clamp(2.7rem, 8vw, 8.5rem);
-  font-weight: 300;
-  letter-spacing: -.06em;
-}
-
-.answer-title strong {
-  color: #fff;
-  font-weight: 500;
-  letter-spacing: -.08em;
-  text-shadow: 0 0 35px rgba(160, 211, 255, .25);
-}
-
-/* Same trailing-space correction, on the same centre line. */
-.answer-whisper {
-  align-self: center;
-  margin-right: -.35em;
-  color: rgba(215, 229, 238, .48);
-  font: 300 .65rem/1 "Inter", sans-serif;
-  letter-spacing: .35em;
-  text-transform: uppercase;
-  transform: translateY(9rem);
-}
-
-.descent {
-  position: relative;
-  z-index: 3;
-  min-height: calc(var(--vh) * 500);
-  background: #000;
-}
-
-.shaft {
-  position: sticky;
-  top: 0;
-  width: 100%;
-  height: 100vh;
-  height: 100svh;
-  overflow: hidden;
-  perspective: 700px;
-  background: radial-gradient(circle at 50% 37%, #071019 0, #020406 12%, #000 34%);
-}
-
-.shaft-rings {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.ring {
-  position: absolute;
-  top: 37%;
-  left: 50%;
-  border-radius: 44% 56% 52% 48% / 56% 42% 58% 44%;
-  transform: translate(-50%, -50%) rotate(var(--turn));
-  border: 1px solid rgba(126, 156, 178, .08);
-  box-shadow: inset 0 0 80px rgba(89, 127, 155, .055), 0 0 35px #000;
-}
-
-.ring::before,
-.ring::after {
-  content: "";
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(174, 208, 229, .09);
-  filter: blur(2px);
-}
-
-.ring::before { width: 5px; height: 5px; top: 14%; left: 15%; }
-.ring::after { width: 3px; height: 3px; right: 9%; bottom: 27%; }
-.ring-1 { --turn: 8deg; width: 130vmax; height: 110vmax; }
-.ring-2 { --turn: -14deg; width: 82vmax; height: 72vmax; }
-.ring-3 { --turn: 28deg; width: 48vmax; height: 42vmax; }
-.ring-4 { --turn: -38deg; width: 25vmax; height: 21vmax; }
-
-.descent-geometry {
-  position: absolute;
-  z-index: 4;
-  top: 37%;
-  left: 50%;
-  width: 5rem;
-  aspect-ratio: 1;
-  transform: translate(-50%, -50%);
-  filter:
-    drop-shadow(0 0 14px rgba(255, 255, 255, .3))
-    drop-shadow(0 0 38px rgba(153, 207, 255, .2));
-}
-
-.descent-geometry iframe {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border: 0;
-  border-radius: 50%;
-}
-
-.geometry-hint {
-  position: absolute;
-  top: calc(100% + .75rem);
-  left: 50%;
-  width: max-content;
-  margin: 0;
-  color: rgba(245, 249, 252, .72);
-  font: 400 .62rem/1 "Inter", sans-serif;
-  letter-spacing: .2em;
-  text-transform: uppercase;
-  text-shadow: 0 1px 12px #000;
-  opacity: 0;
-  transform: translate(-50%, 1rem);
-  transition: opacity .65s ease, transform .65s cubic-bezier(.22, .61, .36, 1);
-  pointer-events: none;
-}
-
-.descent-geometry.geometry-ready .geometry-hint {
-  opacity: 1;
-  transform: translate(-50%, 0);
-}
-
-/* Before direct manipulation becomes available, a vertical-resize cursor names the wheel's
-   temporary job: it changes playback speed and direction while the pointer is over the form. */
-.descent-geometry.geometry-playing:not(.geometry-ready) { cursor: ns-resize; }
-
-/* Centred under the geometry rather than off in a corner. The top has to clear two things,
-   not one: the geometry itself — centred at 37%, capped at 58vh tall, so its bottom edge
-   reaches 66% at worst — and then `drag to spin`, which hangs below that and lands near 68%.
-   72% clears both with air to spare, which is the whole point: the two must not read as one
-   crowded block. The copy starts at that line rather than centring in the leftover space, so
-   it stays under the animation instead of drifting to the bottom of the screen. The bottom
-   anchor is only a floor. Centring is done with auto margins, not a transform, so nothing
-   here fights the animations. */
-.descent-copy {
-  position: absolute;
-  z-index: 5;
-  inset-inline: 0;
-  top: 72%;
-  bottom: clamp(.75rem, 2vh, 2rem);
-  display: grid;
-  align-content: start;
-  justify-items: center;
-  width: min(40rem, 88vw);
+.site-header,
+.section,
+.hero,
+.proof-strip,
+footer {
+  width: min(1180px, calc(100% - 3rem));
   margin-inline: auto;
-  color: rgba(228, 237, 242, .88);
-  text-align: center;
-  text-shadow: 0 2px 24px #000, 0 0 8px #000;
-  pointer-events: none;
 }
 
-/* Guarded, so the whole passage still reads if the script never runs. */
-.js :is(.descent-lead, .descent-claim, .iui-letter, .iui-tail) { opacity: 0; }
-
-:is(.descent-lead, .descent-claim, .iui-letter, .iui-tail) {
-  will-change: transform, opacity;
-  backface-visibility: hidden;
-}
-
-/* The claim itself, and the largest line in the passage. The one below it is the aside that
-   lands the joke, so it steps down rather than up. */
-.descent-lead {
-  margin: 0;
-  color: rgba(230, 238, 243, .94);
-  font-size: clamp(1.15rem, 2vw, 1.6rem);
-  font-weight: 300;
-  line-height: 1.25;
-  letter-spacing: -.025em;
-}
-
-.descent-claim {
-  margin: clamp(.4rem, 1.1vh, .8rem) 0 0;
-  color: rgba(203, 219, 229, .66);
-  font: 300 clamp(.85rem, 1.4vw, 1.1rem)/1.4 "Inter", sans-serif;
-  letter-spacing: .015em;
-}
-
-/* Both halves of the pun carry it: the IUI above and the UI below are coloured the same, so
-   the eye sees one contained in the other before the acrostic spells out why. */
-.iui-name {
-  color: rgba(var(--cold), .95);
-  font-weight: 400;
-  letter-spacing: .04em;
-}
-
-/* The block is centred but its rows are left-aligned, which is what stacks I / U / I into a
-   readable column. The tails hold their width from the start even while invisible, so the
-   letters are already standing where the finished words will leave them and nothing reflows
-   as the words arrive. */
-.iui {
-  justify-self: center;
-  margin: clamp(.7rem, 2vh, 1.5rem) 0 0;
-  padding: 0;
-  list-style: none;
-  text-align: left;
-}
-
-/* Sized against viewport height as well as width. The passage now lives in the band below
-   both the geometry and its hint, and height is what that band is short of — a width-only
-   scale blows the three rows straight out of it on a short laptop. */
-.iui-row {
-  font-size: clamp(1.4rem, min(4.4vw, 4.6vh), 3rem);
-  font-weight: 300;
-  line-height: 1.02;
-  letter-spacing: -.045em;
-  white-space: nowrap;
-}
-
-/* Inline text cannot be transformed, and both halves are moved: the tail crosses the screen,
-   the letter takes the hit. */
-.iui-letter,
-.iui-tail { display: inline-block; }
-
-/* The word arrives from the right, so that edge is the contact face and stays put while the
-   letter gives behind it. */
-.iui-letter { transform-origin: right center; }
-
-.work {
-  position: relative;
-  z-index: 5;
-  background: #000;
-  padding: 6rem 8vw 8rem;
+.site-header {
+  min-height: 5.25rem;
   display: flex;
-  flex-direction: column;
-  gap: 6rem;
-}
-
-.work-heading {
-  margin: 0;
-  color: rgba(230, 238, 243, .5);
-  font-size: .8rem;
-  font-weight: 400;
-  letter-spacing: .3em;
-  text-transform: uppercase;
-}
-
-.work-piece {
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-  gap: 3rem;
   align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  border-bottom: 1px solid var(--line);
 }
 
-.work-piece-reverse {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 750;
+  text-decoration: none;
+  letter-spacing: -0.02em;
 }
 
-.work-piece-reverse .work-embed { order: 2; }
-.work-piece-reverse .work-copy { order: 1; }
-
-.work-embed {
-  aspect-ratio: 4 / 3;
-  border-radius: 4px;
-  overflow: hidden;
-  border: 1px solid rgba(230, 238, 243, .12);
-}
-
-.work-embed-dark { background: #0f172a; }
-.work-embed-light { background: var(--paper); }
-.work-embed-simply-animation,
-.work-embed-logo-black { background: #000; }
-
-.work-embed iframe {
-  width: 100%;
-  height: 100%;
-  border: 0;
-}
-
-.work-embed-logo {
+.wordmark-mark {
   display: grid;
-  place-content: center;
-  padding: 3rem;
+  place-items: center;
+  width: 2.3rem;
+  aspect-ratio: 1;
+  color: white;
+  background: var(--ink);
+  border-radius: 50%;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
 }
 
-.work-embed-logo img {
-  width: 100%;
-  max-width: 220px;
-}
-
-.work-embed-natures {
-  position: relative;
+nav {
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  background: #f3e7d6;
-  color: #4e463c;
-  isolation: isolate;
+  align-items: center;
+  gap: 1.7rem;
+  font-size: 0.9rem;
+  font-weight: 650;
 }
 
-.work-embed-natures::before {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: radial-gradient(circle at 50% 25%, rgba(255, 247, 234, .92), transparent 48%);
+nav a {
+  text-decoration: none;
+}
+
+nav a:hover,
+nav a:focus-visible {
+  color: var(--clay);
+}
+
+.nav-cta {
+  padding: 0.62rem 1rem;
+  color: white;
+  background: var(--ink);
+  border-radius: 999px;
+}
+
+nav .nav-cta:hover,
+nav .nav-cta:focus-visible {
+  color: white;
+  background: var(--clay);
+}
+
+.hero {
+  min-height: 690px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(290px, 0.65fr);
+  align-items: center;
+  gap: clamp(3rem, 8vw, 7rem);
+  padding-block: 6rem;
+}
+
+.hero::before {
   content: "";
-}
-
-.work-embed-natures img {
   position: absolute;
-  inset: auto 0 0;
   z-index: -1;
-  width: 100%;
-  height: 70%;
-  object-fit: cover;
-  object-position: center bottom;
+  top: 5.25rem;
+  right: 0;
+  width: min(35vw, 520px);
+  height: 690px;
+  background:
+    radial-gradient(circle at 40% 28%, rgba(239, 184, 74, 0.22), transparent 28%),
+    linear-gradient(145deg, rgba(67, 107, 82, 0.08), rgba(43, 105, 112, 0.13));
+  border-bottom-left-radius: 9rem;
 }
 
-.natures-preview-copy {
-  padding: 10% 1.5rem 0;
-  text-align: center;
-}
-
-.natures-preview-copy span {
-  display: block;
-  margin-bottom: .75rem;
-  color: #b5813c;
-  font-size: clamp(.55rem, 1vw, .8rem);
-  font-weight: 500;
-  letter-spacing: .16em;
+.eyebrow {
+  margin: 0 0 1.15rem;
+  color: var(--clay);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
-.natures-preview-copy strong {
-  font-family: "Space Grotesk", sans-serif;
-  font-size: clamp(1.1rem, 2.5vw, 2rem);
-  font-weight: 400;
-  line-height: 1.2;
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
 }
 
-.natures-preview-copy em {
-  color: #9b6b2c;
-  font-style: normal;
+h1,
+h2,
+h3 {
+  line-height: 1.08;
+  letter-spacing: -0.045em;
 }
 
-.work-label {
-  display: block;
-  margin-bottom: .75rem;
-  color: rgba(var(--cold), .85);
-  font-size: .72rem;
+h1 {
+  max-width: 820px;
+  margin-bottom: 1.7rem;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(3.3rem, 6.3vw, 6rem);
   font-weight: 500;
-  letter-spacing: .18em;
+}
+
+h2 {
+  margin-bottom: 1.4rem;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.5rem, 4.5vw, 4.4rem);
+  font-weight: 500;
+}
+
+h3 {
+  margin-bottom: 1rem;
+  font-size: 1.35rem;
+}
+
+.lede {
+  max-width: 720px;
+  margin-bottom: 2rem;
+  color: var(--muted);
+  font-size: clamp(1.08rem, 1.7vw, 1.3rem);
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3.15rem;
+  padding: 0.75rem 1.3rem;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  font-size: 0.92rem;
+  font-weight: 750;
+  text-decoration: none;
+  transition: 160ms ease;
+}
+
+.button:hover,
+.button:focus-visible {
+  transform: translateY(-2px);
+}
+
+.button-primary {
+  color: white;
+  background: var(--ink);
+}
+
+.button-primary:hover,
+.button-primary:focus-visible {
+  border-color: var(--clay);
+  background: var(--clay);
+}
+
+.button-secondary {
+  background: transparent;
+}
+
+.snapshot {
+  position: relative;
+  padding: 2.2rem;
+  color: white;
+  background: var(--ink);
+  border-radius: var(--radius);
+  box-shadow: 1rem 1rem 0 var(--sun), var(--shadow);
+  transform: rotate(1.25deg);
+}
+
+.snapshot-label {
+  margin-bottom: 1.8rem;
+  color: #c5d7cc;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
 }
 
-.work-copy p {
-  margin: 0 0 .9rem;
-  color: rgba(230, 238, 243, .82);
-  font-size: 1.05rem;
-  font-weight: 300;
+.snapshot dl {
+  margin: 0;
+}
+
+.snapshot dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 0.9rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.snapshot dt {
+  color: #c5d7cc;
+  font-size: 0.83rem;
+}
+
+.snapshot dd {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 750;
+  text-align: right;
+}
+
+.snapshot-note {
+  margin: 1.35rem 0 0;
+  color: #c5d7cc;
+  font-size: 0.8rem;
   line-height: 1.5;
 }
 
-.work-copy .work-detail {
-  margin-bottom: 0;
-  color: rgba(230, 238, 243, .48);
-  font-size: .92rem;
-}
-
-.work-code-link {
-  display: inline-flex;
-  align-items: baseline;
-  gap: .45rem;
-  margin-top: 1.25rem;
-  padding-bottom: .2rem;
-  color: rgba(var(--cold), .78);
-  font: 400 .72rem/1.4 "Inter", sans-serif;
-  letter-spacing: .12em;
-  text-decoration: none;
-  text-transform: uppercase;
-  border-bottom: 1px solid rgba(var(--cold), .25);
-  transition: color .2s ease, border-color .2s ease;
-}
-
-.work-code-link:hover,
-.work-code-link:focus-visible {
-  color: rgba(var(--cold), 1);
-  border-color: rgba(var(--cold), .75);
-}
-
-.work-code-link:focus-visible { outline: 1px solid rgba(var(--cold), .65); outline-offset: 4px; }
-
-.about {
-  position: relative;
-  z-index: 5;
-  background: #000;
-  /* The signature is the end of the reading; the closing set below is a separate beat, not a
-     continuation. It needs a break, not a void — this used to be 8rem, which combined with the
-     contact's own padding put nearly 200px of pure emptiness between them. */
-  padding: 2rem 8vw 4rem;
-}
-
-.about-inner {
-  max-width: 42rem;
-}
-
-.about-inner p {
-  margin: 0 0 1.4rem;
-  color: rgba(230, 238, 243, .82);
-  font-size: 1.15rem;
-  font-weight: 300;
-  line-height: 1.55;
-}
-
-.about-signature {
-  margin-top: 2.5rem;
-  color: rgba(230, 238, 243, .4);
-  font-size: .78rem;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-}
-
-.contact {
-  position: relative;
-  z-index: 5;
-  /* The words arrive from off the side of the screen, and until they land the document is
-     wider than the viewport — measured at 501px across a 390px phone. The viewport's own
-     overflow-x: hidden stops that becoming a scrollbar, but it does not stop the document
-     being that wide, and a document wider than the viewport is exactly what makes a mobile
-     browser reflow or rescale to fit. Clipped here, the entry never leaves the section.
-     `clip` rather than `hidden` so this does not become a scroll container. */
-  overflow-x: clip;
+.proof-strip {
   display: grid;
-  place-content: center;
-  /* Without this the address stretches to the column width and its underline runs on
-     well past the text. */
-  justify-items: center;
-  gap: 2rem;
-  /* Enough room for the set to land in and be the closing beat, but no more. At 60vh the
-     content — about 100px of it — floated in the middle of a half-empty screen, and the
-     centring turned the surplus into 120px of slack above the words as well as below.
-     Locked to the held viewport unit, so the words hold still when a toolbar slides. */
-  min-height: calc(var(--vh) * 32);
-  text-align: center;
-  background: #000;
-  padding: 3.5rem 8vw 6rem;
-  /* Belt and braces for the same jump. If anything in here does change size, the browser's
-     scroll anchoring would otherwise "helpfully" scroll the page to compensate, which is felt
-     as the whole view lurching rather than as one element resizing. */
-  overflow-anchor: none;
+  grid-template-columns: repeat(4, 1fr);
+  border-block: 1px solid var(--line);
 }
 
-/* Flex rather than inline text so the words are individually animatable and the whitespace
-   between them collapses; gap does the spacing. It wraps to as many lines as it needs. */
-.contact-set {
+.proof-strip p {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: center;
-  gap: .3em .5em;
-  max-width: 64rem;
-  margin: 0 auto;
-  color: rgba(230, 238, 243, .82);
-  font-size: clamp(1.15rem, 3.2vw, 1.75rem);
-  font-weight: 300;
-  line-height: 1.4;
+  flex-direction: column;
+  margin: 0;
+  padding: 1.7rem;
+  border-left: 1px solid var(--line);
 }
 
-.contact-set .brace {
-  color: rgba(var(--cold), .5);
-  font-style: normal;
+.proof-strip p:first-child {
+  border-left: 0;
 }
 
-/* The rows are a grouping for phones only. Here they dissolve, so braces and words are the
-   flex line's own children and the set stays a single row exactly as before. */
-.set-row { display: contents; }
-
-/* Everything holds its layout position while hidden, so the closing brace never jumps as
-   the set fills — it is already waiting where the last word will end. Script drives the
-   words and their letters; the braces are the only part CSS animates, because they arrive
-   first and alone. Named rather than `> *`, because opacity does nothing to a row that is
-   display: contents and the words would sit visible until the reveal. */
-.js .contact-set :is(.brace, .key-word) { opacity: 0; }
-
-.contact.revealed .brace {
-  animation: wordArrive .9s cubic-bezier(.22, .61, .36, 1) both;
+.proof-strip strong {
+  color: var(--clay);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.65rem;
+  font-weight: 500;
 }
 
-/* A word is one unbreakable run of text right up until the script splits it into letters —
-   and then it is not, because every inline-block is a place the browser may break a line. So
-   at the instant the set was revealed, rows that had been sitting on one line could suddenly
-   break mid-word onto two, the set grew by a whole line, and a centred group in the page's
-   last section moved to absorb it. That is the jump: not the animation, the reflow underneath
-   it. Holding each word together keeps the split invisible to layout — rows still wrap
-   between whole words, which is the flex container's job and unaffected by this. */
-.key-word { white-space: nowrap; }
-
-/* Transforms on inline text do nothing, and the letters have to be able to turn and cross
-   each other without disturbing the layout they will return to. */
-.contact-set .ltr {
-  display: inline-block;
-  backface-visibility: hidden;
+.proof-strip span {
+  color: var(--muted);
+  font-size: 0.8rem;
 }
 
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
+.section {
+  padding-block: clamp(6rem, 11vw, 10rem);
+}
+
+.section-heading {
+  display: grid;
+  grid-template-columns: 1.25fr 0.75fr;
+  column-gap: 5rem;
+  align-items: end;
+  margin-bottom: 4rem;
+}
+
+.section-heading .eyebrow {
+  grid-column: 1 / -1;
+}
+
+.section-heading h2 {
+  margin-bottom: 0;
+}
+
+.section-heading > p:last-child {
+  margin-bottom: 0.55rem;
+  color: var(--muted);
+}
+
+.skill-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+}
+
+.skill-card {
+  min-height: 330px;
+  padding: 2.4rem;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.skill-card:nth-child(even) {
+  margin-top: 2rem;
+  margin-bottom: -2rem;
+}
+
+.skill-number {
+  display: block;
+  margin-bottom: 4.8rem;
+  color: var(--clay);
+  font-size: 0.77rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.skill-card p {
+  max-width: 500px;
+  color: var(--muted);
+}
+
+.skill-card .fine-print {
+  font-size: 0.78rem;
+}
+
+.trade-card {
+  background: rgba(239, 184, 74, 0.12);
+}
+
+.digital-card {
+  background: rgba(43, 105, 112, 0.09);
+}
+
+.land-card {
+  background: rgba(67, 107, 82, 0.09);
+}
+
+.hawaii-section {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   padding: 0;
+  color: white;
+  background: var(--ink-deep);
+}
+
+.island-art {
+  position: relative;
+  min-height: 720px;
   overflow: hidden;
-  border: 0;
-  white-space: nowrap;
-  clip-path: inset(50%);
+  background:
+    linear-gradient(to bottom, rgba(255,255,255,0.07), transparent 60%),
+    var(--ocean);
 }
 
-.contact-links {
+.island-art::before {
+  content: "KAUAI";
+  position: absolute;
+  top: 2.5rem;
+  left: 2.5rem;
+  color: rgba(255,255,255,0.65);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.3em;
+}
+
+.sun {
+  position: absolute;
+  top: 17%;
+  left: 18%;
+  width: 9rem;
+  aspect-ratio: 1;
+  background: var(--sun);
+  border-radius: 50%;
+  box-shadow: 0 0 80px rgba(239, 184, 74, 0.32);
+}
+
+.ridge {
+  position: absolute;
+  left: -10%;
+  width: 120%;
+  clip-path: polygon(0 70%, 12% 58%, 22% 63%, 35% 35%, 43% 49%, 53% 21%, 61% 48%, 72% 42%, 84% 63%, 100% 52%, 100% 100%, 0 100%);
+}
+
+.ridge-back {
+  bottom: 27%;
+  height: 58%;
+  background: #3d6757;
+}
+
+.ridge-front {
+  bottom: 13%;
+  height: 55%;
+  background: #183f38;
+  clip-path: polygon(0 70%, 14% 49%, 24% 58%, 39% 31%, 51% 52%, 65% 25%, 75% 55%, 89% 44%, 100% 58%, 100% 100%, 0 100%);
+}
+
+.water-line {
+  position: absolute;
+  right: -5%;
+  width: 70%;
+  height: 1px;
+  background: rgba(255,255,255,0.38);
+}
+
+.water-one { bottom: 9%; }
+.water-two { bottom: 6%; width: 50%; }
+.water-three { bottom: 3%; width: 35%; }
+
+.hawaii-copy {
+  align-self: center;
+  max-width: 650px;
+  padding: clamp(4rem, 8vw, 8rem);
+}
+
+.hawaii-copy .eyebrow {
+  color: var(--sun);
+}
+
+.hawaii-copy p:not(.eyebrow) {
+  color: #c5d7cc;
+}
+
+.work-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.work-card {
+  min-height: 320px;
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: center;
-  gap: .75rem 1.5rem;
-}
-
-.contact a {
-  color: var(--paper);
-  font-size: 1.1rem;
+  flex-direction: column;
+  padding: 2.3rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
   text-decoration: none;
-  border-bottom: 1px solid rgba(230, 238, 243, .3);
-  padding-bottom: 2px;
-  transition: border-color .2s ease, color .2s ease;
+  transition: 180ms ease;
 }
 
-.contact a:hover,
-.contact a:focus-visible {
-  color: rgba(var(--cold), 1);
-  border-color: rgba(var(--cold), .8);
+.work-card:hover,
+.work-card:focus-visible {
+  border-color: var(--clay);
+  box-shadow: 0 18px 45px rgba(12, 40, 39, 0.1);
+  transform: translateY(-4px);
 }
 
-.no-script {
-  position: fixed;
-  z-index: 100;
-  bottom: 1rem;
-  left: 1rem;
-  color: #fff;
+.work-card-featured {
+  grid-row: span 2;
+  min-height: 656px;
+  justify-content: flex-end;
+  color: white;
+  background:
+    linear-gradient(to top, rgba(12, 40, 39, 0.96) 0%, rgba(12, 40, 39, 0.35) 72%),
+    url("assets/work/natures-answers-hand.webp") center / cover;
+  border-color: transparent;
 }
 
-@keyframes drift {
-  0%, 100% { transform: scaleY(.5); transform-origin: top; opacity: .2; }
-  50% { transform: scaleY(1); transform-origin: top; opacity: .8; }
+.work-type {
+  margin-bottom: auto;
+  color: var(--clay);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
-@keyframes soundPulse {
-  50% { box-shadow: 0 0 15px currentColor; opacity: .55; }
+.work-card-featured .work-type {
+  color: var(--sun);
 }
 
-/* Each word rises into place and blooms once on arrival, then the glow decays — the same
-   move the storm makes on the question at the top of the page. */
-@keyframes wordArrive {
-  from { opacity: 0; transform: translateY(.5em); text-shadow: 0 0 0 rgba(var(--cold), 0); }
-  55% { opacity: 1; text-shadow: 0 0 24px rgba(var(--cold), .55); }
-  to { opacity: 1; transform: none; text-shadow: 0 0 0 rgba(var(--cold), 0); }
+.work-card p {
+  color: var(--muted);
 }
 
-/* A wide screen has room to make the geometry and its explanation peers instead of forcing
-   the explanation into the shallow strip beneath it. The whole passage stays together on
-   the right, preserving its reading order and the tails' right-to-left run at the letters.
-   Narrow screens keep the vertical composition below. */
-@media (min-width: 760px) {
-  .shaft { background: radial-gradient(circle at 30% 50%, #071019 0, #020406 12%, #000 34%); }
+.work-card-featured p {
+  color: #d8e4dc;
+}
 
-  .ring,
-  .descent-geometry {
-    top: 50%;
-    left: 30%;
+.work-link {
+  margin-top: auto;
+  font-size: 0.87rem;
+  font-weight: 750;
+}
+
+.portfolio-link {
+  margin: 2.2rem 0 0;
+  color: var(--muted);
+  text-align: right;
+}
+
+.portfolio-link a {
+  color: var(--ink);
+  font-weight: 750;
+}
+
+.about-section {
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: clamp(3rem, 9vw, 9rem);
+  border-top: 1px solid var(--line);
+}
+
+.about-body {
+  padding-top: 2rem;
+  color: var(--muted);
+  font-size: 1.05rem;
+}
+
+.about-body p:first-child {
+  color: var(--ink);
+  font-size: 1.28rem;
+}
+
+.fit-section {
+  display: grid;
+  grid-template-columns: 0.75fr 1.25fr;
+  gap: 5rem;
+  padding-top: 0;
+}
+
+.fit-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+
+.fit-list li {
+  display: grid;
+  grid-template-columns: 3rem 1fr;
+  gap: 1rem;
+  padding: 1.35rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.fit-list span {
+  color: var(--clay);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.contact-section {
+  padding: clamp(5rem, 10vw, 9rem) max(1.5rem, calc((100vw - 1120px) / 2));
+  color: white;
+  background: var(--clay);
+  text-align: center;
+}
+
+.contact-section .eyebrow {
+  color: #ffe2b0;
+}
+
+.contact-section h2,
+.contact-section p {
+  max-width: 760px;
+  margin-inline: auto;
+}
+
+.contact-section p:not(.eyebrow) {
+  color: #fff0e9;
+  font-size: 1.08rem;
+}
+
+.button-light {
+  margin-top: 1rem;
+  color: var(--clay);
+  background: white;
+  border-color: white;
+}
+
+footer {
+  min-height: 6rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+footer p {
+  margin: 0;
+}
+
+footer a {
+  font-weight: 750;
+  text-decoration: none;
+}
+
+@media (max-width: 900px) {
+  nav a:not(.nav-cta) {
+    display: none;
   }
 
-  .descent-copy {
-    top: 0;
-    right: 4vw;
-    bottom: 0;
-    left: auto;
-    align-content: center;
-    width: 46vw;
-    margin: 0;
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 4rem;
+    padding-block: 5rem;
   }
 
-  /* Desktop is the flattened form of the set: every word and both braces are one flex line.
-     Scale against width so the complete expression still fits on compact laptop screens. */
-  .contact-set {
-    flex-wrap: nowrap;
+  .hero::before {
+    top: 35rem;
+    width: 75vw;
+    height: 500px;
+  }
+
+  .snapshot {
+    max-width: 500px;
+  }
+
+  .proof-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .proof-strip p:nth-child(3) {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .proof-strip p:nth-child(4) {
+    border-top: 1px solid var(--line);
+  }
+
+  .section-heading,
+  .about-section,
+  .fit-section {
+    grid-template-columns: 1fr;
+    gap: 2.2rem;
+  }
+
+  .section-heading {
+    align-items: start;
+  }
+
+  .hawaii-section {
+    grid-template-columns: 1fr;
+  }
+
+  .island-art {
+    min-height: 480px;
+  }
+
+  .hawaii-copy {
     max-width: none;
-    font-size: clamp(1.05rem, 1.85vw, 1.75rem);
-    white-space: nowrap;
+  }
+
+  .work-card-featured {
+    min-height: 656px;
   }
 }
 
-@media (max-width: 650px) {
-  .sound-label { display: none; }
-  .sound-toggle { top: 1rem; right: 1rem; }
-  /* Phone screens are dimmer and rarely viewed in the dark, so the ∅ needs a higher floor
-     to read at all before the lightning or the scroll reveal reaches it. */
-  :root { --mark-rest: .42; }
-  .small-line { transform: translateY(-6rem); }
-  .answer-whisper { transform: translateY(7rem); }
-  .shaft { background: radial-gradient(circle at 50% 31%, #0a1720 0, #03080d 17%, #000 42%); }
-  .ring {
-    border-color: rgba(126, 166, 194, .16);
-    box-shadow: inset 0 0 80px rgba(89, 137, 169, .1), 0 0 35px #000;
+@media (max-width: 620px) {
+  .site-header,
+  .section,
+  .hero,
+  .proof-strip,
+  footer {
+    width: min(100% - 2rem, 1180px);
   }
-  .ring::before,
-  .ring::after { background: rgba(174, 208, 229, .15); }
-  .ring,
-  .descent-geometry { top: 31%; }
-  /* The geometry sits higher here (centred at 31%) but is capped on width rather than height,
-     so it reaches lowest on the shortest phones — about 56%, with the hint under it at 59%.
-     63% clears both and still leaves the band far roomier than it is on a laptop. */
-  .descent-copy {
-    top: 63%;
-    bottom: max(1rem, env(safe-area-inset-bottom));
-    width: 92vw;
-  }
-  .geometry-hint { top: calc(100% + .5rem); }
-  .ring-1 { width: 175vmax; height: 130vmax; }
-  .ring-2 { width: 110vmax; height: 88vmax; }
 
-  /* Two deliberate rows of three rather than wherever the wrap happens to fall, so the two
-     halves can arrive from opposite sides and meet. The type comes down and the padding in
-     so a row of three words plus its brace fits on one line down to a 320px screen. */
-  .contact { padding: 3.5rem 5vw 6rem; }
-  .contact-set {
+  .site-header {
+    min-height: 4.5rem;
+  }
+
+  .wordmark span:last-child {
+    display: none;
+  }
+
+  .nav-cta {
+    padding: 0.55rem 0.9rem;
+  }
+
+  .hero {
+    min-height: auto;
+    padding-block: 4rem 5.5rem;
+  }
+
+  h1 {
+    font-size: clamp(2.85rem, 14vw, 4.4rem);
+  }
+
+  .hero-actions {
+    align-items: stretch;
     flex-direction: column;
-    align-items: center;
-    font-size: clamp(.9rem, 4.2vw, 1.3rem);
-  }
-  .set-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: center;
-    gap: .3em .42em;
   }
 
-  .work { padding: 4rem 6vw 6rem; gap: 3.5rem; }
-  .work-piece,
-  .work-piece-reverse { grid-template-columns: 1fr; gap: 1.5rem; }
-  .work-piece-reverse .work-embed,
-  .work-piece-reverse .work-copy { order: initial; }
+  .snapshot {
+    padding: 1.5rem;
+    box-shadow: 0.6rem 0.6rem 0 var(--sun), var(--shadow);
+    transform: none;
+  }
+
+  .proof-strip {
+    width: 100%;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .proof-strip p {
+    padding: 1.1rem;
+  }
+
+  .proof-strip strong {
+    font-size: 1.3rem;
+  }
+
+  .section {
+    padding-block: 6rem;
+  }
+
+  .skill-grid,
+  .work-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .skill-card,
+  .skill-card:nth-child(even) {
+    min-height: auto;
+    margin: 0;
+    padding: 1.7rem;
+  }
+
+  .skill-number {
+    margin-bottom: 3rem;
+  }
+
+  .hawaii-section {
+    width: 100%;
+  }
+
+  .island-art {
+    min-height: 390px;
+  }
+
+  .sun {
+    width: 6.5rem;
+  }
+
+  .hawaii-copy {
+    padding: 4.5rem 1.25rem;
+  }
+
+  .work-card,
+  .work-card-featured {
+    min-height: 340px;
+    grid-row: auto;
+    padding: 1.6rem;
+  }
+
+  .work-card-featured {
+    min-height: 520px;
+  }
+
+  .portfolio-link {
+    text-align: left;
+  }
+
+  footer {
+    min-height: 7rem;
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: center;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  .noise { opacity: .025; }
-  .scroll-cue i,
-  .sound-toggle[aria-pressed="true"] .sound-icon { animation: none; }
-  .question { color: rgba(230, 238, 243, .8); }
-  /* No storm here, so --lit is pinned low. Light the mark and cue statically instead,
-     or they never become visible at all. */
-  :root { --mark-rest: 1; }
-  .scroll-cue { opacity: calc(.34 * clamp(0, calc(1 - var(--progress) * 4), 1)); }
-  .js :is(.descent-lead, .descent-claim, .iui-letter, .iui-tail) { opacity: 1; transform: none; }
-  .js .contact-set :is(.brace, .key-word),
-  .contact.revealed .contact-set :is(.brace, .key-word),
-  .contact-set .ltr { opacity: 1; transform: none; animation: none; }
-  .descent-copy { transform: none !important; }
-  .geometry-hint { opacity: 1; transform: translate(-50%, 0); transition: none; }
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
 }
