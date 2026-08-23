@@ -92,7 +92,9 @@ The `workaway-ocean-sunset` branch preserves the accepted animation foundation b
 the landscape composition. Open ocean occupies the left side, mountain silhouettes gather
 on the right, the sun sets unobstructed over the water, and the moon rises behind the
 mountains. A tapered reflection made from broken horizontal bands tracks the sun across the
-water, strengthens as it approaches the horizon, and fades after it sets.
+water, strengthens as it approaches the horizon, and fades after it sets. Both mountain
+layers terminate on the same horizon. The reflection combines a pale-gold central path with
+orange, coral, and muted-red bands plus a broader warm wash across the surrounding water.
 
 The At a Glance card has no large background accent. Its yellow offset layer remains fixed
 while the green card tilts in the opposite direction on mouse hover or touch. On narrower

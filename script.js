@@ -38,6 +38,7 @@ if (islandArt && islandStage && !reduceMotion.matches) {
     islandArt.style.setProperty("--moon-y", `${moonY}px`);
     islandArt.style.setProperty("--reflection-x", `${sunX}px`);
     islandArt.style.setProperty("--reflection-opacity", (reflection * 0.82).toFixed(3));
+    islandArt.style.setProperty("--wash-opacity", (reflection * 0.72).toFixed(3));
     islandArt.style.setProperty("--rainbow-opacity", (daylightRainbow * 0.72 + moonbow * 0.38).toFixed(3));
     islandArt.style.setProperty("--rainbow-saturation", (1.1 - moonbow * 0.38).toFixed(3));
     islandArt.style.setProperty("--night-opacity", phase(0.18, 1).toFixed(3));
