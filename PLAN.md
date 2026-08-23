@@ -22,9 +22,10 @@ room for work examples and context than the profile allows.
   Island and would also welcome the chance to experience an island that is new to him.
 - Hawaii is not new to him: he lived there, spent six months in farm work trades on
   Kauai, spent most of his Hawaii time on the Big Island, and one of his sons was born there.
-- His broader background includes four years of work-trade experience on farms: two years
-  in Hawaii and two years on the mainland, including exchanges through WWOOF. The six
-  months on Kauai is one specific part of that experience, not the total.
+- His broader farm background includes two years of work trade in Hawaii and two partial
+  summers of work trade on the mainland, including exchanges through WWOOF. He later
+  returned as a paid worker to a mainland farm where he had previously volunteered. The
+  six months on Kauai is one specific part of his Hawaii experience, not the total.
 - Lead with six years of professional electrical experience.
 - Follow with construction and home-project experience: decks, bathroom remodels,
   flooring, repairs, and maintenance.
