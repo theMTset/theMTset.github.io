@@ -442,7 +442,7 @@ h3 {
 .island-art::after {
   content: "";
   position: absolute;
-  z-index: 5;
+  z-index: 1;
   inset: 0;
   background: linear-gradient(to bottom, rgba(20, 29, 64, 0.9), rgba(40, 42, 72, 0.42));
   opacity: var(--night-opacity);
@@ -451,7 +451,7 @@ h3 {
 
 .sky-bodies {
   position: absolute;
-  z-index: 7;
+  z-index: 3;
   inset: 0 0 18%;
   overflow: hidden;
 }
@@ -520,6 +520,15 @@ h3 {
   left: -10%;
   width: 120%;
   clip-path: polygon(0 70%, 12% 58%, 22% 63%, 35% 35%, 43% 49%, 53% 21%, 61% 48%, 72% 42%, 84% 63%, 100% 52%, 100% 100%, 0 100%);
+}
+
+.ridge::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #172f3e;
+  opacity: var(--night-opacity);
+  pointer-events: none;
 }
 
 .ridge-back {

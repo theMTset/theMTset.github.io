@@ -81,9 +81,10 @@ The moon stays at constant brightness while the sky itself darkens. The page doe
 the moonbow reference. Without JavaScript or when reduced motion is requested, the stable
 state is daylight with the sun and rainbow, not night.
 
-The evening tint eases across most of the sticky timeline and sits above both the sky and
-mountain layers, so the whole landscape changes gradually. The celestial bodies, rainbow,
-moonbow, and water highlights remain above the tint and retain their own brightness.
+The evening tint eases across most of the sticky timeline. A sky tint sits behind the
+celestial bodies, while matching overlays darken the mountain layers independently. This
+keeps the sun and moon at constant brightness but restores their correct position behind the
+mountain silhouettes. The rainbow, moonbow, and water highlights remain in front.
 
 The At a Glance card has no large background accent. Its yellow offset layer remains fixed
 while the green card tilts in the opposite direction on mouse hover or touch. On narrower
