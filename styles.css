@@ -535,7 +535,9 @@ h3 {
 
 .rainbow-violet {
   stroke: #814fa8;
-  stroke-width: 10;
+  /* The inner edge is uncovered, so a narrower stroke matches the visible width
+     of the partially overlapped bands beside it. */
+  stroke-width: 8;
 }
 
 .ridge {
