@@ -585,7 +585,7 @@ h3 {
 
 .work-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
 }
 
@@ -608,14 +608,7 @@ h3 {
 }
 
 .work-card-featured {
-  grid-row: span 2;
-  min-height: 656px;
-  justify-content: flex-end;
-  color: white;
-  background:
-    linear-gradient(to top, rgba(12, 40, 39, 0.96) 0%, rgba(12, 40, 39, 0.35) 72%),
-    url("assets/work/natures-answers-hand.webp") center / cover;
-  border-color: transparent;
+  background: transparent;
 }
 
 .work-type {
@@ -627,16 +620,8 @@ h3 {
   text-transform: uppercase;
 }
 
-.work-card-featured .work-type {
-  color: var(--sun);
-}
-
 .work-card p {
   color: var(--muted);
-}
-
-.work-card-featured p {
-  color: #d8e4dc;
 }
 
 .work-link {
@@ -789,6 +774,10 @@ footer a {
     align-items: start;
   }
 
+  .work-grid {
+    grid-template-columns: 1fr;
+  }
+
   .hawaii-section {
     display: block;
     min-height: auto;
@@ -825,9 +814,6 @@ footer a {
     line-height: 1.6;
   }
 
-  .work-card-featured {
-    min-height: 656px;
-  }
 }
 
 @media (max-width: 620px) {
@@ -928,10 +914,6 @@ footer a {
     min-height: 340px;
     grid-row: auto;
     padding: 1.6rem;
-  }
-
-  .work-card-featured {
-    min-height: 520px;
   }
 
   .portfolio-link {
