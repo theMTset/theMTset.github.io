@@ -18,7 +18,8 @@ room for work examples and context than the profile allows.
 ## Accepted direction
 
 - Matt will travel alone.
-- Kauai is the first choice, with the Big Island also under consideration.
+- Matt is open to placements on any Hawaiian island. He already knows Kauai and the Big
+  Island and would also welcome the chance to experience an island that is new to him.
 - Hawaii is not new to him: he lived there, spent six months in farm work trades on
   Kauai, spent most of his Hawaii time on the Big Island, and one of his sons was born there.
 - Lead with six years of professional electrical experience.
