@@ -427,6 +427,8 @@ h3 {
   --sun-y: 0px;
   --moon-x: 0px;
   --moon-y: 1000px;
+  --reflection-x: 0px;
+  --reflection-opacity: 0;
   --rainbow-opacity: 0.72;
   --rainbow-saturation: 1.1;
   position: sticky;
@@ -519,7 +521,7 @@ h3 {
   z-index: 4;
   left: -10%;
   width: 120%;
-  clip-path: polygon(0 70%, 12% 58%, 22% 63%, 35% 35%, 43% 49%, 53% 21%, 61% 48%, 72% 42%, 84% 63%, 100% 52%, 100% 100%, 0 100%);
+  clip-path: polygon(0 100%, 48% 100%, 56% 66%, 64% 75%, 74% 31%, 82% 52%, 91% 40%, 100% 59%, 100% 100%);
 }
 
 .ridge::after {
@@ -541,7 +543,7 @@ h3 {
   bottom: 13%;
   height: 55%;
   background: #183f38;
-  clip-path: polygon(0 70%, 14% 49%, 24% 58%, 39% 31%, 51% 52%, 65% 25%, 75% 55%, 89% 44%, 100% 58%, 100% 100%, 0 100%);
+  clip-path: polygon(0 100%, 56% 100%, 64% 63%, 72% 75%, 82% 37%, 91% 67%, 100% 51%, 100% 100%);
 }
 
 .water-line {
@@ -551,6 +553,23 @@ h3 {
   width: 70%;
   height: 1px;
   background: rgba(255,255,255,0.38);
+}
+
+.sun-reflection {
+  position: absolute;
+  z-index: 7;
+  bottom: 0;
+  left: 16%;
+  width: clamp(7rem, 23%, 12rem);
+  height: 18%;
+  background: linear-gradient(to bottom, rgba(255, 213, 112, 0.3), rgba(255, 190, 61, 0.92));
+  clip-path: polygon(43% 0, 57% 0, 88% 100%, 12% 100%);
+  opacity: var(--reflection-opacity);
+  transform: translateX(var(--reflection-x));
+  -webkit-mask: repeating-linear-gradient(to bottom, #000 0 3px, transparent 3px 10px);
+  mask: repeating-linear-gradient(to bottom, #000 0 3px, transparent 3px 10px);
+  filter: blur(0.3px);
+  pointer-events: none;
 }
 
 .water-one { bottom: 9%; }
@@ -956,6 +975,8 @@ footer a {
     --sun-y: 0px !important;
     --moon-x: 0px !important;
     --moon-y: 1000px !important;
+    --reflection-x: 0px !important;
+    --reflection-opacity: 0 !important;
     --rainbow-opacity: 0.72 !important;
     --rainbow-saturation: 1.1 !important;
   }

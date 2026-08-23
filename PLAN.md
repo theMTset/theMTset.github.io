@@ -86,6 +86,14 @@ celestial bodies, while matching overlays darken the mountain layers independent
 keeps the sun and moon at constant brightness but restores their correct position behind the
 mountain silhouettes. The rainbow, moonbow, and water highlights remain in front.
 
+### Ocean-sunset alternative
+
+The `workaway-ocean-sunset` branch preserves the accepted animation foundation but changes
+the landscape composition. Open ocean occupies the left side, mountain silhouettes gather
+on the right, the sun sets unobstructed over the water, and the moon rises behind the
+mountains. A tapered reflection made from broken horizontal bands tracks the sun across the
+water, strengthens as it approaches the horizon, and fades after it sets.
+
 The At a Glance card has no large background accent. Its yellow offset layer remains fixed
 while the green card tilts in the opposite direction on mouse hover or touch. On narrower
 screens the complete card assembly is centered.
