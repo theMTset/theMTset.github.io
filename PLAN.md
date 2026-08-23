@@ -62,6 +62,9 @@ the sky layer is clipped above the water so neither body can appear in the ocean
 
 The scene uses a tall sticky stage rather than intercepting wheel or touch input. Normal page
 scrolling pins the artwork long enough to show the full sequence, then releases it naturally.
+On wide layouts the adjacent copy has its own equal-height track and a full-viewport sticky
+inner panel; it remains stationary for the complete animation rather than leaving early due
+to a translated sticky boundary.
 The sun moves continuously into the scene from above and down behind the mountains. The moon
 then moves continuously from below the mountains and exits above before the sticky scene
 releases. A large asymmetric rainbow begins exactly at the bottom edge of the water and crosses

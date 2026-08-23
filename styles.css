@@ -546,13 +546,21 @@ h3 {
 .water-two { bottom: 6%; width: 50%; }
 .water-three { bottom: 3%; width: 35%; }
 
+.hawaii-copy-track {
+  min-height: 210vh;
+}
+
 .hawaii-copy {
   position: sticky;
-  top: 50%;
-  align-self: center;
+  top: 0;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   max-width: 650px;
+  margin-inline: auto;
   padding: clamp(4rem, 8vw, 8rem);
-  transform: translateY(-50%);
 }
 
 .hawaii-copy .eyebrow {
@@ -778,6 +786,10 @@ footer a {
     min-height: 190vh;
   }
 
+  .hawaii-copy-track {
+    min-height: auto;
+  }
+
   .island-art {
     height: 100vh;
   }
@@ -785,8 +797,9 @@ footer a {
   .hawaii-copy {
     position: relative;
     top: auto;
+    min-height: 0;
+    display: block;
     max-width: none;
-    transform: none;
   }
 
   .work-card-featured {
@@ -932,13 +945,15 @@ footer a {
   }
 
   .hawaii-section,
-  .island-stage {
+  .island-stage,
+  .hawaii-copy-track {
     min-height: auto;
   }
 
   .hawaii-copy {
     position: relative;
     top: auto;
-    transform: none;
+    min-height: 0;
+    display: block;
   }
 }
