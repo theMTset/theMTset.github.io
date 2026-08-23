@@ -37,6 +37,7 @@ room for work examples and context than the profile allows.
   private, advance discussion with a host.
 - Be precise about electrical work: professional experience does not override Hawaii's
   licensing, permitting, insurance, or safety requirements.
+- The concise statement of Matt's work ethic is: "Be honest and do good work."
 
 ## Design direction
 
