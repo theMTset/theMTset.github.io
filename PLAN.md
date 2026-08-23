@@ -104,9 +104,10 @@ The At a Glance card has no large background accent. Its yellow offset layer rem
 while the green card tilts in the opposite direction on mouse hover or touch. On narrower
 screens the complete card assembly is centered.
 
-The three digital-work cards use equal sizing and the same unillustrated treatment. None is
-visually promoted as a featured project; they form one row on desktop and stack on narrower
-layouts.
+The three digital-work cards use equal sizing and screenshots captured from their live sites
+at the same desktop viewport. Matching dark gradients keep the card copy readable without
+visually promoting one project over the others. They form one row on desktop and stack on
+narrower layouts.
 
 ## Deployment
 
