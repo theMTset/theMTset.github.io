@@ -411,14 +411,14 @@ h3 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   align-items: start;
-  min-height: 210vh;
+  min-height: 240vh;
   padding: 0;
   color: white;
   background: var(--ink-deep);
 }
 
 .island-stage {
-  min-height: 210vh;
+  min-height: 240vh;
 }
 
 .island-art {
@@ -549,7 +549,7 @@ h3 {
 .water-three { bottom: 3%; width: 35%; }
 
 .hawaii-copy-track {
-  min-height: 210vh;
+  min-height: 240vh;
 }
 
 .hawaii-copy {
@@ -795,7 +795,7 @@ footer a {
   }
 
   .island-stage {
-    min-height: 190vh;
+    min-height: 215vh;
   }
 
   .hawaii-copy-track {
