@@ -415,23 +415,11 @@ h3 {
   --sun-y: 0px;
   --moon-y: 430px;
   position: relative;
-  min-height: 720px;
+  min-height: 840px;
   overflow: hidden;
   background:
     linear-gradient(to bottom, rgba(255,255,255,0.07), transparent 60%),
     var(--ocean);
-}
-
-.island-art::before {
-  content: "HAWAII";
-  position: absolute;
-  z-index: 6;
-  top: 2.5rem;
-  left: 2.5rem;
-  color: rgba(255,255,255,0.65);
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 0.3em;
 }
 
 .island-art::after {
@@ -736,7 +724,7 @@ footer a {
   }
 
   .island-art {
-    min-height: 480px;
+    min-height: 620px;
   }
 
   .hawaii-copy {
@@ -834,7 +822,7 @@ footer a {
   }
 
   .island-art {
-    min-height: 390px;
+    min-height: 520px;
   }
 
   .sun {

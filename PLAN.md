@@ -49,9 +49,10 @@ The first draft deliberately uses a graphic island panel rather than generic sto
 Real photos of Matt and his physical projects should replace or supplement it after suitable
 images are selected.
 
-The Hawaii panel is island-neutral rather than labeled Kauai. As it crosses the viewport,
-the sun sets behind the ridges, the moon rises, and the sky moves toward night. Reduced-motion
-mode holds a static twilight composition.
+The Hawaii panel is island-neutral and carries no label of its own; the adjacent "Why Hawaii"
+heading provides enough context. The taller sky gives the scroll sequence room to breathe. As
+the panel crosses the viewport, the sun sets behind the ridges, the moon rises, and the sky
+moves toward night. Reduced-motion mode holds a static twilight composition.
 
 The sky timeline uses the graphic's rendered height and the current viewport height rather
 than fixed travel distances. The sun and moon pause above the ridgeline before moving, and
