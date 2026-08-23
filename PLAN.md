@@ -65,9 +65,10 @@ scrolling pins the artwork long enough to show the full sequence, then releases 
 On wide layouts the adjacent copy has its own equal-height track and a full-viewport sticky
 inner panel; it remains stationary for the complete animation rather than leaving early due
 to a translated sticky boundary.
-The sun moves continuously into the scene from above and down behind the mountains. The moon
-then moves continuously from below the mountains and exits above before the sticky scene
-releases. A large asymmetric rainbow begins exactly at the bottom edge of the water and crosses
+The sun moves continuously into the scene from the upper left and arcs slightly inward as it
+sets behind the mountains. The moon rises from the lower right, arcs inward, and exits above
+before the sticky scene releases. Vertical movement remains dominant so neither path looks
+exaggerated. A large asymmetric rainbow begins exactly at the bottom edge of the water and crosses
 the artwork before continuing beyond its right edge. Its SVG keeps a fixed aspect ratio rather
 than stretching with the viewport. It is present from the start, fades with the setting sun,
 then returns more faintly and with less color as the moon rises. It remains in front of the

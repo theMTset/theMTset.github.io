@@ -423,7 +423,9 @@ h3 {
 
 .island-art {
   --night-opacity: 0;
+  --sun-x: 0px;
   --sun-y: 0px;
+  --moon-x: 0px;
   --moon-y: 1000px;
   --rainbow-opacity: 0.72;
   --rainbow-saturation: 1.1;
@@ -463,7 +465,7 @@ h3 {
   background: var(--sun);
   border-radius: 50%;
   box-shadow: 0 0 80px rgba(239, 184, 74, 0.32);
-  transform: translateY(var(--sun-y));
+  transform: translate(var(--sun-x), var(--sun-y));
   will-change: transform;
 }
 
@@ -476,7 +478,7 @@ h3 {
   background: #f2eddc;
   border-radius: 50%;
   box-shadow: 0 0 55px rgba(235, 240, 225, 0.24);
-  transform: translateY(var(--moon-y));
+  transform: translate(var(--moon-x), var(--moon-y));
   will-change: transform;
 }
 
@@ -938,7 +940,9 @@ footer a {
     position: relative;
     height: min(840px, 100vh);
     --night-opacity: 0 !important;
+    --sun-x: 0px !important;
     --sun-y: 0px !important;
+    --moon-x: 0px !important;
     --moon-y: 1000px !important;
     --rainbow-opacity: 0.72 !important;
     --rainbow-saturation: 1.1 !important;
