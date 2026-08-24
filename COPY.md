@@ -5,6 +5,7 @@ The live copy is in `index.html`. This file records the boundaries for later rev
 ## Voice
 
 - First person, plain, and specific.
+- No em dashes in public-facing copy.
 - Competent without promising work outside experience or local law.
 - Personal enough to establish trust, but not a public account of divorce or custody.
 - Focused on what a host needs to assess: contribution, expectations, shared living,

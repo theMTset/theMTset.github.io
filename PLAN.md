@@ -1,4 +1,4 @@
-# Workaway introduction — site plan
+# Workaway introduction: site plan
 
 **Status:** First draft on the `workaway` branch
 **Target URL:** `https://themtset.github.io/workaway/`
@@ -18,12 +18,13 @@ room for work examples and context than the profile allows.
 ## Accepted direction
 
 - Matt will travel alone.
-- Matt is open to placements on any Hawaiian island. He already knows Kauai and the Big
-  Island and would also welcome the chance to experience an island that is new to him.
+- Matt is open to placements on any Hawaiian island. He already knows the Big Island and
+  Kauai and would be glad to return to either or experience an island that is new to him.
 - The landing eyebrow says only "Workaway." Island openness belongs in the At a Glance
   card rather than the opening label.
-- Hawaii is not new to him: he lived there, spent six months in farm work trades on
-  Kauai, spent most of his Hawaii time on the Big Island, and one of his sons was born there.
+- Hawaii is not new to him: most of his time living, farming, and working there was on the
+  Big Island. He also spent six months doing farm work trades on Kauai, and one of his sons
+  was born in Hawaii.
 - His broader farm background includes two years of work trade in Hawaii and two partial
   summers of work trade on the mainland, including exchanges through WWOOF. He later
   returned as a paid worker to a mainland farm where he had previously volunteered. The
