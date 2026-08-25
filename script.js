@@ -23,7 +23,7 @@ if (islandArt && islandStage && !reduceMotion.matches) {
     const phase = (start, end) => smoothstep(Math.min(1, Math.max(0, (progress - start) / (end - start))));
     const linearPhase = (start, end) => Math.min(1, Math.max(0, (progress - start) / (end - start)));
     const sunPhase = linearPhase(0, 0.82);
-    const moonPhase = linearPhase(0.42, 1);
+    const moonPhase = linearPhase(0.74, 1);
     const daylightRainbow = 1 - phase(0.34, 0.68);
     const moonbow = phase(0.7, 0.84);
     const reflection = phase(0.38, 0.56) * (1 - phase(0.7, 0.8));

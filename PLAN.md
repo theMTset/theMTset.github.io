@@ -68,11 +68,12 @@ inner panel; it remains stationary for the complete animation rather than leavin
 to a translated sticky boundary. Its heading, body copy, and vertical padding also respond to
 viewport height, keeping the complete text visible on short desktop windows without overflow.
 The sun moves continuously into the scene from the upper left and arcs slightly inward as it
-sets behind the mountains. The moon rises from the lower right, arcs inward, and exits above
-before the sticky scene releases. Vertical movement remains dominant so neither path looks
-exaggerated. A large asymmetric rainbow begins exactly at the bottom edge of the water and crosses
-the artwork before continuing beyond its right edge. Its SVG keeps a fixed aspect ratio rather
-than stretching with the viewport. It is present from the start, fades with the setting sun,
+sets behind the mountains. The moon remains out of view until the sun has fully set, then rises
+from the lower right, arcs inward, and exits above before the sticky scene releases. Vertical
+movement remains dominant so neither path looks exaggerated. A large asymmetric rainbow begins
+exactly at the bottom edge of the water and crosses the artwork before continuing beyond its
+right edge. Its SVG keeps a fixed aspect ratio rather than stretching with the viewport. It is
+present from the start, fades with the setting sun,
 then returns more faintly and with less color as the moon rises. It remains in front of the
 mountain silhouettes rather than breaking behind them and remains visible at the end after
 the moon exits.
