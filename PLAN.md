@@ -73,10 +73,9 @@ from the lower right, arcs inward, and exits above before the sticky scene relea
 movement remains dominant so neither path looks exaggerated. A large asymmetric rainbow begins
 exactly at the bottom edge of the water and crosses the artwork before continuing beyond its
 right edge. Its SVG keeps a fixed aspect ratio rather than stretching with the viewport. It is
-present from the start, fades with the setting sun,
-then returns more faintly and with less color as the moon rises. It remains in front of the
-mountain silhouettes rather than breaking behind them and remains visible at the end after
-the moon exits.
+present from the start, fades with the setting sun, then returns more faintly and with less
+color as the moon emerges from behind the mountain silhouettes. It remains in front of the
+mountains rather than breaking behind them and remains visible at the end after the moon exits.
 The arc uses seven nested bands in correct outside-to-inside ROYGBIV order: red, orange,
 yellow, green, blue, indigo, and violet. A subtle blur blends adjacent edges without losing
 the seven-band order.
